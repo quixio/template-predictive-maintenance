@@ -34,6 +34,7 @@ def smooth_data(df):
 
     # Drop the rows with NaN values that were created by the rolling window
     df_smooth = df_smooth.dropna()
+    printer("5", df_smooth)
     
     if len(df_smooth) == 0:
         print("No valid data after smoothing.")
