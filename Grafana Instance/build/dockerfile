@@ -8,6 +8,8 @@ WORKDIR /app
 COPY --from=git /project .
 WORKDIR /app/
 
+RUN ls -l
+
 # Copy the custom configuration file into the container
 COPY custom.ini /etc/grafana/grafana.ini
 
