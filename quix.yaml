@@ -40,6 +40,20 @@ deployments:
       size: 2
     desiredStatus: Running
     variables: []
+  - name: Demo Data
+    application: Demo Data
+    deploymentType: Job
+    version: f4491256954bd19961cb805c265473e88c337c21
+    resources:
+      cpu: 200
+      memory: 200
+      replicas: 1
+    variables:
+      - name: Topic
+        inputType: OutputTopic
+        description: Name of the output topic to write into
+        required: true
+        value: f1-data
 
 # This section describes the Topics of the data pipeline
 topics:
