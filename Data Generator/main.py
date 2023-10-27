@@ -1,8 +1,11 @@
 import quixstreams as qx
-import os
 import random
 import time
 import csv
+import os
+
+# should the main loop run?
+shutting_down = False
 
 # Quix injects credentials automatically to the client.
 # Alternatively, you can always pass an SDK token manually as an argument.
@@ -10,6 +13,7 @@ client = qx.QuixStreamingClient()
 
 # output topic to stream data out of your service
 producer_topic = client.get_topic_producer(os.environ["output"])
+stream_producer = producer_topic.get_or_create_stream("3D Printer 1")
 
 # Initial temperatures in Fahrenheit
 hotend = 70  # Starting at room temperature (room temperature in Fahrenheit)
@@ -39,15 +43,17 @@ def log_to_csv(filename, *args):
         writer = csv.writer(file)
         writer.writerow(args)
 
-# Example usage
-# log_to_csv("log.csv", "2023-10-26", "Error", "An error occurred in module X.")
-
-log_to_csv("log.csv", "Elapsed", "hotend", "bed", "air")
-
+# log column headers if needed
+# log_to_csv("log.csv", "Elapsed", "hotend", "bed", "air")
 
 # Simulation loop
 start_time = time.time()
-while seconds_elapsed < 2 * 24 * 60 * 60:  # 2 days in seconds
+while not shutting_down and seconds_elapsed < 2 * 24 * 60 * 60:  # 2 days in seconds
+
+    # If shutdown has been requested, exit the loop.
+    if shutting_down:
+        break
+
     # Periodically increase the hot end temperature
     if seconds_elapsed % random.randint(3600, 7200) == 0 and hotend < hotend_target:
         hotend += random.uniform(5, 10)  # Spike in hot end temperature
@@ -60,7 +66,7 @@ while seconds_elapsed < 2 * 24 * 60 * 60:  # 2 days in seconds
     bed += random.uniform(-0.01, 1)
 
     if hotend_spiking:
-        if seconds_till_spike_end == 0:
+        if seconds_till_spike_end is 0:
             hotend -= spike
             hotend_spiking = False
             print("Hotend cooling down")
@@ -81,18 +87,41 @@ while seconds_elapsed < 2 * 24 * 60 * 60:  # 2 days in seconds
     # Ensure the hot end stays within the desired range (220°F to 400°F)
     hotend = max(220, min(hotend, 400))
 
-    #print(f"Time: {int(seconds_elapsed)}s - Hot End: {hotend:.2f}°F, Bed: {bed:.2f}°F, Air: {air:.2f}°F")
-    log_to_csv("log.csv", int(seconds_elapsed), f"{hotend:.2f}", f"{bed:.2f}", f"{air:.2f}")
+    # log_to_csv("log.csv", int(seconds_elapsed), f"{hotend:.2f}", f"{bed:.2f}", f"{air:.2f}")
 
-    #time_elapsed = time.time() - start_time
+    # Get the current time in nanoseconds
+    current_time_ns = int(time.time() * 1e9)
+
+    # Create a DataFrame with one row
+    data = {
+        'timestamp': [current_time_ns],
+        'hotend': [hotend],  # Replace with your hotend value
+        'bed': [bed],     # Replace with your bed value
+        'air': [air]      # Replace with your air value
+    }
+
+     # publish the data to the Quix stream created earlier
+    stream_producer.timeseries.publish(data)
 
     seconds_elapsed += 1
 
-    #time.sleep(0.005)
+    # sleep for 1 second
+    # this ensures 1 row per second
+    # decrease sleep for faster generation
+    time.sleep(1)
 
 # Final temperature report
 print("Print finished. Final temperatures:")
 print(f"Hot End: {hotend:.2f}°F, Bed: {bed:.2f}°F, Air: {air:.2f}°F")
 
+def before_shutdown():
+    global shutting_down
 
+    print("Shutting down")
+    # set the flag to True to stop the app as soon as possible.
+    shutting_down = True
 
+# keep the app running and handle termination signals.
+qx.App.run(before_shutdown=before_shutdown)
+
+print("Exiting")
