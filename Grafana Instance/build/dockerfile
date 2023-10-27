@@ -5,13 +5,13 @@ FROM grafana/grafana:10.2.0-ubuntu
 ARG GRAFANA_PORT=80
 
 WORKDIR /app
-COPY --from=git /project/build/custom.ini custom.ini
+COPY --from=git /project/build/custom.ini /etc/grafana/grafana.ini
 WORKDIR /app/
 
 RUN ls -l
 
 # Copy the custom configuration file into the container
-COPY custom.ini /etc/grafana/grafana.ini
+#COPY custom.ini /etc/grafana/grafana.ini
 
 # Start Grafana
 CMD ["grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "--packaging=docker"]
