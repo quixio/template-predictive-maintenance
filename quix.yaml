@@ -17,7 +17,7 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: websocketserver-forecast
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
