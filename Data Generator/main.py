@@ -101,7 +101,7 @@ while not shutting_down and seconds_elapsed < 2 * 24 * 60 * 60:  # 2 days in sec
     }
 
      # publish the data to the Quix stream created earlier
-    stream_producer.timeseries.publish(data)
+    stream_producer.timeseries.publish(pd.DataFrame(data))
 
     seconds_elapsed += 1
 
