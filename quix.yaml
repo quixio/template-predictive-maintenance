@@ -23,7 +23,7 @@ deployments:
         inputType: InputTopic
         description: This is the input topic to read data from
         required: true
-        value: forecast
+        value: f1-data
   - name: Grafana Instance
     application: Grafana Instance
     deploymentType: Service
