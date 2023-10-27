@@ -24,6 +24,16 @@ deployments:
         description: This is the input topic to read data from
         required: true
         value: forecast
+  - name: Grafana Instance
+    application: Grafana Instance
+    deploymentType: Service
+    version: 044cd0251df8e50560f39ed7627721684c6c215a
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables: []
 
 # This section describes the Topics of the data pipeline
 topics:
