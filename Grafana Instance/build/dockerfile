@@ -2,10 +2,10 @@
 FROM grafana/grafana:10.2.0-ubuntu
 
 # Expose the Grafana HTTP port as an argument (default is 3000)
-ARG GRAFANA_PORT=3000
+ARG GRAFANA_PORT=80
 
 # Set the Grafana HTTP port in the configuration file
-RUN sed -i "s/http_port = 3000/http_port = $GRAFANA_PORT/" /etc/grafana/grafana.ini
+RUN sed -i "s/http_port = 80/http_port = $GRAFANA_PORT/" /etc/grafana/grafana.ini
 
 # You can add any custom configurations or provisioning files here
 # For example, if you have custom configuration files, you can copy them to the appropriate location in the container
