@@ -2,6 +2,15 @@ import quixstreams as qx
 import pandas as pd
 import os
 
+# Customize Pandas display options for debugging
+pd.set_option('display.max_rows', None)        # Display all rows
+pd.set_option('display.max_columns', None)     # Display all columns
+pd.set_option('display.max_colwidth', 1000)    # Set maximum width for columns
+pd.set_option('display.float_format', '{:.2f}'.format)  # Display numeric values with 2 decimal places
+pd.set_option('display.nan', 'NaN')            # Display NaN values as 'NaN'
+pd.set_option('display.width', 1000)          # Set display width
+
+
 # Quix injects credentials automatically to the client.
 # Alternatively, you can always pass an SDK token manually as an argument.
 client = qx.QuixStreamingClient()
