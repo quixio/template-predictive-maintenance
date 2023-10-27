@@ -1,11 +1,14 @@
-FROM python:3.11.1-slim-buster
+# Use an official Grafana image as the base image
+FROM grafana/grafana:10.2.0-ubuntu
 
-ENV DEBIAN_FRONTEND="noninteractive"
-ENV PYTHONUNBUFFERED=1
-ENV PYTHONIOENCODING=UTF-8
+# Expose the Grafana HTTP port as an argument (default is 3000)
+ARG GRAFANA_PORT=3000
 
-WORKDIR /app
-COPY --from=git /project .
-WORKDIR /app/
-RUN find | grep requirements.txt | xargs -I '{}' python3 -m pip install -i http://pip-cache.pip-cache.svc.cluster.local/simple --trusted-host pip-cache.pip-cache.svc.cluster.local -r '{}' --extra-index-url https://pypi.org/simple --extra-index-url https://pkgs.dev.azure.com/quix-analytics/53f7fe95-59fe-4307-b479-2473b96de6d1/_packaging/public/pypi/simple/
-ENTRYPOINT ["python3", "main.py"]
+# Set the Grafana HTTP port in the configuration file
+RUN sed -i "s/http_port = 3000/http_port = $GRAFANA_PORT/" /etc/grafana/grafana.ini
+
+# You can add any custom configurations or provisioning files here
+# For example, if you have custom configuration files, you can copy them to the appropriate location in the container
+
+# Start Grafana
+CMD ["grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "--packaging=docker"]
