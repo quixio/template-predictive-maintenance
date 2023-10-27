@@ -35,12 +35,15 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 
     # transform the data by applying the smoothing algorithm
     df_smooth = smooth_data(df)
-    
+
     # Print the smoothed data
     print(df_smooth)
 
+    # create a stream on the output topic using the streamid of the incoming stream
     stream_producer = producer_topic.get_or_create_stream(stream_id = stream_consumer.stream_id)
-    stream_producer.timeseries.buffer.publish(df)
+
+    # publish the smoothed data to the putput topic
+    stream_producer.timeseries.buffer.publish(df_smooth)
 
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # subscribe to new DataFrames being received
