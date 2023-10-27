@@ -14,4 +14,4 @@ RUN ls -l
 #COPY custom.ini /etc/grafana/grafana.ini
 
 # Start Grafana
-CMD ["grafana-server", "--config=/etc/grafana/grafana.ini", "--homepath=/usr/share/grafana", "--packaging=docker"]
+CMD ["grafana-server", "--config=/project/build/custom.ini", "--homepath=/usr/share/grafana", "--packaging=docker"]
