@@ -7,7 +7,7 @@ pd.set_option('display.max_rows', None)        # Display all rows
 pd.set_option('display.max_columns', None)     # Display all columns
 pd.set_option('display.max_colwidth', 1000)    # Set maximum width for columns
 pd.set_option('display.float_format', '{:.2f}'.format)  # Display numeric values with 2 decimal places
-pd.set_option('display.nan', 'NaN')            # Display NaN values as 'NaN'
+#pd.set_option('display.nan', 'NaN')            # Display NaN values as 'NaN'
 pd.set_option('display.width', 1000)          # Set display width
 
 
