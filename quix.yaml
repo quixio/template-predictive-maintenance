@@ -38,7 +38,7 @@ deployments:
     state:
       enabled: true
       size: 2
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables: []
 
 # This section describes the Topics of the data pipeline
