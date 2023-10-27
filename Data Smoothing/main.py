@@ -65,6 +65,10 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
     # Transform data frame here in this method. You can filter data or add new features.
     # Pass modified data frame to output stream using stream producer.
 
+    print("===================")
+    print(df)
+    print("===================")
+
     # transform the data by applying the smoothing algorithm
     df_smooth = smooth_data(df)
 
