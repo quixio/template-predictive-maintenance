@@ -81,7 +81,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # subscribe to new DataFrames being received
     # if you aren't familiar with DataFrames there are other callbacks available
     # refer to the docs here: https://docs.quix.io/sdk/subscribe.html
-    buffer = newStream.timeseries.create_buffer()
+    buffer = stream_consumer.timeseries.create_buffer()
     buffer.time_span_in_milliseconds = 3000
 
     # stream_consumer.timeseries.on_dataframe_received = on_dataframe_received_handler
