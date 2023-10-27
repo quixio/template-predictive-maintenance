@@ -27,7 +27,7 @@ def printer(label, df):
 def smooth_data(df):
     printer("1", df)
     # Convert the timestamp to datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ns')
+    df['timestamp'] = pd.to_datetime(df['Time'], unit='ns')
 
     # Set the timestamp as the index
     df.set_index('timestamp', inplace=True)
