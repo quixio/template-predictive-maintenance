@@ -35,7 +35,7 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: grafanainstance-0402502
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables: []
 
 # This section describes the Topics of the data pipeline
