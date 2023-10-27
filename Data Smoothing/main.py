@@ -10,6 +10,11 @@ client = qx.QuixStreamingClient()
 consumer_topic = client.get_topic_consumer(os.environ["input"])
 producer_topic = client.get_topic_producer(os.environ["output"])
 
+def printer(label, df):
+    print(label)
+    print(df)
+    print(f"end--{label}")
+
 def smooth_data(df):
     print(df)
     # Convert the timestamp to datetime
