@@ -13,5 +13,7 @@ RUN ls -l
 # Copy the custom configuration file into the container
 #COPY custom.ini /etc/grafana/grafana.ini
 
+USER root
+
 # Start Grafana
 CMD ["grafana-server", "--config=/project/build/custom.ini", "--homepath=/usr/share/grafana", "--packaging=docker"]
