@@ -18,10 +18,10 @@ def smooth_data(df):
     df.set_index('timestamp', inplace=True)
 
     # Resample the data to 1 minute intervals and forward fill any missing data
-    df = df.resample('1T').ffill()
+    df = df.resample('1S').ffill()
 
     # Use a rolling window of 3 minutes and calculate the mean
-    df_smooth = df.rolling('3T').mean()
+    df_smooth = df.rolling('3S').mean()
 
     # Drop the rows with NaN values that were created by the rolling window
     df_smooth = df_smooth.dropna()
