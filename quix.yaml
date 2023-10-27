@@ -27,7 +27,7 @@ deployments:
   - name: Grafana Instance
     application: Grafana Instance
     deploymentType: Service
-    version: 51f2c14d239631ecc56299e15ca48c3a6fd6722d
+    version: a6a120e8dc8981d16771f5a2d102a0473506c1eb
     resources:
       cpu: 200
       memory: 500
@@ -35,6 +35,9 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: grafanainstance-0402502
+    state:
+      enabled: true
+      size: 2
     desiredStatus: Running
     variables: []
 
