@@ -27,7 +27,7 @@ deployments:
   - name: Grafana Instance
     application: Grafana Instance
     deploymentType: Service
-    version: 43697fe65bf0f6deacaa724083997afe284dfa06
+    version: 2cc706ad3238c82d03db2a83a0e4f43c8b7328f0
     resources:
       cpu: 200
       memory: 500
