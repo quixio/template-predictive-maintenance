@@ -66,7 +66,7 @@ while not shutting_down and seconds_elapsed < 2 * 24 * 60 * 60:  # 2 days in sec
     bed += random.uniform(-0.01, 1)
 
     if hotend_spiking:
-        if seconds_till_spike_end is 0:
+        if seconds_till_spike_end == 0:
             hotend -= spike
             hotend_spiking = False
             print("Hotend cooling down")
