@@ -4,7 +4,6 @@ FROM grafana/grafana:10.2.0-ubuntu
 # Expose the Grafana HTTP port as an argument (default is 3000)
 ARG GRAFANA_PORT=80
 
-RUN ls git
 #WORKDIR /app
 #COPY --from=git /project .
 #WORKDIR /app/
