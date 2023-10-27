@@ -11,6 +11,7 @@ consumer_topic = client.get_topic_consumer(os.environ["input"])
 producer_topic = client.get_topic_producer(os.environ["output"])
 
 def smooth_data(df):
+    print(df)
     # Convert the timestamp to datetime
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ns')
 
