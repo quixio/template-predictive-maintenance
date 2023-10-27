@@ -16,18 +16,21 @@ def printer(label, df):
     print(f"end--{label}")
 
 def smooth_data(df):
-    print(df)
+    printer("1", df)
     # Convert the timestamp to datetime
     df['timestamp'] = pd.to_datetime(df['timestamp'], unit='ns')
 
     # Set the timestamp as the index
     df.set_index('timestamp', inplace=True)
+    printer("2", df)
 
     # Resample the data to 1 minute intervals and forward fill any missing data
     df = df.resample('1S').ffill()
+    printer("3", df)
 
     # Use a rolling window of 3 minutes and calculate the mean
     df_smooth = df.rolling('3S').mean()
+    printer("4", df_smooth)
 
     # Drop the rows with NaN values that were created by the rolling window
     df_smooth = df_smooth.dropna()
