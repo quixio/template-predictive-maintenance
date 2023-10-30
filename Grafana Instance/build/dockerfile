@@ -3,8 +3,8 @@ FROM grafana/grafana:10.2.0-ubuntu
 
 # Expose the Grafana HTTP port as an argument (default is 3000)
 ARG GRAFANA_PORT=80
-#ARG default.paths.data=/state/data
-#ARG default.paths.provisioning=/state/provisioning
+ARG default.paths.data=/state/data
+ARG default.paths.provisioning=/state/provisioning
 
 
 WORKDIR /app
