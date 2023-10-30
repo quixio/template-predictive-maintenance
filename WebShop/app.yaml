@@ -1,0 +1,15 @@
+name: Template UI
+language: nodejs
+variables:
+  - name: input
+    inputType: InputTopic
+    description: This is the input topic to read data from
+    defaultValue: ''
+    required: true
+  - name: output
+    inputType: OutputTopic
+    description: This is the output topic to write data to
+    defaultValue: output-topic
+    required: true
+dockerfile: build/dockerfile
+defaultFile: main.js
