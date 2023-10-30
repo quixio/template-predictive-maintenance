@@ -11,7 +11,7 @@ WORKDIR /app
 COPY --from=git /project/build/custom.ini /etc/grafana/grafana.ini
 WORKDIR /app/
 
-ENV GF_PATHS_DATA="/state/grafana"
+ENV GF_PATHS_DATA="/app/state/grafana"
 
 USER root
 
