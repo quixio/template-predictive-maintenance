@@ -39,7 +39,7 @@ topics:
       retentionInMinutes: 60
       retentionInBytes: 52428800
   - name: data_alerts
-    persisted: true
+    persisted: false
     configuration:
       partitions: 2
       replicationFactor: 2
