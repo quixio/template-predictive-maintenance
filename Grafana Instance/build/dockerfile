@@ -11,6 +11,8 @@ WORKDIR /app
 COPY --from=git /project/build/custom.ini /etc/grafana/grafana.ini
 WORKDIR /app/
 
+ENV GF_PATHS_DATA="/state/grafana"
+
 USER root
 
 # Start Grafana
