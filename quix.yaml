@@ -40,6 +40,26 @@ deployments:
         description: Length of the data in seconds
         required: false
         value: 28800
+  - name: Forecast Service
+    application: Forecast Service
+    deploymentType: Service
+    version: 29e013cf4036e8e1f1164b9b1d756c3a9e439013
+    resources:
+      cpu: 500
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: Name of the input topic to listen to.
+        required: false
+        value: 3d-printer-data
+      - name: output
+        inputType: OutputTopic
+        description: Name of the output topic to write to.
+        required: false
+        value: forecast
 
 # This section describes the Topics of the data pipeline
 topics:
