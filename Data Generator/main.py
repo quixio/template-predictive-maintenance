@@ -22,11 +22,9 @@ def generate_data(stream: qx.StreamProducer):
 
     datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
 
-    data = []
     fluctuated_ambient_temperatures = []
     timestamp = datetime.now()
     next_fluctuation = timestamp + timedelta(seconds=random.randint(5, 300))
-    fluctuation_duration = timedelta(seconds=random.randint(1, 4))
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
 
@@ -64,24 +62,25 @@ def generate_data(stream: qx.StreamProducer):
         timestamp += timedelta(seconds=1)
 
 
-# Quix injects credentials automatically to the client.
-# Alternatively, you can always pass an SDK token manually as an argument.
-client = qx.QuixStreamingClient()
+if __name__ == "__main__":
+    # Quix injects credentials automatically to the client.
+    # Alternatively, you can always pass an SDK token manually as an argument.
+    client = qx.QuixStreamingClient()
 
-# Open the output topic where to write data out
-topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
+    # Open the output topic where to write data out
+    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
-# Set stream ID or leave parameters empty to get stream ID generated.
-stream = topic_producer.create_stream()
-stream.properties.name = "Generated 3D printer data"
+    # Set stream ID or leave parameters empty to get stream ID generated.
+    stream = topic_producer.create_stream()
+    stream.properties.name = "Generated 3D printer data"
 
-# Add metadata about time series data you are about to send. 
-stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
-stream.timeseries.add_definition("bed_temperature", "Bed temperature")
-stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
+    # Add metadata about time series data you are about to send.
+    stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
+    stream.timeseries.add_definition("bed_temperature", "Bed temperature")
+    stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
 
-print(f"Sending values for {os.environ['datalength']} seconds.")
-generate_data(stream)
+    print(f"Sending values for {os.environ['datalength']} seconds.")
+    generate_data(stream)
 
-print("Closing stream")
-stream.close()
+    print("Closing stream")
+    stream.close()
