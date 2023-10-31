@@ -21,6 +21,11 @@ variables:
     description: Target temperature for the bed
     defaultValue: 110
     required: false
+  - name: datalength
+    inputType: FreeText
+    description: Length of the data in seconds
+    defaultValue: 28800
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
