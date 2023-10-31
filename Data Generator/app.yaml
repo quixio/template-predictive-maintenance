@@ -1,0 +1,31 @@
+name: Data Generator
+language: python
+variables:
+  - name: output
+    inputType: OutputTopic
+    description: This is the output topic for the generated 3D printer data
+    defaultValue: ''
+    required: true
+  - name: target_ambient_t
+    inputType: FreeText
+    description: Target ambient temperature
+    defaultValue: 50
+    required: false
+  - name: hotend_t
+    inputType: FreeText
+    description: Target temperature for the hotend
+    defaultValue: 250
+    required: false
+  - name: bed_t
+    inputType: FreeText
+    description: Target temperature for the bed
+    defaultValue: 110
+    required: false
+  - name: datalength
+    inputType: FreeText
+    description: Length of the data in seconds
+    defaultValue: 28800
+    required: false
+dockerfile: build/dockerfile
+runEntryPoint: main.py
+defaultFile: main.py
