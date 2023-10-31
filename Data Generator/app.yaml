@@ -6,6 +6,11 @@ variables:
     description: This is the output topic for the generated 3D printer data
     defaultValue: ''
     required: true
+  - name: target_ambient_t
+    inputType: FreeText
+    description: Rarget ambient temperature
+    defaultValue: 50
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
