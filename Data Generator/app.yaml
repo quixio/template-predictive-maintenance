@@ -13,8 +13,8 @@ variables:
     required: false
   - name: hotend_t
     inputType: FreeText
-    description: Target temperature for the bed
-    defaultValue: 110
+    description: Target temperature for the hotend
+    defaultValue: 250
     required: false
   - name: bed_t
     inputType: FreeText
