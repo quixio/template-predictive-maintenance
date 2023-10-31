@@ -14,7 +14,7 @@ def temp(target, sigma, offset):
 def generate_data(stream: qx.StreamProducer):
     target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
     hotend_t = int(os.environ['hotend_t'])  # 250  # MAKE ENV VAR: target temperature for the hotend
-    bed_t = int(os.environ['hotend_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
+    bed_t = int(os.environ['bed_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
     ambient_t = target_ambient_t  # 50 target ambient temperature
 
     hotend_sigma = 0.5
