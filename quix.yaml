@@ -8,13 +8,12 @@ metadata:
 deployments:
   - name: Data Generator
     application: Data Generator
-    deploymentType: Service
+    deploymentType: Job
     version: 208f4a6d8e0fa2a246c77fefa4504616fcc3a2ad
     resources:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Stopped
     variables:
       - name: output
         inputType: OutputTopic
