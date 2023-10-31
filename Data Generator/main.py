@@ -56,7 +56,7 @@ def generate_data(stream: qx.StreamProducer):
 
         df = pd.DataFrame(
             (timestamp, hotend_temperature, bed_temperature, ambient_temperature, fluctuated_ambient_temperature),
-            columns=['timestamp', 'hotend_temperature', 'bed_temperature', 'fluctuated_ambient_temperature'])
+            columns=['timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature', 'fluctuated_ambient_temperature'])
         stream.timeseries.buffer.publish(df)
 
         timestamp += timedelta(seconds=1)
@@ -77,6 +77,7 @@ if __name__ == "__main__":
     # Add metadata about time series data you are about to send.
     stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
     stream.timeseries.add_definition("bed_temperature", "Bed temperature")
+    stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
     stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
 
     print(f"Sending values for {os.environ['datalength']} seconds.")
