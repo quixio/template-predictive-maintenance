@@ -58,7 +58,7 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
         data_fluct = data_fluct.tail(segmentsize)
         print(headrange)
 
-    data_smoov.bfill()
+    print(data_smoov)
     forecasttarget = data_smoov
 
     # Define the degree of the polynomial regression model
