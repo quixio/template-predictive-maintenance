@@ -35,6 +35,13 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 
     all_df = pd.concat([all_df, df], ignore_index=True)
 
+    print("-------------------------")
+    print(df)
+    print("-------------------------")
+    print(all_df)
+    print("-------------------------")
+
+
     data = all_df['fluctuated_ambient_temperature']
     data_fluct = all_df['fluctuated_ambient_temperature']
     # Backfill NaNs with the first non-NaN value
