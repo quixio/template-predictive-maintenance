@@ -55,7 +55,7 @@ def generate_data(stream: qx.StreamProducer):
         fluctuated_ambient_temperatures.append(fluctuated_ambient_temperature)
 
         df = pd.DataFrame(
-            (timestamp, hotend_temperature, bed_temperature, ambient_temperature, fluctuated_ambient_temperature),
+            [[timestamp, hotend_temperature, bed_temperature, ambient_temperature, fluctuated_ambient_temperature]],
             columns=['timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature', 'fluctuated_ambient_temperature'])
         stream.timeseries.buffer.publish(df)
 
