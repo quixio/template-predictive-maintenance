@@ -6,11 +6,6 @@ from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 import numpy as np
 
-client = qx.QuixStreamingClient()
-
-topic_consumer = client.get_topic_consumer(os.environ["input"])
-topic_producer = client.get_topic_producer(os.environ["output"])
-
 # Configuration
 headsortails = 'head'  # Switch to experiment with generating the forecast from the first chunk of data (head) vs the last chunk of data (tail)
 seasonalrange = 62
@@ -35,25 +30,29 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 
     all_df = pd.concat([all_df, df], ignore_index=True)
 
+    if len(all_df) < 3:
+        return
+
+    #print(all_df.to_json())
+
     print("-------------------------")
     print(df)
     print("-------------------------")
     print(all_df)
     print("-------------------------")
 
-
     data = all_df['fluctuated_ambient_temperature']
     data_fluct = all_df['fluctuated_ambient_temperature']
     # Backfill NaNs with the first non-NaN value
-    df['smoothed_fluctuated_ambient_temperature'] = all_df['fluctuated_ambient_temperature'] #rolling(3).mean()
+    all_df['smoothed_fluctuated_ambient_temperature'] = all_df['fluctuated_ambient_temperature'].rolling(3).mean()
     print(df)
     print("-------------------------")
 
-    df['smoothed_fluctuated_ambient_temperature'] = df['smoothed_fluctuated_ambient_temperature'].bfill()
+    all_df['smoothed_fluctuated_ambient_temperature'] = all_df['smoothed_fluctuated_ambient_temperature'].bfill()
     print(df)
     print("-------------------------")
 
-    data_smoov = df['smoothed_fluctuated_ambient_temperature']
+    data_smoov = all_df['smoothed_fluctuated_ambient_temperature']
 
     print(data_smoov)
     print("-------------------------")
@@ -128,10 +127,16 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     stream_consumer.timeseries.on_dataframe_received = on_dataframe_received_handler
 
 
-# subscribe to new streams being received
-topic_consumer.on_stream_received = on_stream_received_handler
+if __name__ == "__main__":
+    client = qx.QuixStreamingClient()
 
-print("Listening to streams. Press CTRL-C to exit.")
+    topic_consumer = client.get_topic_consumer(os.environ["input"])
+    topic_producer = client.get_topic_producer(os.environ["output"])
 
-# Handle termination signals and provide a graceful exit
-qx.App.run()
+    # subscribe to new streams being received
+    topic_consumer.on_stream_received = on_stream_received_handler
+
+    print("Listening to streams. Press CTRL-C to exit.")
+
+    # Handle termination signals and provide a graceful exit
+    qx.App.run()
