@@ -47,7 +47,7 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
     # Backfill NaNs with the first non-NaN value
     df['smoothed_fluctuated_ambient_temperature'] = all_df['fluctuated_ambient_temperature'].rolling(3).mean()
     df['smoothed_fluctuated_ambient_temperature'] = df['smoothed_fluctuated_ambient_temperature'].bfill()
-    data_smoov = data['smoothed_fluctuated_ambient_temperature']
+    data_smoov = df['smoothed_fluctuated_ambient_temperature']
 
     if headsortails == 'tail':
         tail_range = int(len(data) * 0.5)
