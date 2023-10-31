@@ -45,7 +45,7 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
     data = all_df['fluctuated_ambient_temperature']
     data_fluct = all_df['fluctuated_ambient_temperature']
     # Backfill NaNs with the first non-NaN value
-    df['smoothed_fluctuated_ambient_temperature'] = all_df['fluctuated_ambient_temperature'].rolling(3).mean()
+    df['smoothed_fluctuated_ambient_temperature'] = all_df['fluctuated_ambient_temperature'] #rolling(3).mean()
     print(df)
     print("-------------------------")
 
