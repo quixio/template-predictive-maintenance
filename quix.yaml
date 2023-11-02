@@ -43,7 +43,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 29e013cf4036e8e1f1164b9b1d756c3a9e439013
+    version: 6415bfe72b669ced7ddbdde1d2e1acead9396c9b
     resources:
       cpu: 500
       memory: 500
@@ -60,6 +60,21 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: forecast
+      - name: output_alerts
+        inputType: OutputTopic
+        description: Topic for sending alerts
+        required: true
+        value: forecast-alerts
+      - name: parameter_name
+        inputType: FreeText
+        description: Name of the parameter for forecasting
+        required: false
+        value: fluctuated_ambient_temperature
+      - name: debug
+        inputType: FreeText
+        description: Debug mode (1 enabled, 0 disabled)
+        required: false
+        value: 1
 
 # This section describes the Topics of the data pipeline
 topics:
