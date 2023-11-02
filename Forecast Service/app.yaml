@@ -13,7 +13,7 @@ variables:
   - name: output_alerts
     inputType: OutputTopic
     description: Topic for sending alerts
-    defaultValue: ''
+    defaultValue: forecast-alerts
     required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
