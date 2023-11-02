@@ -39,7 +39,7 @@ deployments:
       enabled: true
       size: 2
     desiredStatus: Stopped
-    variables: []
+    variables: &o0 []
   - name: Demo Data
     application: Demo Data
     deploymentType: Job
@@ -54,6 +54,19 @@ deployments:
         description: Name of the output topic to write into
         required: true
         value: f1-data
+  - name: Grafana Instance 2
+    application: Grafana Instance
+    deploymentType: Service
+    version: cb067d3d323bec11c8ecdc14c1453f1f8b64b884
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    publicAccess:
+      enabled: true
+      urlPrefix: grafanainstance-cb067d3
+    desiredStatus: Running
+    variables: *o0
 
 # This section describes the Topics of the data pipeline
 topics:
