@@ -62,7 +62,7 @@ def generate_forecast(df):
     forecast_label = "forecast_" + smooth_label
 
     # Make sure that the 'original_timestamp' column is datetime
-    df['original_timestamp'] = pd.to_datetime(df['original_timestamp'])
+    df['original_timestamp'] = pd.to_datetime(df['timestamp'])
     # Set the 'timestamp' column as the index
     df.set_index(pd.DatetimeIndex(df['original_timestamp']), inplace=True)
 
