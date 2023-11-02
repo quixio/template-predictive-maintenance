@@ -21,6 +21,11 @@ variables:
     description: Name of the parameter for forecasting
     defaultValue: fluctuated_ambient_temperature
     required: false
+  - name: debug
+    inputType: FreeText
+    description: Debug mode (1 enabled, 0 disabled)
+    defaultValue: 0
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
