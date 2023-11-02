@@ -16,6 +16,11 @@ variables:
     description: Topic for sending alerts
     defaultValue: forecast-alerts
     required: true
+  - name: parameter_name
+    inputType: FreeText
+    description: Name of the parameter for forecasting
+    defaultValue: fluctuated_ambient_temperature
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
