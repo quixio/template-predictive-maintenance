@@ -57,7 +57,7 @@ def generate_forecast(df):
     global window_value
 
     forecast_length = 14400  # 4 hours into the future
-    window_range = 1300  # Window range used for smoothing (not forecasting), 36 secs
+    window_range = pd.Timedelta(36, unit='s')  # Window range used for smoothing (not forecasting), 36 secs
     smooth_label = "smoothed_" + str(parameter_name)
     forecast_label = "forecast_" + smooth_label
 
@@ -70,6 +70,8 @@ def generate_forecast(df):
     logging.debug(f"PRE-SMOOTHED DATA:\n{df[parameter_name].tail(5)}")
 
     # Backfill NaNs with the first non-NaN value
+    #effective_window_range = min(window_range, len(df))
+
     df[smooth_label] = df[parameter_name].rolling(window_range).mean()
     df[smooth_label] = df[smooth_label].bfill()
     data_smoov = df[smooth_label]
@@ -78,9 +80,6 @@ def generate_forecast(df):
     logging.debug(f"SMOOTHED DATA:\n{data_smoov.tail(1)}")
 
     forecast_input = data_smoov
-
-    # TODO: Don't understand why NaNs need to be filled, why are there NaNs?!... previous "bfill" on line 33 should have worked.
-    forecast_input = forecast_input.fillna(0)
 
     # Define the degree of the polynomial regression model
     degree = 2
@@ -165,13 +164,13 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
     if len(df_window) >= window_value:
-        # Generate forecast
-        forecast, alert_status = generate_forecast(df)
+        # Generate forecast (df or df_window?)
+        forecast, alert_status = generate_forecast(df_window)
         status = alert_status["status"]
         message = alert_status["message"]
         logging.info(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
-        stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
-        stream_producer.timeseries.buffer.publish(forecast)
+        #stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
+        #stream_producer.timeseries.buffer.publish(forecast)
 
         if status in ["under-now", "under-fcast"]:
             logging.info("Triggering alert...")
@@ -181,7 +180,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             # Add new column with current timestamp
             alertdf['timestamp'] = now
             logging.debug(f"Triggering alert...{alertdf}")
-            stream_alerts_producer = producer_topic.get_or_create_stream(
+            stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
                 f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
             stream_alerts_producer.timeseries.buffer.publish(alertdf)
 
@@ -204,7 +203,7 @@ if __name__ == "__main__":
         consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name)
 
     producer_topic = client.get_topic_producer(topic_output)
-    producer_alertstopic = client.get_topic_producer(topic_alerts)
+    producer_alerts_topic = client.get_topic_producer(topic_alerts)
 
     # Hook up events before initiating read to avoid losing out on any data
     consumer_topic.on_stream_received = read_stream
