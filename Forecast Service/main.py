@@ -62,7 +62,7 @@ def generate_forecast(df):
     forecast_label = "forecast_" + smooth_label
 
     # Make sure that the 'original_timestamp' column is datetime
-    df['original_timestamp'] = pd.to_datetime(df['timestamp'])
+    df['original_timestamp'] = pd.to_datetime(df['original_timestamp'])
     # Set the 'timestamp' column as the index
     df.set_index(pd.DatetimeIndex(df['original_timestamp']), inplace=True)
 
@@ -141,8 +141,9 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     if parameter_name not in df.columns:
         return
+
     # DEBUG LINE
-    print(f"Received:\n{df}")
+    logging.debug(f"Received:\n{df}")
     # Append latest data to df_window
     df_window = pd.concat([df_window, df[["timestamp", "original_timestamp", parameter_name]]])
 
