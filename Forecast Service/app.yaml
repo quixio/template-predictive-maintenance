@@ -3,8 +3,9 @@ language: python
 variables:
   - name: input
     inputType: InputTopic
-    description: Name of the input topic to listen to.
-    required: false
+    description: Topic to read data from
+    defaultValue: 3d-printer-data
+    required: true
   - name: output
     inputType: OutputTopic
     description: Topic to send the forecasts
