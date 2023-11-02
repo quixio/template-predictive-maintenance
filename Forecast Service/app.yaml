@@ -10,6 +10,11 @@ variables:
     description: Name of the output topic to write to.
     defaultValue: transform
     required: false
+  - name: output_alerts
+    inputType: OutputTopic
+    description: Topic for sending alerts
+    defaultValue: ''
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
