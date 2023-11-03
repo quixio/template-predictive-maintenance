@@ -70,8 +70,6 @@ def generate_forecast(df):
     logging.debug(f"PRE-SMOOTHED DATA:\n{df[parameter_name].tail(5)}")
 
     # Backfill NaNs with the first non-NaN value
-    #effective_window_range = min(window_range, len(df))
-
     df[smooth_label] = df[parameter_name].rolling(window_range).mean()
     df[smooth_label] = df[smooth_label].bfill()
     data_smoov = df[smooth_label]
@@ -159,8 +157,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # DEBUG LINE
     logging.debug(f"Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
 
-    # Append latest data to df_window
-
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
     if len(df_window) >= window_value:
@@ -169,8 +165,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         status = alert_status["status"]
         message = alert_status["message"]
         logging.info(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
-        #stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
-        #stream_producer.timeseries.buffer.publish(forecast)
+        stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
+        stream_producer.timeseries.buffer.publish(forecast)
 
         if status in ["under-now", "under-fcast"]:
             logging.info("Triggering alert...")
