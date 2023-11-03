@@ -5,6 +5,14 @@ import random
 from datetime import datetime, timedelta
 
 import pandas as pd
+import logging
+import sys
+
+# Configure logging
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
+
+# Display all columns
+pd.set_option('display.max_columns', 6)
 
 
 def temp(target, sigma, offset):
@@ -29,6 +37,7 @@ def generate_data(stream: qx.StreamProducer):
     fluctuation_amplitude = 0
 
     for i in range(datalength):
+        timestamp = datetime.now()
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
 
@@ -55,11 +64,18 @@ def generate_data(stream: qx.StreamProducer):
         fluctuated_ambient_temperatures.append(fluctuated_ambient_temperature)
 
         df = pd.DataFrame(
-            [[timestamp, timestamp, hotend_temperature, bed_temperature, ambient_temperature, fluctuated_ambient_temperature]],
-            columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature', 'fluctuated_ambient_temperature'])
+            [[timestamp, timestamp, hotend_temperature, bed_temperature, ambient_temperature,
+              fluctuated_ambient_temperature]],
+            columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature',
+                     'fluctuated_ambient_temperature'])
         stream.timeseries.buffer.publish(df)
+        logging.debug(f"Published:\n{df}")
 
-        timestamp += timedelta(seconds=1)
+        next_timestamp = timestamp + timedelta(seconds=1)
+        time_difference = next_timestamp - timestamp
+        delay_seconds = time_difference.total_seconds()
+        logging.debug(f"Waiting {delay_seconds} seconds to send next data point.")
+        time.sleep(delay_seconds)
 
 
 if __name__ == "__main__":
