@@ -4,7 +4,7 @@ import os
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
-from datetime import datetime, timedelta
+from datetime import datetime
 import numpy as np
 import pandas as pd
 
