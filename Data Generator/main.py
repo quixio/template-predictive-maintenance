@@ -15,6 +15,9 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 # Display all columns
 pd.set_option('display.max_columns', 6)
 
+# Replay speed
+replay_speed = 1.0
+
 
 def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
@@ -38,7 +41,6 @@ def generate_data(stream: qx.StreamProducer):
     fluctuation_amplitude = 0
 
     for i in range(datalength):
-        timestamp = datetime.now()
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
 
@@ -74,9 +76,10 @@ def generate_data(stream: qx.StreamProducer):
 
         next_timestamp = timestamp + timedelta(seconds=1)
         time_difference = next_timestamp - timestamp
-        delay_seconds = time_difference.total_seconds()
+        delay_seconds = time_difference.total_seconds() / replay_speed
         logging.debug(f"Waiting {delay_seconds} seconds to send next data point.")
         time.sleep(delay_seconds)
+        timestamp = next_timestamp
 
 
 if __name__ == "__main__":
@@ -96,6 +99,9 @@ if __name__ == "__main__":
     stream.timeseries.add_definition("bed_temperature", "Bed temperature")
     stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
     stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
+
+    # Send data every 30 seconds
+    stream.timeseries.buffer.time_span_in_milliseconds = 30000
 
     print(f"Sending values for {os.environ['datalength']} seconds.")
     generate_data(stream)
