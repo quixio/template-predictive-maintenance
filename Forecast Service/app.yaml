@@ -1,0 +1,31 @@
+name: Forecast Service
+language: python
+variables:
+  - name: input
+    inputType: InputTopic
+    description: Topic to read data from
+    defaultValue: 3d-printer-data
+    required: true
+  - name: output
+    inputType: OutputTopic
+    description: Topic to send the forecasts
+    defaultValue: forecast
+    required: true
+  - name: output_alerts
+    inputType: OutputTopic
+    description: Topic for sending alerts
+    defaultValue: forecast-alerts
+    required: true
+  - name: parameter_name
+    inputType: FreeText
+    description: Name of the parameter for forecasting
+    defaultValue: fluctuated_ambient_temperature
+    required: false
+  - name: debug
+    inputType: FreeText
+    description: Debug mode (1 enabled, 0 disabled)
+    defaultValue: 0
+    required: false
+dockerfile: build/dockerfile
+runEntryPoint: main.py
+defaultFile: main.py
