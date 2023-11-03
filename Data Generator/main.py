@@ -35,7 +35,9 @@ def generate_data(stream: qx.StreamProducer):
     datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
 
     fluctuated_ambient_temperatures = []
-    timestamp = datetime.now()
+
+    # Start with the current time without milliseconds
+    timestamp = datetime.now().replace(microsecond=0)
     next_fluctuation = timestamp + timedelta(seconds=random.randint(5, 300))
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
