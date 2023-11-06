@@ -162,6 +162,9 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # Append latest data to df_window
     df_window = pd.concat([df_window, df[["timestamp", "original_timestamp", parameter_name]]])
 
+    # Store in memory for each printer
+    windows[stream_id] = df_window
+
     # Save to state before trimming
     storage.set("df_window", df_window.to_dict())
 
