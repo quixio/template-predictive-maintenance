@@ -26,6 +26,16 @@ variables:
     description: Debug mode (1 enabled, 0 disabled)
     defaultValue: 0
     required: false
+  - name: window_value
+    inputType: FreeText
+    description: Window value
+    defaultValue: 1200
+    required: true
+  - name: window_type
+    inputType: FreeText
+    description: 1 for "Number of Observations", 2 for "Time Period"
+    defaultValue: 1
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py

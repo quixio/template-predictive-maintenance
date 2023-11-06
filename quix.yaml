@@ -43,12 +43,12 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 81529d017034764ffe75b16a35a777d60c1dfffb
+    version: 47e743ed8c46a07621e870d16ca2df02ef5c0660
     resources:
       cpu: 500
       memory: 500
       replicas: 1
-    desiredStatus: Stopped
+    desiredStatus: Running
     variables:
       - name: input
         inputType: InputTopic
@@ -74,6 +74,16 @@ deployments:
         inputType: FreeText
         description: Debug mode (1 enabled, 0 disabled)
         required: false
+        value: 1
+      - name: window_value
+        inputType: FreeText
+        description: Window value
+        required: true
+        value: 1200
+      - name: window_type
+        inputType: FreeText
+        description: 1 for "Number of Observations", 2 for "Time Period"
+        required: true
         value: 1
 
 # This section describes the Topics of the data pipeline
