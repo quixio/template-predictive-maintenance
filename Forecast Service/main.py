@@ -37,17 +37,28 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     # Create a new stream to output data
     stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
     stream_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_producer.properties.name = f"Forecast for {stream_consumer.properties.name}"
+    logging.info(f"Created stream '{stream_producer.properties.name}'")
 
     stream_alerts_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
     stream_alerts_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_alerts_producer.properties.name = f"Alerts for {stream_consumer.properties.name}"
+    logging.info(f"Created stream '{stream_alerts_producer.properties.name}'")
 
     # React to new data received from input topic.
     stream_consumer.timeseries.on_dataframe_received = on_dataframe_handler
 
     # When input stream closes, we close output stream as well.
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
+        stream_id = closed_stream_consumer.stream_id
+        if stream_id in windows:
+            del windows[stream_id]
+        else:
+            logging.warning(f"Stream {stream_id} ({stream_consumer.properties.name}) was not found in windows dict.")
+
         stream_producer.close()
         stream_alerts_producer.close()
+        logging.info(f"Closing stream '{stream_consumer.properties.name}'")
         logging.info("Streams closed:" + stream_producer.stream_id + " , " + stream_alerts_producer.stream_id)
 
     stream_consumer.on_stream_closed = on_stream_close
@@ -113,36 +124,46 @@ def generate_forecast(df):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
             alertstatus["status"] = "under-now"
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
-            logging.info(f"{alertstatus['status']}: {alertstatus['message']}")
+            logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
             break
         elif fcast[forecast_label].iloc[i] <= lthreshold:
             alertstatus["status"] = "under-fcast"
             alertstatus[
                 "message"] = f"The value of '{smooth_label}' is expected to hit the lower threshold of {lthreshold} degrees in {i} seconds ({i / 3600} hours)."
-            logging.info(f"{alertstatus['status']}: {alertstatus['message']}")
+            logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
             break
     else:
         alertstatus["status"] = "noalert"
-        alertstatus[
-            "message"] = f"The value of '{smooth_label}' is not expected to hit the lower threshold of {lthreshold} degrees within the forecast range of {forecast_length} seconds ({int(forecast_length / 3600)} hours)."
+        alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
+                                  f"threshold of {lthreshold} degrees within the forecast range of "
+                                  f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
         logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
     return fcast, alertstatus
 
 
-df_window = pd.DataFrame()
+windows = {}
 storage = qx.LocalFileStorage()
 
 
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
-    global df_window
+    global windows
 
     if parameter_name not in df.columns:
         return
 
+    stream_id = stream_consumer.stream_id
+    if stream_id not in windows:
+        windows[stream_id] = pd.DataFrame()
+
+    df_window = windows[stream_id]
+
     # DEBUG LINE
-    logging.debug(f"Received:\n{df}")
+    logging.debug(f"{stream_consumer.properties.name}: Received:\n{df}")
     # Append latest data to df_window
     df_window = pd.concat([df_window, df[["timestamp", "original_timestamp", parameter_name]]])
+
+    # Store in memory for each printer
+    windows[stream_id] = df_window
 
     # Save to state before trimming
     storage.set("df_window", df_window.to_dict())
@@ -155,7 +176,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         df_window = df_window[df_window['timestamp'] > min_date]
 
     # DEBUG LINE
-    logging.debug(f"Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
+    logging.debug(f"{stream_consumer.properties.name}: Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
 
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
@@ -163,25 +184,25 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         # Generate forecast (df or df_window?)
         forecast, alert_status = generate_forecast(df_window)
         status = alert_status["status"]
-        logging.debug(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
+        logging.debug(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)
 
         if status in ["under-now", "under-fcast"]:
-            logging.info("Triggering alert...")
-            alertdf = pd.DataFrame([alert_status])
+            logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
+            alert_df = pd.DataFrame([alert_status])
             # Get current date and time
             now = datetime.now()
             # Add new column with current timestamp
-            alertdf['timestamp'] = now
-            logging.debug(f"Triggering alert...{alertdf}")
+            alert_df['timestamp'] = now
+            logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
             stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
                 f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
-            stream_alerts_producer.timeseries.buffer.publish(alertdf)
+            stream_alerts_producer.timeseries.buffer.publish(alert_df)
 
     else:
-        logging.info(
-            f"Not enough data for a forecast yet ({len(df_window)} seconds, forecast needs {window_value} seconds)")
+        logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
+                     f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
 
 
 if __name__ == "__main__":
