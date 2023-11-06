@@ -46,8 +46,15 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
     # When input stream closes, we close output stream as well.
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
+        stream_id = closed_stream_consumer.stream_id
+        if stream_id in windows:
+            del windows[stream_id]
+        else:
+            logging.warning(f"Stream {stream_id} was not found in windows dict.")
+
         stream_producer.close()
         stream_alerts_producer.close()
+        logging.info(f"Closing stream with name '{stream_producer.properties.name}'")
         logging.info("Streams closed:" + stream_producer.stream_id + " , " + stream_alerts_producer.stream_id)
 
     stream_consumer.on_stream_closed = on_stream_close
@@ -123,21 +130,28 @@ def generate_forecast(df):
             break
     else:
         alertstatus["status"] = "noalert"
-        alertstatus[
-            "message"] = f"The value of '{smooth_label}' is not expected to hit the lower threshold of {lthreshold} degrees within the forecast range of {forecast_length} seconds ({int(forecast_length / 3600)} hours)."
+        alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
+                                  f"threshold of {lthreshold} degrees within the forecast range of "
+                                  f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
         print(f"{alertstatus['status']}: {alertstatus['message']}")
     return fcast, alertstatus
 
 
-df_window = pd.DataFrame()
+windows = {}
 storage = qx.LocalFileStorage()
 
 
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
-    global df_window
+    global windows
 
     if parameter_name not in df.columns:
         return
+
+    stream_id = stream_consumer.stream_id
+    if stream_id not in windows:
+        windows[stream_id] = pd.DataFrame()
+
+    df_window = windows[stream_id]
 
     # DEBUG LINE
     logging.debug(f"Received:\n{df}")
@@ -170,15 +184,15 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
         if status in ["under-now", "under-fcast"]:
             logging.info("Triggering alert...")
-            alertdf = pd.DataFrame([alert_status])
+            alert_df = pd.DataFrame([alert_status])
             # Get current date and time
             now = datetime.now()
             # Add new column with current timestamp
-            alertdf['timestamp'] = now
-            logging.debug(f"Triggering alert...{alertdf}")
+            alert_df['timestamp'] = now
+            logging.debug(f"Triggering alert...{alert_df}")
             stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
                 f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
-            stream_alerts_producer.timeseries.buffer.publish(alertdf)
+            stream_alerts_producer.timeseries.buffer.publish(alert_df)
 
     else:
         logging.info(
