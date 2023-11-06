@@ -38,10 +38,12 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
     stream_producer.properties.parents.append(stream_consumer.stream_id)
     stream_producer.properties.name = f"Forecast for {stream_consumer.properties.name}"
+    logging.info(f"Created stream '{stream_producer.properties.name}'")
 
     stream_alerts_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
     stream_alerts_producer.properties.parents.append(stream_consumer.stream_id)
-    stream_producer.properties.name = f"Alerts for {stream_consumer.properties.name}"
+    stream_alerts_producer.properties.name = f"Alerts for {stream_consumer.properties.name}"
+    logging.info(f"Created stream '{stream_alerts_producer.properties.name}'")
 
     # React to new data received from input topic.
     stream_consumer.timeseries.on_dataframe_received = on_dataframe_handler
@@ -52,7 +54,7 @@ def read_stream(stream_consumer: qx.StreamConsumer):
         if stream_id in windows:
             del windows[stream_id]
         else:
-            logging.warning(f"Stream {stream_id} was not found in windows dict.")
+            logging.warning(f"Stream {stream_id} ({stream_consumer.properties.name}) was not found in windows dict.")
 
         stream_producer.close()
         stream_alerts_producer.close()
@@ -156,7 +158,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     df_window = windows[stream_id]
 
     # DEBUG LINE
-    logging.debug(f"Received:\n{df}")
+    logging.debug(f"{stream_consumer.properties.name}: Received:\n{df}")
     # Append latest data to df_window
     df_window = pd.concat([df_window, df[["timestamp", "original_timestamp", parameter_name]]])
 
@@ -171,7 +173,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         df_window = df_window[df_window['timestamp'] > min_date]
 
     # DEBUG LINE
-    logging.debug(f"Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
+    logging.debug(f"{stream_consumer.properties.name}: Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
 
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
@@ -180,25 +182,25 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         forecast, alert_status = generate_forecast(df_window)
         status = alert_status["status"]
         message = alert_status["message"]
-        logging.info(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
+        logging.info(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)
 
         if status in ["under-now", "under-fcast"]:
-            logging.info("Triggering alert...")
+            logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             alert_df = pd.DataFrame([alert_status])
             # Get current date and time
             now = datetime.now()
             # Add new column with current timestamp
             alert_df['timestamp'] = now
-            logging.debug(f"Triggering alert...{alert_df}")
+            logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
             stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
                 f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
             stream_alerts_producer.timeseries.buffer.publish(alert_df)
 
     else:
-        logging.info(
-            f"Not enough data for a forecast yet ({len(df_window)} seconds, forecast needs {window_value} seconds)")
+        logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
+                     f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
 
 
 if __name__ == "__main__":
