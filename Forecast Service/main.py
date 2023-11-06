@@ -184,7 +184,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         # Generate forecast (df or df_window?)
         forecast, alert_status = generate_forecast(df_window)
         status = alert_status["status"]
-        message = alert_status["message"]
         logging.debug(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)

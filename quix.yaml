@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Job
-    version: 8225448cbbf6c15ca527df65cc7172336c3b2eab
+    version: 74b5d58c2aad82cc44ed9e8285f3fa2e4546c04d
     resources:
       cpu: 200
       memory: 500
@@ -43,9 +43,9 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 47e743ed8c46a07621e870d16ca2df02ef5c0660
+    version: 1eda89cadb796203f4bac26188ac6fd741d33d51
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 500
       replicas: 1
     desiredStatus: Running
