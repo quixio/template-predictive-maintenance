@@ -19,7 +19,7 @@ parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ 
 
 # TODO: define window type and window val
 window_type = 'Number of Observations'  # os.environ["WindowType"] 'Number of Observations' OR 'Time Period'
-window_value = 7200  # os.environ["WindowValue"] # The 5-minute sample for forecasts
+window_value = 5 * 60  # os.environ["WindowValue"] # The 5-minute sample for forecasts
 # Set Window var based on window type
 if window_type == 'Number of Observations':
     window = int(window_value)
@@ -94,16 +94,17 @@ def generate_forecast(df):
     forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
+    fcast['timestamp'] = forecast_timestamp
     fcast['forecast_timestamp'] = forecast_timestamp
 
     # Adding the timestamp that Quix needs to present in the df
-    n = len(fcast)
+    #n = len(fcast)
     # Get the current time
-    now = datetime.now()
+    #now = datetime.now()
     # Create a date range starting from 'now', for 'n' periods, with a frequency of 1 millisecond
-    ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
+    #ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
     # Add the timestamps to the DataFrame
-    fcast['timestamp'] = ntimestamps
+    #fcast['timestamp'] = ntimestamps
 
     lthreshold = 45
     alertstatus = {"status": "unknown", "message": "empty"}
