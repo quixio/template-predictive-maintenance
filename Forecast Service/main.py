@@ -19,7 +19,7 @@ parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ 
 
 window_type_env = os.environ["window_type"] if "window_type" in os.environ else "1"
 window_type = 'Number of Observations' if window_type_env == 1 else "Time Period"
-window_value = os.environ["window_value"]
+window_value = int(os.environ["window_value"])
 
 if window_type == 'Number of Observations':
     window = int(window_value)
