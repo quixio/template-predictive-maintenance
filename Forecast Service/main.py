@@ -126,7 +126,7 @@ def generate_forecast(df):
         alertstatus["status"] = "noalert"
         alertstatus[
             "message"] = f"The value of '{smooth_label}' is not expected to hit the lower threshold of {lthreshold} degrees within the forecast range of {forecast_length} seconds ({int(forecast_length / 3600)} hours)."
-        print(f"{alertstatus['status']}: {alertstatus['message']}")
+        logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
     return fcast, alertstatus
 
 
@@ -165,7 +165,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         forecast, alert_status = generate_forecast(df_window)
         status = alert_status["status"]
         message = alert_status["message"]
-        logging.info(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
+        logging.debug(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)
 
@@ -191,7 +191,7 @@ if __name__ == "__main__":
     client = qx.QuixStreamingClient()
 
     # Change consumer group to a different constant if you want to run model locally.
-    print("Opening input and output topics")
+    logging.info("Opening input and output topics")
 
     if debug:
         consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name,
@@ -206,7 +206,7 @@ if __name__ == "__main__":
     consumer_topic.on_stream_received = read_stream
 
     # Hook up to termination signal (for docker image) and CTRL-C
-    print("Listening to streams. Press CTRL-C to exit.")
+    logging.info("Listening to streams. Press CTRL-C to exit.")
 
     # Handle graceful exit of the model.
     qx.App.run()
