@@ -17,10 +17,10 @@ topic_output = os.environ["output"]
 topic_alerts = os.environ["output_alerts"]
 parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ else "fluctuated_ambient_temperature"
 
-# TODO: define window type and window val
-window_type = 'Number of Observations'  # os.environ["WindowType"] 'Number of Observations' OR 'Time Period'
-window_value = 7200  # os.environ["WindowValue"] # The 5-minute sample for forecasts
-# Set Window var based on window type
+window_type_env = os.environ["window_type"] if "window_type" in os.environ else "1"
+window_type = 'Number of Observations' if window_type_env == 1 else "Time Period"
+window_value = int(os.environ["window_value"])
+
 if window_type == 'Number of Observations':
     window = int(window_value)
 elif window_type == 'Time Period':
