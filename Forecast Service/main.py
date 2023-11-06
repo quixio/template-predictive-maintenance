@@ -17,11 +17,10 @@ topic_output = os.environ["output"]
 topic_alerts = os.environ["output_alerts"]
 parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ else "fluctuated_ambient_temperature"
 
-# TODO: define window type and window val
 window_type_env = os.environ["window_type"] if "window_type" in os.environ else "1"
 window_type = 'Number of Observations' if window_type_env == 1 else "Time Period"
-window_value = 5 * 60  # os.environ["WindowValue"] # The 5-minute sample for forecasts
-# Set Window var based on window type
+window_value = os.environ["window_value"]
+
 if window_type == 'Number of Observations':
     window = int(window_value)
 elif window_type == 'Time Period':
@@ -95,17 +94,16 @@ def generate_forecast(df):
     forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
-    fcast['timestamp'] = forecast_timestamp
     fcast['forecast_timestamp'] = forecast_timestamp
 
     # Adding the timestamp that Quix needs to present in the df
-    #n = len(fcast)
+    n = len(fcast)
     # Get the current time
-    #now = datetime.now()
+    now = datetime.now()
     # Create a date range starting from 'now', for 'n' periods, with a frequency of 1 millisecond
-    #ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
+    ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
     # Add the timestamps to the DataFrame
-    #fcast['timestamp'] = ntimestamps
+    fcast['timestamp'] = ntimestamps
 
     lthreshold = 45
     alertstatus = {"status": "unknown", "message": "empty"}
@@ -165,7 +163,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         # Generate forecast (df or df_window?)
         forecast, alert_status = generate_forecast(df_window)
         status = alert_status["status"]
-        message = alert_status["message"]
         logging.debug(f"Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)
