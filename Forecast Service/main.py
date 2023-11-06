@@ -37,9 +37,11 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     # Create a new stream to output data
     stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
     stream_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_producer.properties.name = f"Forecast for {stream_consumer.properties.name}"
 
     stream_alerts_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
     stream_alerts_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_producer.properties.name = f"Alerts for {stream_consumer.properties.name}"
 
     # React to new data received from input topic.
     stream_consumer.timeseries.on_dataframe_received = on_dataframe_handler
@@ -54,7 +56,7 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
         stream_producer.close()
         stream_alerts_producer.close()
-        logging.info(f"Closing stream with name '{stream_producer.properties.name}'")
+        logging.info(f"Closing stream '{stream_consumer.properties.name}'")
         logging.info("Streams closed:" + stream_producer.stream_id + " , " + stream_alerts_producer.stream_id)
 
     stream_consumer.on_stream_closed = on_stream_close
