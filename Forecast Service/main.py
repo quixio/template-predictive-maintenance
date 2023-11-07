@@ -208,6 +208,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)
 
+        stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
+            f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
         if status in ["under-now", "under-fcast"] and not alerts_triggered[stream_id]:
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             alert_df = pd.DataFrame([alert_status])
@@ -216,11 +218,15 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             # Add new column with current timestamp
             alert_df['timestamp'] = now
             logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
-            stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
-                f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
-            stream_alerts_producer.timeseries.buffer.publish(alert_df)
+
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
+            stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = True
-        else:
+
+        elif status == "noalert" and alerts_triggered[stream_id]:
+            # If it was triggered but now it's not, send a "noalert" event
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
+            stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False
 
     else:
