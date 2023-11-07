@@ -31,6 +31,11 @@ variables:
     description: Comma separated list of printer names. Will create one stream of data per printer
     defaultValue: red,blue,green
     required: false
+  - name: number_of_anomalies
+    inputType: FreeText
+    description: Number of anomalies to be created
+    defaultValue: 20
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
