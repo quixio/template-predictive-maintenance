@@ -71,6 +71,7 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
 
 def all_are_smaller(param1, param2):
+    logging.debug("Comparing: ", param1, param2)
     for i in range(len(param1)):
         if param1[i] >= param2[i]:
             return False
