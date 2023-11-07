@@ -1,3 +1,5 @@
+import asyncio
+
 import quixstreams as qx
 
 import os
@@ -7,7 +9,6 @@ from datetime import datetime, timedelta
 import pandas as pd
 import logging
 import sys
-import time
 
 # Configure logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -23,7 +24,7 @@ def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
 
 
-def generate_data(stream: qx.StreamProducer):
+async def generate_data(printer: str, stream: qx.StreamProducer):
     target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
     hotend_t = int(os.environ['hotend_t'])  # 250  # MAKE ENV VAR: target temperature for the hotend
     bed_t = int(os.environ['bed_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
@@ -33,6 +34,11 @@ def generate_data(stream: qx.StreamProducer):
     bed_sigma = 0.5
 
     datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
+
+    # Generate 20 random anomaly timestamps
+    number_of_anomalies = int(os.environ["number_of_anomalies"])
+    anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
+    anomaly_end = -1
 
     fluctuated_ambient_temperatures = []
 
@@ -45,6 +51,15 @@ def generate_data(stream: qx.StreamProducer):
     for i in range(datalength):
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
+
+        # Check if current timestamp is an anomaly timestamp
+        if i in anomaly_timestamps:
+            # Start a new anomaly
+            hotend_temperature -= 3
+            anomaly_end = i + random.randint(3, 5)
+            # Continue anomaly if within duration
+        elif i <= anomaly_end:
+            hotend_temperature -= 3
 
         # Introduce a curve-like downward trend in the final half of the data range
         if i > datalength / 2:
@@ -74,17 +89,25 @@ def generate_data(stream: qx.StreamProducer):
             columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature',
                      'fluctuated_ambient_temperature'])
         stream.timeseries.buffer.publish(df)
-        logging.debug(f"Published:\n{df}")
+        logging.debug(f"{printer}: Published:\n{df}")
 
         next_timestamp = timestamp + timedelta(seconds=1)
         time_difference = next_timestamp - timestamp
         delay_seconds = time_difference.total_seconds() / replay_speed
-        logging.debug(f"Waiting {delay_seconds} seconds to send next data point.")
-        time.sleep(delay_seconds)
+        logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
+        await asyncio.sleep(delay_seconds)
         timestamp = next_timestamp
 
 
-if __name__ == "__main__":
+async def generate_data_and_close_stream_async(printer: str, stream: qx.StreamProducer):
+    print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
+    await generate_data(printer, stream)
+
+    print(f"{printer}: Closing stream")
+    stream.close()
+
+
+async def main():
     # Quix injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument.
     client = qx.QuixStreamingClient()
@@ -92,21 +115,33 @@ if __name__ == "__main__":
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
-    # Set stream ID or leave parameters empty to get stream ID generated.
-    stream = topic_producer.create_stream()
-    stream.properties.name = "Generated 3D printer data"
+    # Create a stream for each printer
+    if 'printer_names' not in os.environ:
+        printer_names = 'Default Printer'
+    else:
+        printer_names = os.environ['printer_names'].split(',')
 
-    # Add metadata about time series data you are about to send.
-    stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
-    stream.timeseries.add_definition("bed_temperature", "Bed temperature")
-    stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
-    stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
+    tasks = []
 
-    # Send data every 30 seconds
-    stream.timeseries.buffer.time_span_in_milliseconds = 30000
+    for printer in printer_names:
+        # Set stream ID or leave parameters empty to get stream ID generated.
+        stream = topic_producer.create_stream()
+        stream.properties.name = printer
 
-    print(f"Sending values for {os.environ['datalength']} seconds.")
-    generate_data(stream)
+        # Add metadata about time series data you are about to send.
+        stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
+        stream.timeseries.add_definition("bed_temperature", "Bed temperature")
+        stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
+        stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
 
-    print("Closing stream")
-    stream.close()
+        # Send data every 30 seconds
+        stream.timeseries.buffer.time_span_in_milliseconds = 30000
+
+        # Start sending data
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(printer, stream)))
+
+    await asyncio.gather(*tasks)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
