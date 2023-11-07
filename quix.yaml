@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Job
-    version: 1ae386b42133cf3a7e79a70e658b475209edb90c
+    version: 2e772f07c2aed7781f65d91e719e5c2cb55217e2
     resources:
       cpu: 200
       memory: 500
@@ -45,6 +45,11 @@ deployments:
         description: Comma separated list of printer names. Will create one stream of data per printer
         required: false
         value: red,blue,green
+      - name: number_of_anomalies
+        inputType: FreeText
+        description: Number of anomalies to be created
+        required: true
+        value: 20
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
