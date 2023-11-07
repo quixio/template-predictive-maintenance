@@ -26,6 +26,11 @@ variables:
     description: Length of the data in seconds
     defaultValue: 28800
     required: false
+  - name: printer_names
+    inputType: FreeText
+    description: Comma separated list of printer names. Will create one stream of data per printer
+    defaultValue: red,blue,green
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
