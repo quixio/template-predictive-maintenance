@@ -146,7 +146,8 @@ def generate_forecast(df):
 
             alertstatus["status"] = "under-fcast"
             alertstatus[
-                "message"] = f"The value of '{smooth_label}' is expected to hit the lower threshold of {lthreshold} degrees in {i} seconds ({i / 3600} hours)."
+                "message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
+                              f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
             logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
             break
     else:
