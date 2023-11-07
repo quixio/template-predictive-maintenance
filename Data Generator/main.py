@@ -36,8 +36,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
     datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
 
-    # Generate 20 random anomaly timestamps (maybe number of anomalies can be an env var?)
-    anomaly_timestamps = [random.randint(0, datalength) for _ in range(20)]
+    # Generate 20 random anomaly timestamps
+    number_of_anomalies = int(os.environ["number_of_anomalies"])
+    anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
     anomaly_end = -1
 
     fluctuated_ambient_temperatures = []
