@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Job
-    version: 74b5d58c2aad82cc44ed9e8285f3fa2e4546c04d
+    version: 1ae386b42133cf3a7e79a70e658b475209edb90c
     resources:
       cpu: 200
       memory: 500
@@ -40,6 +40,11 @@ deployments:
         description: Length of the data in seconds
         required: false
         value: 28800
+      - name: printer_names
+        inputType: FreeText
+        description: Comma separated list of printer names. Will create one stream of data per printer
+        required: false
+        value: red,blue,green
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
