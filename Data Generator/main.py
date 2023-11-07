@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 import pandas as pd
 import logging
 import sys
-import time
 
 # Configure logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
