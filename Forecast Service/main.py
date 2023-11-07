@@ -34,6 +34,8 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging
 
 # Callback called for each incoming stream
 def read_stream(stream_consumer: qx.StreamConsumer):
+    print(stream_consumer.properties)
+
     # Create a new stream to output data
     stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
     stream_producer.properties.parents.append(stream_consumer.stream_id)
