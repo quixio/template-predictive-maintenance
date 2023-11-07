@@ -48,11 +48,19 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
     # When input stream closes, we close output stream as well.
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
+        global windows, alerts_triggered
+
         stream_id = closed_stream_consumer.stream_id
         if stream_id in windows:
             del windows[stream_id]
         else:
             logging.warning(f"Stream {stream_id} ({stream_consumer.properties.name}) was not found in windows dict.")
+
+        if stream_id in alerts_triggered:
+            del alerts_triggered[stream_id]
+        else:
+            logging.warning(
+                f"Stream {stream_id} ({stream_consumer.properties.name}) was not found in alerts dict.")
 
         stream_producer.close()
         stream_alerts_producer.close()
@@ -60,6 +68,14 @@ def read_stream(stream_consumer: qx.StreamConsumer):
         logging.info("Streams closed:" + stream_producer.stream_id + " , " + stream_alerts_producer.stream_id)
 
     stream_consumer.on_stream_closed = on_stream_close
+
+
+def all_are_smaller(param1, param2):
+    for i in range(len(param1)):
+        if param1[i] >= param2[i]:
+            return False
+
+    return True
 
 
 def generate_forecast(df):
@@ -118,13 +134,16 @@ def generate_forecast(df):
     alertstatus = {"status": "unknown", "message": "empty"}
 
     # Find the time it takes for the forecasted values to hit the lower threshold of 45
-    for i in range(len(fcast[forecast_label])):
+    for i in range(len(fcast[forecast_label]) - 3):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
             alertstatus["status"] = "under-now"
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
             logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
             break
-        elif fcast[forecast_label].iloc[i] <= lthreshold:
+        elif all_are_smaller(fcast[forecast_label].iloc[i: i + 3], [lthreshold, lthreshold, lthreshold]):
+            # In order to trigger the alert, the forecasted values need to be under
+            # the lower threshold for 3 consecutive seconds
+
             alertstatus["status"] = "under-fcast"
             alertstatus[
                 "message"] = f"The value of '{smooth_label}' is expected to hit the lower threshold of {lthreshold} degrees in {i} seconds ({i / 3600} hours)."
@@ -140,11 +159,12 @@ def generate_forecast(df):
 
 
 windows = {}
+alerts_triggered = {}
 storage = qx.LocalFileStorage()
 
 
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
-    global windows
+    global windows, alerts_triggered
 
     if parameter_name not in df.columns:
         return
@@ -174,7 +194,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         df_window = df_window[df_window['timestamp'] > min_date]
 
     # DEBUG LINE
-    logging.debug(f"{stream_consumer.properties.name}: Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
+    logging.debug(
+        f"{stream_consumer.properties.name}: Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
 
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
@@ -186,7 +207,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
         stream_producer.timeseries.buffer.publish(forecast)
 
-        if status in ["under-now", "under-fcast"]:
+        if status in ["under-now", "under-fcast"] and not alerts_triggered[stream_id]:
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             alert_df = pd.DataFrame([alert_status])
             # Get current date and time
@@ -197,6 +218,9 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
                 f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
             stream_alerts_producer.timeseries.buffer.publish(alert_df)
+            alerts_triggered[stream_id] = True
+        else:
+            alerts_triggered[stream_id] = False
 
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
