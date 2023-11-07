@@ -96,7 +96,7 @@ topics:
       retentionInMinutes: 60
       retentionInBytes: 52428800
   - name: forecast
-    persisted: false
+    persisted: true
     configuration:
       partitions: 2
       replicationFactor: 2
