@@ -28,7 +28,7 @@ elif window_type == 'Time Period':
 else:
     window = None
 
-debug = os.environ["debug"] == 1 if "debug" in os.environ else False
+debug = os.environ["debug"] == "1" if "debug" in os.environ else False
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging.INFO)
 
 
@@ -70,8 +70,7 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     stream_consumer.on_stream_closed = on_stream_close
 
 
-def all_are_smaller(param1, param2):
-    logging.debug("Comparing: ", param1, param2)
+def all_are_smaller(param1: list, param2: list):
     for i in range(len(param1)):
         if param1[i] >= param2[i]:
             return False
@@ -79,7 +78,7 @@ def all_are_smaller(param1, param2):
     return True
 
 
-def generate_forecast(df):
+def generate_forecast(df, printer_name):
     global window_value
 
     forecast_length = 14400  # 4 hours into the future
@@ -93,7 +92,7 @@ def generate_forecast(df):
     df.set_index(pd.DatetimeIndex(df['original_timestamp']), inplace=True)
 
     # DEBUG LINE make sure that the data looks OK before smoothing
-    logging.debug(f"PRE-SMOOTHED DATA:\n{df[parameter_name].tail(5)}")
+    logging.debug(f"{printer_name}:PRE-SMOOTHED DATA:\n{df[parameter_name].tail(5)}")
 
     # Backfill NaNs with the first non-NaN value
     df[smooth_label] = df[parameter_name].rolling(window_range).mean()
@@ -101,7 +100,7 @@ def generate_forecast(df):
     data_smoov = df[smooth_label]
 
     # DEBUG LINE  make sure that the data looks OK after smoothing
-    logging.debug(f"SMOOTHED DATA:\n{data_smoov.tail(1)}")
+    logging.debug(f"{printer_name}:SMOOTHED DATA:\n{data_smoov.tail(1)}")
 
     forecast_input = data_smoov
 
@@ -139,9 +138,9 @@ def generate_forecast(df):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
             alertstatus["status"] = "under-now"
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
-            logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
+            logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
-        elif all_are_smaller(fcast[forecast_label].iloc[i: i + 3], [lthreshold, lthreshold, lthreshold]):
+        elif all_are_smaller(list(fcast[forecast_label].iloc[i: i + 3]), [lthreshold, lthreshold, lthreshold]):
             # In order to trigger the alert, the forecasted values need to be under
             # the lower threshold for 3 consecutive seconds
 
@@ -149,20 +148,29 @@ def generate_forecast(df):
             alertstatus[
                 "message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
                               f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
-            logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
+            logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
     else:
         alertstatus["status"] = "noalert"
         alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
                                   f"threshold of {lthreshold} degrees within the forecast range of "
                                   f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
-        logging.debug(f"{alertstatus['status']}: {alertstatus['message']}")
+        logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
     return fcast, alertstatus
 
 
 windows = {}
 alerts_triggered = {}
 storage = qx.LocalFileStorage()
+
+
+def alert_triggered(stream_id):
+    global alerts_triggered
+
+    if stream_id in alerts_triggered:
+        return alerts_triggered[stream_id]
+
+    return False
 
 
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
@@ -202,8 +210,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
     if len(df_window) >= window_value:
-        # Generate forecast (df or df_window?)
-        forecast, alert_status = generate_forecast(df_window)
+        # Generate forecast
+        forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name)
         status = alert_status["status"]
         logging.debug(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
@@ -211,7 +219,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
         stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
             f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
-        if status in ["under-now", "under-fcast"] and not alerts_triggered[stream_id]:
+        if status in ["under-now", "under-fcast"] and not alert_triggered(stream_id):
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             alert_df = pd.DataFrame([alert_status])
             # Get current date and time
@@ -224,8 +232,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = True
 
-        elif status == "noalert" and alerts_triggered[stream_id]:
-            # If it was triggered but now it's not, send a "noalert" event
+        elif status == "noalert" and alert_triggered(stream_id):
+            # If it was triggered and now it's not, send a "noalert" event
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False
