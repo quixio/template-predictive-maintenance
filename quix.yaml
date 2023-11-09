@@ -139,7 +139,7 @@ deployments:
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
         required: false
-        value: Data
+        value: Alerts
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0
     deploymentType: Service
@@ -229,7 +229,7 @@ deployments:
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
         required: false
-        value: Data
+        value: Forecast
 
 # This section describes the Topics of the data pipeline
 topics:
