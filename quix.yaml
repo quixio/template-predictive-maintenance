@@ -114,7 +114,7 @@ deployments:
         inputType: FreeText
         description: Host address for the InfluxDB instance.
         required: true
-        value: eu-central-1-1.aws.cloud2.influxdata.com
+        value: https://us-east-1-1.aws.cloud2.influxdata.com
       - name: INFLUXDB_TOKEN
         inputType: FreeText
         description: Authentication token to access InfluxDB.
