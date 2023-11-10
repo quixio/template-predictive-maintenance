@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Job
-    version: 2e772f07c2aed7781f65d91e719e5c2cb55217e2
+    version: f45abaa5aa50bd72861eb2cae64f8258fafa5fee
     resources:
       cpu: 200
       memory: 500
@@ -40,11 +40,11 @@ deployments:
         description: Length of the data in seconds
         required: false
         value: 28800
-      - name: printer_names
+      - name: number_of_printers
         inputType: FreeText
-        description: Comma separated list of printer names. Will create one stream of data per printer
+        description: Number of printers to be created
         required: false
-        value: red,blue,green
+        value: 20
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
