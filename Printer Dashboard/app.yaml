@@ -1,0 +1,25 @@
+name: Printers Dashboard
+language: nodejs
+variables:
+  - name: bearer_token
+    inputType: FreeText
+    description: ''
+    defaultValue: abc111
+    required: false
+  - name: Deployment__Id
+    inputType: FreeText
+    description: ''
+    defaultValue: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
+    required: false
+  - name: offers_topic
+    inputType: InputTopic
+    description: ''
+    defaultValue: special-offers
+    required: false
+  - name: click_topic
+    inputType: OutputTopic
+    description: ''
+    defaultValue: click-data
+    required: false
+dockerfile: src/build/dockerfile
+defaultFile: src/app/services/quix.service.ts
