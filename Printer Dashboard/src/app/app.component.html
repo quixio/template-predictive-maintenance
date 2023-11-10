@@ -67,9 +67,9 @@
         </p>
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Users</mat-label>
-          <mat-select [formControl]="printerControl">
-            <mat-option *ngFor="let printer of printers; let i = index" [value]="printer">
-              {{ printer }}
+          <mat-select [formControl]="streamsControl">
+            <mat-option *ngFor="let stream of activeStreams; let i = index" [value]="stream">
+              {{ stream.streamId }}
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -110,7 +110,8 @@
   </mat-drawer>
   <mat-drawer-content class="w-100">
     <div class="h-100">
-      <router-outlet></router-outlet>
+      <!-- <router-outlet></router-outlet> -->
+      <app-chart></app-chart>
     </div>
   </mat-drawer-content>
 </mat-drawer-container>
