@@ -1,7 +1,4 @@
 import { Component, OnInit } from '@angular/core';
-import { environment } from 'src/environments/environment';
-import { USERS } from './constants/users';
-import { User } from './models/user';
 import { DataService } from './services/data.service';
 import { ConnectionStatus, QuixService } from './services/quix.service';
 import { MediaObserver } from '@angular/flex-layout';
@@ -14,8 +11,8 @@ import { EventData } from './models/eventData';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  users: User[] = USERS;
-  userControl = new FormControl();
+  printerControl = new FormControl();
+  printers: any[] = [];
   workspaceId: string;
   deploymentId: string;
   ungatedToken: string;
@@ -28,19 +25,19 @@ export class AppComponent implements OnInit {
     this.deploymentId = '';
 
     this.quixService.eventDataReceived.subscribe((event: EventData) => {
-      this.dataService.openDialog(event)
+      // TODO: Event received
     });
 
     this.quixService.readerConnStatusChanged$.subscribe((status) => {
       if (status !== ConnectionStatus.Connected) return;
-      this.userControl.setValue(this.dataService.user || USERS[0])
+      // TODO: Reader connection changes
     });
 
-    this.userControl.valueChanges.subscribe((user: User) => {
+    this.printerControl.valueChanges.subscribe((printer: any) => {
       const topicId = this.quixService.workspaceId + '-' + this.quixService.offersTopic;
-      if (this.dataService.user) this.quixService.unsubscribeFromEvent(topicId, this.dataService.user.userId, "offer");
-      this.quixService.subscribeToEvent(topicId, user.userId, "offer");
-      this.dataService.user = user;
+      if (this.dataService.printer) this.quixService.unsubscribeFromEvent(topicId, this.dataService.printer.printerId, "offer");
+      this.quixService.subscribeToEvent(topicId, printer.printerId, "offer");
+      this.dataService.printer = printer;
     });
   }
 

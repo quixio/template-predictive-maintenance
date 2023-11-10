@@ -67,10 +67,9 @@
         </p>
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Users</mat-label>
-          <mat-select [formControl]="userControl">
-            <mat-option *ngFor="let user of users; let i = index" [value]="user">
-              User {{ i + 1 }}: {{ user.gender | gender }}, {{ user.birthDate | age }}
-              <ng-container *ngIf="user.isTarget"> *</ng-container>
+          <mat-select [formControl]="printerControl">
+            <mat-option *ngFor="let printer of printers; let i = index" [value]="printer">
+              {{ printer }}
             </mat-option>
           </mat-select>
         </mat-form-field>
