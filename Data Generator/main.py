@@ -99,7 +99,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         timestamp = next_timestamp
 
 
-async def generate_data_and_close_stream_async(printer: str, stream: qx.StreamProducer):
+async def generate_data_and_close_stream_async(printer: str, stream: qx.StreamProducer, initial_delay: int):
+    await asyncio.sleep(initial_delay)
     print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
     await generate_data(printer, stream)
 
@@ -116,17 +117,17 @@ async def main():
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
     # Create a stream for each printer
-    if 'printer_names' not in os.environ:
-        printer_names = 'Default Printer'
+    if 'number_of_printers' not in os.environ:
+        number_of_printers = 1
     else:
-        printer_names = os.environ['printer_names'].split(',')
+        number_of_printers = int(os.environ['number_of_printers'])
 
     tasks = []
 
-    for printer in printer_names:
+    for i in range(number_of_printers):
         # Set stream ID or leave parameters empty to get stream ID generated.
         stream = topic_producer.create_stream()
-        stream.properties.name = printer
+        stream.properties.name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
         # Add metadata about time series data you are about to send.
         stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
@@ -137,8 +138,8 @@ async def main():
         # Send data every 30 seconds
         stream.timeseries.buffer.time_span_in_milliseconds = 30000
 
-        # Start sending data
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(printer, stream)))
+        # Start sending data, each printer will start 5 minutes after the previous one
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(stream.properties.name, stream, i * 300)))
 
     await asyncio.gather(*tasks)
 

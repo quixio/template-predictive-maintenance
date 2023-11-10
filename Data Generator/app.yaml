@@ -26,10 +26,10 @@ variables:
     description: Length of the data in seconds
     defaultValue: 28800
     required: false
-  - name: printer_names
+  - name: number_of_printers
     inputType: FreeText
-    description: Comma separated list of printer names. Will create one stream of data per printer
-    defaultValue: red,blue,green
+    description: Number of printers to be created
+    defaultValue: 20
     required: false
   - name: number_of_anomalies
     inputType: FreeText
