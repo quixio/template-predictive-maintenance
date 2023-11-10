@@ -6,6 +6,9 @@ import { environment } from 'src/environments/environment';
 import { EventData } from '../models/eventData';
 import { ParameterData } from '../models/parameterData';
 import { Data } from '../models/data';
+import { ActiveStream } from '../models/activeStream';
+import { ActiveStreamAction } from '../models/activeStreamAction';
+import { ActiveStreamSubscription } from '../models/activeStreamSubscription';
 
 
 export enum ConnectionStatus {
@@ -25,11 +28,12 @@ export class QuixService {
 
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
   /*WORKING LOCALLY? UPDATE THESE!*/
-  private workingLocally = false; // set to true if working locally
-  private token: string = ''; // Create a token in the Tokens menu and paste it here
-  public workspaceId: string = ''; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
-  public clickTopic: string = ''; // get topic name from the Topics page in the Quix portal
-  public offersTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  private workingLocally = true; // set to true if working locally
+  private token: string = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoiZGVtbyIsImh0dHBzOi8vcXVpeC5haS9vd25lcl9pZCI6ImF1dGgwfGM1NzNiNzdiLTczYTUtNGU3OS05MjJlLTRiMDM5YTk3NGQ0NCIsImh0dHBzOi8vcXVpeC5haS90b2tlbl9pZCI6ImZjMjI2NWI2LWZiMzQtNDYyOC05ZDU3LWQ4ODAwYmI3MmE5NyIsImh0dHBzOi8vcXVpeC5haS9leHAiOiIxNzExODM5NjAwIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnF1aXguYWkvIiwic3ViIjoiOUdwcno3WE51V3VxQ0Fxb0cwa09JQTAyMUNSOFZmRUVAY2xpZW50cyIsImF1ZCI6InF1aXgiLCJpYXQiOjE2OTY5MjgyNTYsImV4cCI6MTY5OTUyMDI1NiwiYXpwIjoiOUdwcno3WE51V3VxQ0Fxb0cwa09JQTAyMUNSOFZmRUUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6W119.CTI9ohxNx9Jsu1yLkfZjww4cQWL8mjRMsattMnno7SwC5qJiER5CuV6AGxLOBOfgZR3W67QdO9VrZN9pr8qgvFJ-I0rH1qtXRMGsnrYAGko5NDpswd96bF8jsmxDxkCqdNztrCOELYBlC35hCfrfTdzYGYAwMIWdk0K5H6kGV1mkMEffM0wj_z8FAP-1s8h7_GkWCFZ8HdA4z7fLLjYFXPxzPUOodZktpj5QuluS1gpVjfuN-nm3787T7H7n3hS_Jdwtwp8QhseWoPRJikJBYKhI6FIRQQHvuEyPkBQSpKbIFW9dyK2TlrHqEFAGRRv3p63oovPU0H34SNIgeFSL4g'; // Create a token in the Tokens menu and paste it here
+  public workspaceId: string = 'demo-predictivemaintenance-frontend'; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
+  public printerDataTopic: string = '3d-printer-data'; // get topic name from the Topics page in the Quix portal
+  public forecastTopic: string = 'forecast'; // get topic name from the Topics page in the Quix portal
+  public forecastAlertsTopic: string = 'forecast-alerts'; // get topic name from the Topics page in the Quix portal
   /* optional */
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
 
@@ -41,23 +45,16 @@ export class QuixService {
   private reconnectInterval: number = 5000;
   private hasReaderHubListeners: boolean = false;
 
-  public readerHubConnection: HubConnection;
-  public writerHubConnection: HubConnection;
+  private readerHubConnection: HubConnection;
+  private writerHubConnection: HubConnection;
+  public readerConnStatusChanged$ = new BehaviorSubject<ConnectionStatus>(ConnectionStatus.Offline);
+  public writerConnStatusChanged$ = new BehaviorSubject<ConnectionStatus>(ConnectionStatus.Offline);
 
-  private readerConnStatusChanged = new BehaviorSubject<ConnectionStatus>(ConnectionStatus.Offline);
-  readerConnStatusChanged$ = this.readerConnStatusChanged.asObservable();
-  private writerConnStatusChanged = new BehaviorSubject<ConnectionStatus>(ConnectionStatus.Offline);
-  writerConnStatusChanged$ = this.writerConnStatusChanged.asObservable();
+  public paramDataReceived$ = new Subject<ParameterData>();
+  public eventDataReceived$ = new Subject<EventData>();
+  public activeStreamsChanged$ = new Subject<ActiveStreamSubscription>();
 
-  paramDataReceived = new Subject<ParameterData>();
-  paramDataReceived$ = this.paramDataReceived.asObservable();
-
-  eventDataReceived = new Subject<EventData>();
-  eventDataReceived$ = this.eventDataReceived.asObservable();
-
-  private domainRegex = new RegExp(
-    "^https:\\/\\/portal-api\\.([a-zA-Z]+)\\.quix\\.ai"
-  );
+  private domainRegex = new RegExp("^https:\\/\\/portal-api\\.([a-zA-Z]+)\\.quix\\.ai");
 
   constructor(private httpClient: HttpClient) {
 
@@ -69,21 +66,23 @@ export class QuixService {
       let bearerToken$ = this.httpClient.get(this.server + 'bearer_token', { headers, responseType: 'text' });
       let workspaceId$ = this.httpClient.get(this.server + 'workspace_id', { headers, responseType: 'text' });
       let portalApi$ = this.httpClient.get(this.server + 'portal_api', { headers, responseType: 'text' })
-      let clickTopic$ = this.httpClient.get(this.server + 'click_topic', { headers, responseType: 'text' });
-      let offersTopic$ = this.httpClient.get(this.server + 'offers_topic', { headers, responseType: 'text' });
+      let printerData$ = this.httpClient.get(this.server + '3d-printer-data', { headers, responseType: 'text' });
+      let forecast$ = this.httpClient.get(this.server + 'forecast', { headers, responseType: 'text' });
+      let forecastAlerts$ = this.httpClient.get(this.server + 'forecast-alerts', { headers, responseType: 'text' });
 
       combineLatest([
         bearerToken$,
         workspaceId$,
         portalApi$,
-        clickTopic$,
-        offersTopic$
-      ]).subscribe(([bearerToken, workspaceId, portalApi, clickTopic, offersTopic]) => {
-
-        this.token = this.stripLineFeed(bearerToken);
-        this.workspaceId = this.stripLineFeed(workspaceId);
-        this.clickTopic = this.stripLineFeed(clickTopic);
-        this.offersTopic = this.stripLineFeed(offersTopic);
+        printerData$,
+        forecast$,
+        forecastAlerts$
+      ]).subscribe(([bearerToken, workspaceId, portalApi, printerData, forecast, forecastAlerts]) => {
+        this.token = bearerToken.replace('\n', '');
+        this.workspaceId = workspaceId.replace('\n', '');
+        this.printerDataTopic = printerData.replace('\n', '');
+        this.forecastTopic = forecast.replace('\n', '');
+        this.forecastAlertsTopic = forecastAlerts.replace('\n', '');
 
         // work out what domain the portal api is on:
         portalApi = portalApi.replace("\n", "");
@@ -139,7 +138,7 @@ export class QuixService {
    */
   private startConnection(isReader: boolean, reconnectAttempts: number): void {
     const hubConnection = isReader ? this.readerHubConnection : this.writerHubConnection;
-    const subject = isReader ? this.readerConnStatusChanged : this.writerConnStatusChanged;
+    const subject = isReader ? this.readerConnStatusChanged$ : this.writerConnStatusChanged$;
     const hubName = isReader ? 'Reader' : 'Writer';
 
     if (!hubConnection || hubConnection.state === 'Disconnected') {
@@ -172,14 +171,19 @@ export class QuixService {
    * @param readerHubConnection The readerHubConnection we are listening to.
    */
   private setupReaderHubListeners(readerHubConnection: HubConnection): void {
+    // Listen for active streams and emit
+    readerHubConnection.on('ActiveStreamsChanged', (stream: ActiveStream, action?: ActiveStreamAction) => {
+      this.activeStreamsChanged$.next({ streams: [stream], action });
+    });
+
     // Listen for parameter data and emit
     readerHubConnection.on("ParameterDataReceived", (payload: ParameterData) => {
-      this.paramDataReceived.next(payload);
+      this.paramDataReceived$.next(payload);
     });
 
     // Listen for event data and emit
     readerHubConnection.on("EventDataReceived", (payload: EventData) => {
-      this.eventDataReceived.next(payload);
+      this.eventDataReceived$.next(payload);
     });
   }
 
@@ -200,6 +204,24 @@ export class QuixService {
       this.startConnection(isReader, reconnectAttempts)
     }, this.reconnectInterval);
 
+  }
+
+   /**
+   * Subscribes to all the active streams on the message topic so
+   * we can listen to changes.
+   *
+   * @param topic The topic being wrote to.
+   */
+   public subscribeToActiveStreams(topic: string): void {
+    // console.log("QuixService subscribing to retrieve streams");
+    this.readerHubConnection
+      .invoke('SubscribeToActiveStreams', topic)
+      .then((stream: ActiveStream, action?: ActiveStreamAction) => {
+        if (!stream) return;
+        if (!action) action = ActiveStreamAction.AddUpdate;
+        const streamsArray = Array.isArray(stream) ? stream : [stream];
+        this.activeStreamsChanged$.next({ streams: streamsArray, action });
+      });
   }
 
   /**
@@ -229,6 +251,30 @@ export class QuixService {
   }
 
   /**
+   * Sends parameter data to Quix using the WriterHub connection.
+   *
+   * @param topic The name of the topic we are writing to.
+   * @param streamId The id of the stream.
+   * @param payload The payload of data we are sending.
+   */
+    public sendParameterData(topic: string, streamId: string, payload: Data): void {
+      // console.log("QuixService Sending parameter data!", topic, streamId, payload);
+      this.writerHubConnection.invoke("SendParameterData", topic, streamId, payload);
+    }
+
+
+  /**
+   * Unsubscribe from all the active streams on the message topic.
+   * so we no longer recieve changes.
+   *
+   * @param topic
+   */
+	public unsubscribeFromActiveStreams(topic: string): void {
+		// console.log(`QuixService unsubscribing from retrieve channels`);
+		this.readerHubConnection.invoke('UnsubscribeFromActiveStreams', topic);
+	}
+
+  /**
    * Unsubscribe from a parameter on the ReaderHub connection
    * so we no longer recieve changes.
    *
@@ -255,18 +301,6 @@ export class QuixService {
   }
 
   /**
-   * Sends parameter data to Quix using the WriterHub connection.
-   *
-   * @param topic The name of the topic we are writing to.
-   * @param streamId The id of the stream.
-   * @param payload The payload of data we are sending.
-   */
-  public sendParameterData(topic: string, streamId: string, payload: Data): void {
-    // console.log("QuixService Sending parameter data!", topic, streamId, payload);
-    this.writerHubConnection.invoke("SendParameterData", topic, streamId, payload);
-  }
-
-  /**
    * Uses the telemetry data api to retrieve persisted parameter
    * data for a specific criteria.
    *
@@ -282,10 +316,5 @@ export class QuixService {
       }
     );
   }
-
-  private stripLineFeed(s: string): string {
-    return s.replace('\n', '');
-  }
-
 }
 
