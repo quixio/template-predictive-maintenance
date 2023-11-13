@@ -21,8 +21,7 @@
 @include mat.divider-theme($quix-template-theme);
 @include mat.progress-spinner-theme($quix-template-theme);
 @include mat.toolbar-theme($quix-template-theme);
-@include mat.checkbox-theme($quix-template-theme);
-@include mat.dialog-theme($quix-template-theme);
+@include mat.table-theme($quix-template-theme);
 
 // Plus custom imports.
 @import 'material-overrides';

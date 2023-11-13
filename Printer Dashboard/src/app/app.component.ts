@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 import { DataService } from './services/data.service';
 import { ConnectionStatus, QuixService } from './services/quix.service';
 import { MediaObserver } from '@angular/flex-layout';
@@ -8,6 +8,9 @@ import { ActiveStream } from './models/activeStream';
 import { ActiveStreamAction } from './models/activeStreamAction';
 import { ActiveStreamSubscription } from './models/activeStreamSubscription';
 import { ParameterData } from './models/parameterData';
+import { Data } from '@angular/router';
+import { Observable } from 'rxjs';
+import { ChartComponent } from './components/chart/chart.component';
 
 @Component({
   selector: 'app-root',
@@ -15,12 +18,15 @@ import { ParameterData } from './models/parameterData';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
+  @ViewChild(ChartComponent) chart: ChartComponent;
   streamsControl = new FormControl();
   printers: any[] = [];
   workspaceId: string;
   deploymentId: string;
   ungatedToken: string;
   activeStreams: ActiveStream[] = [];
+  parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
+  parameterData$: Observable<Data>;
 
   constructor(private quixService: QuixService, private dataService: DataService, public media: MediaObserver) { }
 
@@ -30,32 +36,43 @@ export class AppComponent implements OnInit {
     this.deploymentId = '';
 
     this.quixService.activeStreamsChanged$.subscribe((streamSubscription: ActiveStreamSubscription) => {
-      const { streams, action } = streamSubscription;
+      const { streams } = streamSubscription;
+      if (!streams?.length) return;
       this.setActiveSteams(streamSubscription)
-      if (!this.streamsControl.value) this.streamsControl.setValue(streams?.at(0))
+      if (!this.streamsControl.value) this.streamsControl.setValue(streams.at(0))
     });
 
-    this.quixService.paramDataReceived$.subscribe((parameter: ParameterData) => {
-      // TODO: Parameter received
-    });
-
-    this.quixService.eventDataReceived$.subscribe((event: EventData) => {
-      // TODO: Event received
-    });
+    this.parameterData$ = this.quixService.paramDataReceived$;
 
     this.quixService.readerConnStatusChanged$.subscribe((status) => {
       if (status !== ConnectionStatus.Connected) return;
       this.quixService.subscribeToActiveStreams(this.quixService.printerDataTopic);
+      // this.quixService.subscribeToActiveStreams(this.quixService.forecastTopic);
     });
 
 
     this.streamsControl.valueChanges.subscribe((stream: ActiveStream) => {
+      const printerDataTopicId = this.quixService.workspaceId + '-' + this.quixService.printerDataTopic;
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
-      const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
-      if (this.streamsControl.value) this.quixService.unsubscribeFromEvent(forecastTopicId, this.dataService.printer.printerId, "offer");
-      this.quixService.subscribeToParameter(forecastTopicId, stream.streamId, "*");
-      this.quixService.subscribeToEvent(forecastAlertsTopicId, stream.streamId, "*");
+      this.parameterIds.forEach((parameter) => {
+        this.subscribeToParameter(printerDataTopicId, stream.streamId, parameter);
+        this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast-forecast', 'forecast_' + parameter);
+        this.subscribeToEvent(forecastTopicId, stream.streamId + '-forecast-forecast-alerts', 'forecast_smoothed_fluctuated_ambient_temperature');
+      })
+      this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast-forecast', 'forecast_smoothed_fluctuated_ambient_temperature');
+      this.subscribeToEvent(forecastTopicId, stream.streamId + '-forecast-forecast-alerts', 'under-fcast');
+      this.dataService.stream = stream;
     });
+  }
+
+  subscribeToParameter(topicId: string, streamId: string, parameterId: string): void {
+    if (this.dataService.stream) this.quixService.unsubscribeFromParameter(topicId, this.dataService.stream.streamId, parameterId);
+    this.quixService.subscribeToParameter(topicId, streamId, parameterId);
+  }
+
+  subscribeToEvent(topicId: string, streamId: string, eventId: string): void {
+    if (this.dataService.stream) this.quixService.unsubscribeFromEvent(topicId, this.dataService.stream.streamId, eventId);
+    this.quixService.subscribeToEvent(topicId, streamId, eventId);
   }
 
   toggleSidenav(isOpen: boolean): void {
