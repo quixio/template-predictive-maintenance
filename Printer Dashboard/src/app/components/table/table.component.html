@@ -1,19 +1,19 @@
-<table mat-table [dataSource]="data" class="w-100" *ngIf="dataSource as data" (contentChanged)="updateScroll()">
+<table mat-table [dataSource]="dataSource" class="w-100">
   <ng-container matColumnDef="timestamp">
     <th mat-header-cell *matHeaderCellDef class="mat-body-2">Timestamp</th>
     <td mat-cell *matCellDef="let element; let i = index" class="mat-body-2">
-      <ng-container *ngIf="(data.length - i ) as index">
-        <!-- {{ (data[index - 1].timestamp / 1000000) | date: 'HH:mm:ss.SSS' }} -->
+      <ng-container *ngIf="(dataSource.length - i ) as index">
+        {{ (dataSource[index - 1].timestamp / 1000000) | date: 'HH:mm:ss.SSS' }}
       </ng-container>
     </td>
   </ng-container>
   <ng-container matColumnDef="type">
     <th mat-header-cell *matHeaderCellDef class="mat-body-2" style="width: 100%">Type</th>
     <td mat-cell *matCellDef="let element; let i = index" class="mat-body-2">
-      <ng-container *ngIf="(data.length - i) as index">
+      <ng-container *ngIf="(dataSource.length - i) as index">
         <span fxLayout="row" fxLayoutAlign="start center">
           <mat-icon fontIcon="warning" color="warn" inline></mat-icon>
-          <!-- {{ data[index - 1].value }} -->
+          {{ dataSource[index - 1].value }}
         </span>
       </ng-container>
     </td>

@@ -5,6 +5,7 @@ import 'chartjs-adapter-luxon';
 import { Data } from 'src/app/models/data';
 import { Observable } from 'rxjs';
 import annotationPlugin from 'chartjs-plugin-annotation';
+import { ParameterData } from 'src/app/models/parameterData';
 
 @Component({
   selector: 'app-chart',
@@ -64,7 +65,7 @@ export class ChartComponent implements OnInit {
   }
 
   @Input() key: string;
-  @Input() set data(data: Data) {
+  @Input() set data(data: ParameterData) {
     if (!data?.numericValues![this.key] && !data?.numericValues![this.key + '-forecast']) return;
     data.timestamps?.forEach((timestamp, i) => {
       this.updateChart(this.key, { x: timestamp / 1000000, y: data.numericValues![this.key][i] })
