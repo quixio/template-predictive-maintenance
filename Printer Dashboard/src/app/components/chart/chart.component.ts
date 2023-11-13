@@ -1,5 +1,5 @@
 import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
-import { Chart, PointElement, ChartConfiguration, ChartDataset, ChartOptions, Legend, LineController, LineElement, LinearScale } from 'chart.js';
+import { Chart, PointElement, ChartConfiguration, ChartDataset, ChartOptions, Legend, LineController, LineElement, LinearScale, Tooltip } from 'chart.js';
 import ChartStreaming, { RealTimeScale } from 'chartjs-plugin-streaming';
 import 'chartjs-adapter-luxon';
 import { Data } from 'src/app/models/data';
@@ -50,14 +50,6 @@ export class ChartComponent implements OnInit {
           }
         }
       },
-      tooltip: {
-        usePointStyle: true,
-        backgroundColor: '#fff',
-        bodyColor: '#646471',
-        titleColor: '#000',
-        borderColor: Chart.defaults.borderColor.toString(),
-        borderWidth: 1,
-      },
       annotation: {
         annotations: {}
       }
@@ -105,8 +97,9 @@ export class ChartComponent implements OnInit {
       LineElement,
       RealTimeScale,
       Legend,
+      Tooltip,
       ChartStreaming,
-      annotationPlugin
+      annotationPlugin,
     );
   }
 
