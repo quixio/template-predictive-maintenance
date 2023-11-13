@@ -69,6 +69,13 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
     stream_consumer.on_stream_closed = on_stream_close
 
+    def on_stream_changed(stream_consumer: qx.StreamConsumer):
+        logging.info(f"Stream {stream_consumer.stream_id} ({stream_consumer.properties.name}) changed")
+        stream_producer.properties.name = f"Printer {stream_consumer.properties.name} - Forecast"
+        stream_alerts_producer.properties.name = f"Printer {stream_consumer.properties.name} - Alerts"
+
+    stream_consumer.properties.on_changed = on_stream_changed
+
 
 def all_are_smaller(param1: list, param2: list):
     for i in range(len(param1)):
@@ -127,8 +134,10 @@ def generate_forecast(df, printer_name):
     now = datetime.now()
     # Create a date range starting from 'now', for 'n' periods, with a frequency of 1 millisecond
     ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
+
+    # TODO: timestamp should be the forecast timestamp
     # Add the timestamps to the DataFrame
-    fcast['timestamp'] = ntimestamps
+    fcast['timestamp'] = forecast_timestamp
 
     lthreshold = 45
     alertstatus = {"status": "unknown", "message": "empty"}
@@ -238,9 +247,20 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False
 
+        # For debugging purposes
+        send_alerts_every_15_seconds(stream_alerts_producer)
+
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
                      f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
+
+
+def send_alerts_every_15_seconds(stream_alerts_producer: qx.StreamProducer):
+    message = (f"The value of 'TESTING' is not expected to hit the lower "
+               f"threshold of 45 degrees within the forecast range of "
+               f"99999 seconds (99999 hours).")
+    event = qx.EventData("under-fcast", pd.Timestamp.utcnow(), message)
+    stream_alerts_producer.events.publish(event)
 
 
 if __name__ == "__main__":
