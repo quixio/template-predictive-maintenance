@@ -18,7 +18,6 @@ buffer_configuration.time_span_in_milliseconds = 60 * 1000
 
 # called for each incoming stream
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
-
     # called for each incoming DataFrame
     def on_dataframe_received_handler(originating_stream: qx.StreamConsumer, df: pd.DataFrame):
 
@@ -44,7 +43,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     stream_producer.properties.parents.append(stream_consumer.stream_id)
 
     # create the buffer
-    buffer = stream_consumer.timeseries.create_buffer(buffer_configuration)
+    buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
 
     # React to new data received from input topics buffer.
     # Here we assign a callback to be called when data arrives.

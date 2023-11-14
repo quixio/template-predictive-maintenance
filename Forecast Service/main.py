@@ -121,16 +121,7 @@ def generate_forecast(df, printer_name):
     forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
-    fcast['forecast_timestamp'] = forecast_timestamp
-
-    # Adding the timestamp that Quix needs to present in the df
-    n = len(fcast)
-    # Get the current time
-    now = datetime.now()
-    # Create a date range starting from 'now', for 'n' periods, with a frequency of 1 millisecond
-    ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
-    # Add the timestamps to the DataFrame
-    fcast['timestamp'] = ntimestamps
+    fcast['timestamp'] = forecast_timestamp
 
     lthreshold = 45
     alertstatus = {"status": "unknown", "message": "empty"}
