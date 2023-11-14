@@ -230,6 +230,26 @@ deployments:
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
         required: false
         value: Forecast
+  - name: 3D Printer Down Sampling
+    application: Down-sampling
+    deploymentType: Service
+    version: 66f7cd16765e32359e10fd8d89fa5dbb5b1cccee
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: This is the input topic to read data from
+        required: true
+        value: 3d-printer-data
+      - name: output
+        inputType: OutputTopic
+        description: This is the output topic to write data to
+        required: true
+        value: downsampled-3d-printer-data
 
 # This section describes the Topics of the data pipeline
 topics:
