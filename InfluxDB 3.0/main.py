@@ -38,6 +38,18 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
         print("{str(datetime.datetime.utcnow())}: Write failed")
         print(e)
 
+def on_event_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
+
+    df = pd.DataFrame({'time': [data.timestamp],
+                    'id': [data.id],
+                    'value': [data.value]})
+
+    # Convert timestamp to datetime and set it as the index
+    df['time'] = pd.to_datetime(df['time'])
+    df.set_index('time', inplace=True)
+
+    print(df)
+    #client.write
 
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     
@@ -47,6 +59,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     buffer.buffer_timeout = 250
 
     buffer.on_dataframe_released = on_dataframe_received_handler
+    stream_consumer.events.on_data_received = on_event_received_handler
 
 
 # subscribe to new streams being received
