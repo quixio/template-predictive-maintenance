@@ -253,7 +253,7 @@ deployments:
   - name: Forecast Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: 66f7cd16765e32359e10fd8d89fa5dbb5b1cccee
+    version: ec69e5a21eaca9d52cda26e3dec286c283a5f31a
     resources:
       cpu: 200
       memory: 500
