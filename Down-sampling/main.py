@@ -33,6 +33,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         # this sample uses 1000ms of data and down-samples to 100ms
         td = pd.Timedelta(100, "milliseconds")
 
+        print(df)
         # resample and get the mean of the input data
         df = df.set_index("date_time").resample(td).mean().ffill()
         print(df)
