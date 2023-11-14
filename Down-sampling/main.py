@@ -40,13 +40,30 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         print("BEFORE------------")        
 
         # resample and get the mean of the input data
-        df = df.set_index("date_time").resample(td).mean().ffill()
+        resampled_df = df.set_index("date_time").resample(td).mean().ffill()
+
+        # Identify numeric and string columns
+        numeric_columns = [col for col in df.columns if not col.startswith('TAG__')]
+        string_columns = [col for col in df.columns if col.startswith('TAG__')]
+
+        # Create an aggregation dictionary for numeric columns
+        numeric_aggregation = {col: 'mean' for col in numeric_columns}
+
+        # Create an aggregation dictionary for string columns (keeping the last value)
+        string_aggregation = {col: 'last' for col in string_columns}
+
+        # Merge the two aggregation dictionaries
+        aggregation_dict = {**numeric_aggregation, **string_aggregation}
+
+        # Resample the DataFrame to 1-second intervals and apply the aggregation
+        resampled_df = df.resample('1S').agg(aggregation_dict)
+        
         print("AFTER------------")        
-        print(df)
+        print(resampled_df)
         print("AFTER------------")        
 
         # Send filtered data to output topic
-        stream_producer.timeseries.buffer.publish(df)
+        stream_producer.timeseries.buffer.publish(resampled_df)
 
     # create a new stream to output data
     stream_producer = topic_producer.get_or_create_stream(stream_consumer.stream_id + "-down-sampled")
