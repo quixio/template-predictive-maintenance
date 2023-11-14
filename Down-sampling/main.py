@@ -40,23 +40,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         print("BEFORE------------")        
 
         # resample and get the mean of the input data
-        resampled_df = df.set_index("original_timestamp").resample(td).mean().ffill()
-
-        # Identify numeric and string columns
-        numeric_columns = [col for col in df.columns if not col.startswith('TAG__')]
-        string_columns = [col for col in df.columns if col.startswith('TAG__')]
-
-        # Create an aggregation dictionary for numeric columns
-        numeric_aggregation = {col: 'mean' for col in numeric_columns}
-
-        # Create an aggregation dictionary for string columns (keeping the last value)
-        string_aggregation = {col: 'last' for col in string_columns}
-
-        # Merge the two aggregation dictionaries
-        aggregation_dict = {**numeric_aggregation, **string_aggregation}
-
-        # Resample the DataFrame to 1-second intervals and apply the aggregation
-        resampled_df = df.resample('1S').agg(aggregation_dict)
+        resampled_df = df.iloc[::10, :]
         
         print("AFTER------------")        
         print(resampled_df)
