@@ -14,6 +14,8 @@ topic_producer = client.get_topic_producer(os.environ["output"])
 buffer_configuration = qx.TimeseriesBufferConfiguration()
 buffer_configuration.time_span_in_milliseconds = 1000
 
+pd.set_option('display.max_columns', None)
+pd.set_option('display.max_rows', None)
 
 # called for each incoming stream
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
@@ -33,10 +35,15 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         # this sample uses 1000ms of data and down-samples to 100ms
         td = pd.Timedelta(100, "milliseconds")
 
+        print("BEFORE------------")        
         print(df)
+        print("BEFORE------------")        
+
         # resample and get the mean of the input data
         df = df.set_index("date_time").resample(td).mean().ffill()
+        print("AFTER------------")        
         print(df)
+        print("AFTER------------")        
 
         # Send filtered data to output topic
         stream_producer.timeseries.buffer.publish(df)
