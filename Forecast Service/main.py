@@ -35,12 +35,18 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging
 # Callback called for each incoming stream
 def read_stream(stream_consumer: qx.StreamConsumer):
     # Create a new stream to output data
-    stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
+    stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast")
     stream_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_producer.properties.name = f"Printer {stream_consumer.properties.name} - Forecast"
+    stream_producer.timeseries.add_definition("forecast_" + parameter_name, "Forecasted " + parameter_name)
     logging.info(f"Created stream {stream_producer.stream_id}")
 
-    stream_alerts_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
+    stream_alerts_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-alerts")
     stream_alerts_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_alerts_producer.properties.name = f"Printer {stream_consumer.properties.name} - Alerts"
+    stream_alerts_producer.events.add_definition("under-now", "Under lower threshold now")
+    stream_alerts_producer.events.add_definition("under-fcast", "Under lower threshold in forecast")
+    stream_alerts_producer.events.add_definition("noalert", "No alert")
     logging.info(f"Created stream '{stream_alerts_producer.stream_id}'")
 
     # React to new data received from input topic.
@@ -91,7 +97,7 @@ def generate_forecast(df, printer_name):
     forecast_length = 14400  # 4 hours into the future
     window_range = pd.Timedelta(36, unit='s')  # Window range used for smoothing (not forecasting), 36 secs
     smooth_label = "smoothed_" + str(parameter_name)
-    forecast_label = "forecast_" + smooth_label
+    forecast_label = "forecast_" + str(parameter_name)
 
     # Make sure that the 'original_timestamp' column is datetime
     df['original_timestamp'] = pd.to_datetime(df['original_timestamp'])
@@ -228,6 +234,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
         stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
             f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
+
         if status in ["under-now", "under-fcast"] and not alert_triggered(stream_id):
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             alert_df = pd.DataFrame([alert_status])
