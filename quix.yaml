@@ -154,7 +154,7 @@ deployments:
         inputType: InputTopic
         description: This is the input topic
         required: true
-        value: 3d-printer-data
+        value: downsampled-3d-printer-data
       - name: INFLUXDB_HOST
         inputType: FreeText
         description: Host address for the InfluxDB instance.
