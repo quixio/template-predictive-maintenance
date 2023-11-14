@@ -115,6 +115,7 @@ def generate_forecast(df, printer_name):
     forecast_values = model.predict(forecast_array)
     # Create a DataFrame for the forecast
     fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
+    # Tag the data with the printer name for joining operations later
     fcast["TAG__printer"] = printer_name
     
     # Create a timestamp for the forecasted values
@@ -222,7 +223,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
 
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
-            # tag the data with the printer name for joining operations later
+            # Tag the data with the printer name for joining operations later
             event.add_tag("TAG__printer", stream_consumer.properties.name)
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = True
