@@ -40,7 +40,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         print("BEFORE------------")        
 
         # resample and get the mean of the input data
-        resampled_df = df.set_index("timestamp").resample(td).mean().ffill()
+        resampled_df = df.set_index("original_timestamp").resample(td).mean().ffill()
 
         # Identify numeric and string columns
         numeric_columns = [col for col in df.columns if not col.startswith('TAG__')]
