@@ -12,7 +12,7 @@ topic_producer = client.get_topic_producer(os.environ["output"])
 
 # buffer 100ms of data
 buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_configuration.time_span_in_milliseconds = 1000
+buffer_configuration.time_span_in_milliseconds = 10000
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.max_rows', None)
