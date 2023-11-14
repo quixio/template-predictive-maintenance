@@ -168,7 +168,7 @@ deployments:
         inputType: FreeText
         description: Organization name in InfluxDB.
         required: false
-        value: ContentSquad
+        value: Quix
       - name: INFLUXDB_DATABASE
         inputType: FreeText
         description: Database name in InfluxDB where data should be stored.
