@@ -32,9 +32,6 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         else:
             raise Exception("A suitable timestamp was column not found in the dataset")
 
-        # this sample uses 1000ms of data and down-samples to 100ms
-        td = pd.Timedelta(100, "milliseconds")
-
         print("BEFORE------------")        
         print(df)
         print("BEFORE------------")        
