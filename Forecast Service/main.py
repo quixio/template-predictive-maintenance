@@ -115,6 +115,8 @@ def generate_forecast(df, printer_name):
     forecast_values = model.predict(forecast_array)
     # Create a DataFrame for the forecast
     fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
+    fcast["printer"] = printer_name
+    
     # Create a timestamp for the forecasted values
     forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
 
