@@ -3,6 +3,9 @@ import pandas as pd
 import os
 import numpy as np
 
+# Show all columns
+pd.set_option('display.max_columns', 10)
+
 # Quix injects credentials automatically to the client.
 # Alternatively, you can always pass an SDK token manually as an argument.
 client = qx.QuixStreamingClient()
@@ -20,18 +23,9 @@ buffer_configuration.time_span_in_milliseconds = 1 * 60 * 1000
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # called for each incoming DataFrame
     def on_dataframe_received_handler(originating_stream: qx.StreamConsumer, df: pd.DataFrame):
-
-        # look for the timestamp column
-        # if yours is named differently please change this code as needed
-        if "timestamp" in df:
-            df["date_time"] = pd.to_datetime(df["timestamp"])
-        elif "time" in df:
-            df["date_time"] = pd.to_datetime(df["time"])
-        else:
-            raise Exception("A suitable timestamp was column not found in the dataset")
-
         # Identify numeric and string columns
-        numeric_columns = [col for col in df.columns if not col.startswith('TAG__')]
+        numeric_columns = [col for col in df.columns if not col.startswith('TAG__') and
+                           col not in ['time', 'timestamp', 'original_timestamp', 'date_time']]
         string_columns = [col for col in df.columns if col.startswith('TAG__')]
 
         # Create an aggregation dictionary for numeric columns
@@ -43,10 +37,10 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         # Merge the two aggregation dictionaries
         aggregation_dict = {**numeric_aggregation, **string_aggregation}
 
-        # resample and get the mean of the input data
-        df = df.set_index("date_time").resample('1min').agg(aggregation_dict)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
 
-        print(df)
+        # resample and get the mean of the input data
+        df = df.set_index("timestamp").resample('1min').agg(aggregation_dict).reset_index()
 
         # Send filtered data to output topic
         stream_producer.timeseries.buffer.publish(df)
