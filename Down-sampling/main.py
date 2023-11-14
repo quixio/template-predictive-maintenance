@@ -30,10 +30,10 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         else:
             raise Exception("A suitable timestamp was column not found in the dataset")
 
-        print(df)
+        print(df.columns)
         # resample and get the mean of the input data
         df = df.set_index("date_time").resample('1min').agg({'forecast_smoothed_fluctuated_ambient_temperature': np.mean, 'printer': 'first'})
-        print(df)
+        #print(df)
 
         # Send filtered data to output topic
         stream_producer.timeseries.buffer.publish(df)
