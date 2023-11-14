@@ -142,10 +142,10 @@ deployments:
         value: Alerts
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0
-    deploymentType: Job
+    deploymentType: Service
     version: 19146f413b91523c1aa626c5da1594f01c23b169
     resources:
-      cpu: 200
+      cpu: 500
       memory: 500
       replicas: 1
     variables:
