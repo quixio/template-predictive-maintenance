@@ -47,9 +47,20 @@ def on_event_received_handler(stream_consumer: qx.StreamConsumer, data: qx.Event
     # Convert timestamp to datetime and set it as the index
     df['time'] = pd.to_datetime(df['time'])
     df.set_index('time', inplace=True)
+    df["stream_id"] = stream_consumer.stream_id
 
     print(df)
+
+    try:
+        client.write(df, data_frame_measurement_name=measurement_name, data_frame_tag_columns=tag_columns) 
+
+        print(f"{str(datetime.datetime.utcnow())}: Persisted {df.shape[0]} rows.")
+    except Exception as e:
+        print("{str(datetime.datetime.utcnow())}: Write failed")
+        print(e)
+
     #client.write
+
 
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     
