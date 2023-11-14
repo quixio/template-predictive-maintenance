@@ -1,10 +1,6 @@
 import quixstreams as qx
 import pandas as pd
 import os
-import numpy as np
-
-# Show all columns
-pd.set_option('display.max_columns', 10)
 
 # Quix injects credentials automatically to the client.
 # Alternatively, you can always pass an SDK token manually as an argument.
