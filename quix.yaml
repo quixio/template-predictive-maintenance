@@ -232,7 +232,7 @@ deployments:
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: dfe999726f36cff5fd6bce857ef0eb2f30721878
+    version: d5ec27f4255923aa1c3b562c52b94b80f6d7731d
     resources:
       cpu: 200
       memory: 500
