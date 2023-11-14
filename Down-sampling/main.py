@@ -10,12 +10,10 @@ print("Opening input and output topics")
 topic_consumer = client.get_topic_consumer(os.environ["input"], "down-sampling-consumer-group")
 topic_producer = client.get_topic_producer(os.environ["output"])
 
-# buffer 100ms of data
+# buffer 1 minute of data
 buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_configuration.time_span_in_milliseconds = 10000
+buffer_configuration.time_span_in_milliseconds = 60 * 1000
 
-pd.set_option('display.max_columns', None)
-pd.set_option('display.max_rows', None)
 
 # called for each incoming stream
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
@@ -32,22 +30,13 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         else:
             raise Exception("A suitable timestamp was column not found in the dataset")
 
-        print("BEFORE------------")        
         print(df)
-        print("BEFORE------------")        
-
-        try:
-            # resample and get the mean of the input data
-            resampled_df = df.iloc[::500, :]
-        except Exception as e:
-            print(f"Error - {e}")
-        
-        print("AFTER------------")        
-        print(resampled_df)
-        print("AFTER------------")        
+        # resample and get the mean of the input data
+        df = df.set_index("date_time").resample('1min').agg({'value': np.mean, 'TAG__printer_name': 'first'})
+        print(df)
 
         # Send filtered data to output topic
-        stream_producer.timeseries.buffer.publish(resampled_df)
+        stream_producer.timeseries.buffer.publish(df)
 
     # create a new stream to output data
     stream_producer = topic_producer.get_or_create_stream(stream_consumer.stream_id + "-down-sampled")
