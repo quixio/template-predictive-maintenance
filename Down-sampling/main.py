@@ -11,9 +11,9 @@ print("Opening input and output topics")
 topic_consumer = client.get_topic_consumer(os.environ["input"], "down-sampling-consumer-group")
 topic_producer = client.get_topic_producer(os.environ["output"])
 
-# buffer 1 minute of data
+# buffer 5 minute of data
 buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_configuration.time_span_in_milliseconds = 60 * 1000
+buffer_configuration.time_span_in_milliseconds = 5 * 60 * 1000
 
 
 # called for each incoming stream
@@ -30,10 +30,8 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         else:
             raise Exception("A suitable timestamp was column not found in the dataset")
 
-        print(df.columns)
         # resample and get the mean of the input data
         df = df.set_index("date_time").resample('1min').agg({'forecast_smoothed_fluctuated_ambient_temperature': np.mean, 'TAG__printer': 'first'})
-        #print(df)
 
         # Send filtered data to output topic
         stream_producer.timeseries.buffer.publish(df)
