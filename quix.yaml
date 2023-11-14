@@ -98,7 +98,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
-    version: 1d3765bca014f76f4d0846fe4283445969bc417d
+    version: a0a1681ab14adf3923b87e374bf88e971df44d12
     resources:
       cpu: 200
       memory: 500
