@@ -12,7 +12,7 @@ topic_producer = client.get_topic_producer(os.environ["output"])
 
 # buffer 100ms of data
 buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_configuration.time_span_in_milliseconds = 100
+buffer_configuration.time_span_in_milliseconds = 1000
 
 
 # called for each incoming stream
@@ -30,8 +30,8 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         else:
             raise Exception("A suitable timestamp was column not found in the dataset")
 
-        # this sample uses 100ms of data and down-samples to 10ms
-        td = pd.Timedelta(10, "milliseconds")
+        # this sample uses 1000ms of data and down-samples to 100ms
+        td = pd.Timedelta(100, "milliseconds")
 
         # resample and get the mean of the input data
         df = df.set_index("date_time").resample(td).mean().ffill()
