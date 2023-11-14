@@ -21,20 +21,6 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: raw_data
-  - name: Demo Data
-    application: Demo Data 2
-    deploymentType: Job
-    version: 47460b8cd0e63ff8fbb0ff5f675461c52ee2177f
-    resources:
-      cpu: 200
-      memory: 200
-      replicas: 1
-    variables:
-      - name: Topic
-        inputType: OutputTopic
-        description: Name of the output topic to write into
-        required: true
-        value: f1-data
 
 # This section describes the Topics of the data pipeline
 topics:
