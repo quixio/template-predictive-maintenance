@@ -36,8 +36,11 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
         print(df)
         print("BEFORE------------")        
 
-        # resample and get the mean of the input data
-        resampled_df = df.iloc[::10, :]
+        try:
+            # resample and get the mean of the input data
+            resampled_df = df.iloc[::10, :]
+        except Exception as e:
+            print(f"Error - {e}")
         
         print("AFTER------------")        
         print(resampled_df)
