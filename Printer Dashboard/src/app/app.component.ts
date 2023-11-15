@@ -24,10 +24,18 @@ export class AppComponent implements OnInit {
   deploymentId: string;
   ungatedToken: string;
   activeStreams: ActiveStream[] = [];
-  parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   parameterData$: Observable<ParameterData>;
   eventData$: Observable<EventData>;
   streamsMap = new Map<string, string>();
+  parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
+  forecastParameterIds: string = 'forecast_fluctuated_ambient_temperature';
+  duration: number = 5 * 60 * 1000;
+  offset: number = 60 * 1000;
+  ranges: { [key: string]: { min: number, max: number } } = {
+    'ambient_temperature': { min: 45, max: 55 },
+    'bed_temperature': { min: 105, max: 115 },
+    'hotend_temperature': { min: 245, max: 255 }
+  };
 
   constructor(private quixService: QuixService, public media: MediaObserver) { }
 
@@ -59,10 +67,8 @@ export class AppComponent implements OnInit {
       const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
       this.parameterIds.forEach((parameter) => {
         this.subscribeToParameter(printerDataTopicId, stream.streamId, parameter);
-        this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast-forecast', 'forecast_' + parameter);
-        this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-forecast-forecast-alerts', 'forecast_smoothed_fluctuated_ambient_temperature');
       })
-      this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast-forecast', 'forecast_smoothed_fluctuated_ambient_temperature');
+      this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast-forecast', 'forecast_fluctuated_ambient_temperature');
       this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-forecast-forecast-alerts', 'under-fcast');
     });
   }

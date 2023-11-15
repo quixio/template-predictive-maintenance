@@ -65,7 +65,7 @@
           List items annotated with an asterisk '*' are part of the target audience for special offers.
         </p>
         <mat-form-field appearance="outline" class="w-100">
-          <mat-label>Users</mat-label>
+          <mat-label>Printers</mat-label>
           <mat-select [formControl]="streamsControl">
             <mat-option *ngFor="let stream of activeStreams; let i = index" [value]="stream">
               {{ stream.name || stream.streamId }}
@@ -73,48 +73,55 @@
           </mat-select>
         </mat-form-field>
       </div>
-      <div class="mb-5">
-        <h4 class="mb-2 mat-subtitle-2">See if you can trigger a special offer</h4>
-        <p class="text-body mb-3">
-          Depending on your selected demographic profile and your click behavior, you can trigger a special offer popup.
-        </p>
-      </div>
-      <div>
-        <h4 class="mb-2 mat-subtitle-2">How the special offer triggers work</h4>
-        <div class="text-body">
-          <p>In the back end, the
-            <a target="_blank"
-              [href]="'https://portal.platform.quix.ai/pipeline/deployments/' + deploymentId + '?workspace=' + workspaceId + '&token=' + ungatedToken">
-              clickstream analysis service
-            </a>
-            looks for the following criteria:
-          </p>
-          <p>If, in the last 5 minutes, a <i>female between 25-35 or a male between 36 and 45</i>:</p>
-          <ol>
-            <li>views any item in the <b>clothing</b> category then…</li>
-            <li>views any item in the <b>shoes</b> category then…</li>
-            <li>views a different item in the <b>clothing</b> category then:</li>
-          </ol>
-          <ul>
-            <li>Show a special offer for that demographic</li>
-          </ul>
-          <p>Try following this click pattern and see if you can trigger the special offer.</p>
-          <p>
-            To experiment with your own behavior detection patterns,
-            <b>fork this project template</b> and update Python code for the clickstream analysis.
-          </p>
-          <p>The same code can work on a massive scale with millions of users.</p>
-        </div>
-      </div>
     </div>
   </mat-drawer>
   <mat-drawer-content class="w-100">
-    <div fxLayout="column" fxLayoutGap="50px" class="h-100 p-3">
-      <div fxLayout="column" fxFlex="33.33" *ngFor="let id of parameterIds">
-        <h2>{{ id }}</h2>
-        <div fxFlex fxLayout="row">
-          <app-chart fxFlex [key]="id" [data]="(parameterData$ | async)!" [reset$]="streamsControl.valueChanges"></app-chart>
-          <app-table [data]="(eventData$ | async)!"></app-table>
+    <div fxLayout="column" class="h-100 p-3">
+      <div fxLayout="column" fxFlex="33.33">
+        <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
+          <div fxLayout="column" fxFlex class="overflow-hidden">
+            <h2 class="mb-1">Ambient temperature</h2>
+            <app-chart fxFlex key="ambient_temperature" [data]="(parameterData$ | async)!"
+              forecastKey="forecastParameterIds"
+              [duration]="duration"
+              [delay]="-(duration - offset) / 2"
+              [reset$]="streamsControl.valueChanges"
+              [range]="ranges['ambient_temperature']">
+            </app-chart>
+          </div>
+          <div fxFlex="33.33">
+            <app-table  [data]="(eventData$ | async)!"></app-table>
+          </div>
+        </div>
+      </div>
+      <div fxLayout="column" fxFlex="33.33">
+        <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
+          <div fxLayout="column" fxFlex class="overflow-hidden">
+            <h2 class="mb-1">Bed temperature</h2>
+            <app-chart fxFlex key="bed_temperature" [data]="(parameterData$ | async)!"
+              [duration]="duration"
+              [reset$]="streamsControl.valueChanges"
+              [range]="ranges['bed_temperature']">
+            </app-chart>
+          </div>
+          <div fxFlex="33.33">
+            <app-table  [data]="(eventData$ | async)!"></app-table>
+          </div>
+        </div>
+      </div>
+      <div fxLayout="column" fxFlex="33.33">
+        <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
+          <div fxLayout="column" fxFlex class="overflow-hidden">
+            <h2 class="mb-1">Hotend temperature</h2>
+            <app-chart fxFlex key="hotend_temperature" [data]="(parameterData$ | async)!"
+              [duration]="duration"
+              [reset$]="streamsControl.valueChanges"
+              [range]="ranges['hotend_temperature']">
+            </app-chart>
+          </div>
+          <div fxFlex="33.33">
+            <app-table  [data]="(eventData$ | async)!"></app-table>
+          </div>
         </div>
       </div>
     </div>
