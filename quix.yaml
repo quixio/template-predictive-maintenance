@@ -57,7 +57,7 @@ deployments:
     resources:
       cpu: 1000
       memory: 1000
-      replicas: 2
+      replicas: 3
     desiredStatus: Running
     variables:
       - name: input
