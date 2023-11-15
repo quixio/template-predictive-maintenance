@@ -35,12 +35,10 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging
 # Callback called for each incoming stream
 def read_stream(stream_consumer: qx.StreamConsumer):
     # Create a new stream to output data
-    stream_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
-    stream_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
     logging.info(f"Created stream {stream_producer.stream_id}")
 
-    stream_alerts_producer = producer_topic.create_stream(f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
-    stream_alerts_producer.properties.parents.append(stream_consumer.stream_id)
+    stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id, stream_consumer.properties.name)
     logging.info(f"Created stream '{stream_alerts_producer.stream_id}'")
 
     # React to new data received from input topic.
@@ -70,6 +68,34 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     stream_consumer.on_stream_closed = on_stream_close
 
 
+def get_or_create_forecast_stream(stream_id: str, stream_name: str):
+    stream_producer = producer_topic.get_or_create_stream(f"{stream_id}-forecast")
+
+    if stream_id not in stream_producer.properties.parents:
+        stream_producer.properties.parents.append(stream_id)
+
+    if stream_name is not None:
+        stream_producer.properties.name = f"{stream_name} - Forecast"
+
+    stream_producer.timeseries.add_definition("forecast_" + parameter_name, "Forecasted " + parameter_name)
+    return stream_producer
+
+
+def get_or_create_alerts_stream(stream_id: str, stream_name: str):
+    stream_alerts_producer = producer_alerts_topic.get_or_create_stream(f"{stream_id}-alerts")
+
+    if stream_id not in stream_alerts_producer.properties.parents:
+        stream_alerts_producer.properties.parents.append(stream_id)
+
+    if stream_name is not None:
+        stream_alerts_producer.properties.name = f"{stream_name} - Alerts"
+
+    stream_alerts_producer.events.add_definition("under-now", "Under lower threshold now")
+    stream_alerts_producer.events.add_definition("under-fcast", "Under lower threshold in forecast")
+    stream_alerts_producer.events.add_definition("noalert", "No alert")
+    return stream_alerts_producer
+
+
 def all_are_smaller(param1: list, param2: list):
     for i in range(len(param1)):
         if param1[i] >= param2[i]:
@@ -84,7 +110,7 @@ def generate_forecast(df, printer_name):
     forecast_length = 14400  # 4 hours into the future
     window_range = pd.Timedelta(36, unit='s')  # Window range used for smoothing (not forecasting), 36 secs
     smooth_label = "smoothed_" + str(parameter_name)
-    forecast_label = "forecast_" + smooth_label
+    forecast_label = "forecast_" + str(parameter_name)
 
     # Make sure that the 'original_timestamp' column is datetime
     df['original_timestamp'] = pd.to_datetime(df['original_timestamp'])
@@ -117,7 +143,7 @@ def generate_forecast(df, printer_name):
     fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
     # Tag the data with the printer name for joining operations later
     fcast["TAG__printer"] = printer_name
-    
+
     # Create a timestamp for the forecasted values
     forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
 
@@ -137,7 +163,6 @@ def generate_forecast(df, printer_name):
         elif all_are_smaller(list(fcast[forecast_label].iloc[i: i + 3]), [lthreshold, lthreshold, lthreshold]):
             # In order to trigger the alert, the forecasted values need to be under
             # the lower threshold for 3 consecutive seconds
-
             alertstatus["status"] = "under-fcast"
             alertstatus[
                 "message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
@@ -208,13 +233,13 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name)
         status = alert_status["status"]
         logging.debug(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
-        stream_producer = producer_topic.get_or_create_stream(f"{stream_consumer.stream_id}-forecast-{topic_output}")
+        stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
         stream_producer.timeseries.buffer.publish(forecast)
 
-        stream_alerts_producer = producer_alerts_topic.get_or_create_stream(
-            f"{stream_consumer.stream_id}-forecast-{topic_alerts}")
         if status in ["under-now", "under-fcast"] and not alert_triggered(stream_id):
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
+            stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+                                                                 stream_consumer.properties.name)
             alert_df = pd.DataFrame([alert_status])
             # Get current date and time
             now = datetime.now()
@@ -230,6 +255,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
         elif status == "noalert" and alert_triggered(stream_id):
             # If it was triggered and now it's not, send a "noalert" event
+            stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+                                                                 stream_consumer.properties.name)
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False

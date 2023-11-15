@@ -8,8 +8,8 @@ metadata:
 deployments:
   - name: Data Generator
     application: Data Generator
-    deploymentType: Job
-    version: f710eb8312172466076294f7d32603e45a23fa22
+    deploymentType: Service
+    version: a22c290d498d964fc9203275d2ad72d36d45bfac
     resources:
       cpu: 200
       memory: 500
@@ -53,11 +53,11 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 53f0ed6ac365121185824d88e9d4ed5d0d37a8e2
+    version: 72a96a07950c198ffbadf8a7e53155f33d42de88
     resources:
       cpu: 1000
       memory: 1000
-      replicas: 1
+      replicas: 2
     desiredStatus: Running
     variables:
       - name: input
@@ -89,7 +89,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 1
+        value: 1200
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
