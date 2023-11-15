@@ -32,6 +32,11 @@ debug = os.environ["debug"] == "1" if "debug" in os.environ else False
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging.INFO)
 
 
+# buffer 30 seconds of data
+buffer_configuration = qx.TimeseriesBufferConfiguration()
+buffer_configuration.time_span_in_milliseconds = 30 * 1000
+
+
 # Callback called for each incoming stream
 def read_stream(stream_consumer: qx.StreamConsumer):
     # Create a new stream to output data
@@ -41,8 +46,10 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id, stream_consumer.properties.name)
     logging.info(f"Created stream '{stream_alerts_producer.stream_id}'")
 
-    # React to new data received from input topic.
-    stream_consumer.timeseries.on_dataframe_received = on_dataframe_handler
+    # Use buffer to calculate forecast only every 30 seconds
+    buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
+    buffer.on_dataframe_released = on_dataframe_handler
+
 
     # When input stream closes, we close output stream as well.
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
@@ -273,11 +280,11 @@ if __name__ == "__main__":
     # Change consumer group to a different constant if you want to run model locally.
     logging.info("Opening input and output topics")
 
-    #if debug:
-    #    consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name,
-    #                                               auto_offset_reset=qx.AutoOffsetReset.Earliest)
-    #else:
-    consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name)
+    if debug:
+        consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name,
+                                                   auto_offset_reset=qx.AutoOffsetReset.Earliest)
+    else:
+        consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name)
 
     producer_topic = client.get_topic_producer(topic_output)
     producer_alerts_topic = client.get_topic_producer(topic_alerts)
