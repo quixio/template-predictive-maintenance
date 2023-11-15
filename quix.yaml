@@ -39,12 +39,12 @@ deployments:
         inputType: FreeText
         description: Length of the data in seconds
         required: false
-        value: 5000
+        value: 28800
       - name: number_of_printers
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 100
+        value: 20
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
