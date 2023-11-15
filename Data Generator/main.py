@@ -85,9 +85,10 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
         df = pd.DataFrame(
             [[timestamp, timestamp, hotend_temperature, bed_temperature, ambient_temperature,
-              fluctuated_ambient_temperature]],
+              fluctuated_ambient_temperature, printer]],
             columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature',
-                     'fluctuated_ambient_temperature'])
+                     'fluctuated_ambient_temperature', 'TAG__printer'])
+        
         stream.timeseries.buffer.publish(df)
         logging.debug(f"{printer}: Published:\n{df}")
 

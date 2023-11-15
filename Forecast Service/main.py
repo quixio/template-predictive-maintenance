@@ -93,7 +93,7 @@ def get_or_create_alerts_stream(stream_id: str, stream_name: str):
 
     if stream_id not in stream_alerts_producer.properties.parents:
         stream_alerts_producer.properties.parents.append(stream_id)
-    
+
     if stream_name is not None:
         stream_alerts_producer.properties.name = f"{stream_name} - Alerts"
 
@@ -148,21 +148,13 @@ def generate_forecast(df, printer_name):
     forecast_values = model.predict(forecast_array)
     # Create a DataFrame for the forecast
     fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
+    # Tag the data with the printer name for joining operations later
+    fcast["TAG__printer"] = printer_name
+
     # Create a timestamp for the forecasted values
     forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
-    fcast['forecast_timestamp'] = forecast_timestamp
-
-    # Adding the timestamp that Quix needs to present in the df
-    n = len(fcast)
-    # Get the current time
-    now = datetime.now()
-    # Create a date range starting from 'now', for 'n' periods, with a frequency of 1 millisecond
-    ntimestamps = pd.date_range(start=now, periods=n, freq='ms')
-
-    # TODO: timestamp should be the forecast timestamp
-    # Add the timestamps to the DataFrame
     fcast['timestamp'] = forecast_timestamp
 
     lthreshold = 45
@@ -264,6 +256,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
 
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
+            # Tag the data with the printer name for joining operations later
+            event.add_tag("TAG__printer", stream_consumer.properties.name)
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = True
 
