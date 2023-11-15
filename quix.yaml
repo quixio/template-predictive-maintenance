@@ -111,34 +111,34 @@ deployments:
         required: true
         value: forecast-alerts
       - name: INFLUXDB_HOST
-        inputType: FreeText
+        inputType: Secret
         description: Host address for the InfluxDB instance.
         required: true
-        value: https://us-east-1-1.aws.cloud2.influxdata.com
+        secretKey: INFLUX_HOST
       - name: INFLUXDB_TOKEN
-        inputType: FreeText
+        inputType: Secret
         description: Authentication token to access InfluxDB.
         required: true
-        value: lmBSqe8VbOqu5G083yLAr4iGgm7vQQJ4h_sEnWWZ7zKWi0_Iv6qxlPoD9YAyKdrM-NQVrfP7zvtSJLsODvGYRQ==
+        secretKey: INFLUX_TOKEN
       - name: INFLUXDB_ORG
-        inputType: FreeText
+        inputType: Secret
         description: Organization name in InfluxDB.
-        required: false
-        value: Quix
+        required: true
+        secretKey: INFLUX_ORG
       - name: INFLUXDB_DATABASE
-        inputType: FreeText
+        inputType: Secret
         description: Database name in InfluxDB where data should be stored.
         required: true
-        value: PredictiveMaintenance
+        secretKey: INFLUX_DATABASE
       - name: INFLUXDB_TAG_COLUMNS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
-        required: false
+        required: true
         value: '[]'
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: false
+        required: true
         value: Alerts
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0
@@ -156,25 +156,25 @@ deployments:
         required: true
         value: downsampled-3d-printer-data
       - name: INFLUXDB_HOST
-        inputType: FreeText
+        inputType: Secret
         description: Host address for the InfluxDB instance.
         required: true
-        value: https://us-east-1-1.aws.cloud2.influxdata.com
+        secretKey: INFLUX_HOST
       - name: INFLUXDB_TOKEN
-        inputType: FreeText
+        inputType: Secret
         description: Authentication token to access InfluxDB.
         required: true
-        value: lmBSqe8VbOqu5G083yLAr4iGgm7vQQJ4h_sEnWWZ7zKWi0_Iv6qxlPoD9YAyKdrM-NQVrfP7zvtSJLsODvGYRQ==
+        secretKey: INFLUX_TOKEN
       - name: INFLUXDB_ORG
-        inputType: FreeText
+        inputType: Secret
         description: Organization name in InfluxDB.
-        required: false
-        value: Quix
+        required: true
+        secretKey: INFLUX_ORG
       - name: INFLUXDB_DATABASE
-        inputType: FreeText
+        inputType: Secret
         description: Database name in InfluxDB where data should be stored.
         required: true
-        value: PredictiveMaintenance
+        secretKey: INFLUX_DATABASE
       - name: INFLUXDB_TAG_COLUMNS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
