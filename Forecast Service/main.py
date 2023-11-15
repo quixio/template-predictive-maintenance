@@ -273,11 +273,11 @@ if __name__ == "__main__":
     # Change consumer group to a different constant if you want to run model locally.
     logging.info("Opening input and output topics")
 
-    if debug:
-        consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name,
-                                                   auto_offset_reset=qx.AutoOffsetReset.Earliest)
-    else:
-        consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name)
+    #if debug:
+    #    consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name,
+    #                                               auto_offset_reset=qx.AutoOffsetReset.Earliest)
+    #else:
+    consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name)
 
     producer_topic = client.get_topic_producer(topic_output)
     producer_alerts_topic = client.get_topic_producer(topic_alerts)
