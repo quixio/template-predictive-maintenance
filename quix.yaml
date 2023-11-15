@@ -53,11 +53,11 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 72a96a07950c198ffbadf8a7e53155f33d42de88
+    version: c9e689d0c4166ad96431799f23a7553d01a81fac
     resources:
-      cpu: 1000
+      cpu: 2000
       memory: 1000
-      replicas: 2
+      replicas: 1
     desiredStatus: Running
     variables:
       - name: input
