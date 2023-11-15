@@ -77,10 +77,12 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
 def get_or_create_forecast_stream(stream_id: str, stream_name: str):
     stream_producer = producer_topic.get_or_create_stream(f"{stream_id}-forecast")
-    stream_producer.properties.parents.append(stream_id)
+
+    if stream_id not in stream_producer.properties.parents:
+        stream_producer.properties.parents.append(stream_id)
 
     if stream_name is not None:
-        stream_producer.properties.name = f"Printer {stream_name} - Forecast"
+        stream_producer.properties.name = f"{stream_name} - Forecast"
 
     stream_producer.timeseries.add_definition("forecast_" + parameter_name, "Forecasted " + parameter_name)
     return stream_producer
@@ -88,9 +90,12 @@ def get_or_create_forecast_stream(stream_id: str, stream_name: str):
 
 def get_or_create_alerts_stream(stream_id: str, stream_name: str):
     stream_alerts_producer = producer_alerts_topic.get_or_create_stream(f"{stream_id}-alerts")
-    stream_alerts_producer.properties.parents.append(stream_id)
+
+    if stream_id not in stream_alerts_producer.properties.parents:
+        stream_alerts_producer.properties.parents.append(stream_id)
+    
     if stream_name is not None:
-        stream_alerts_producer.properties.name = f"Printer {stream_name} - Alerts"
+        stream_alerts_producer.properties.name = f"{stream_name} - Alerts"
 
     stream_alerts_producer.events.add_definition("under-now", "Under lower threshold now")
     stream_alerts_producer.events.add_definition("under-fcast", "Under lower threshold in forecast")
