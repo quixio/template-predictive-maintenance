@@ -67,13 +67,6 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
     stream_consumer.on_stream_closed = on_stream_close
 
-    # def on_stream_changed(stream_consumer: qx.StreamConsumer):
-    #    logging.info(f"Stream {stream_consumer.stream_id} ({stream_consumer.properties.name}) changed")
-    #    stream_producer.properties.name = f"Printer {stream_consumer.properties.name} - Forecast"
-    #    stream_alerts_producer.properties.name = f"Printer {stream_consumer.properties.name} - Alerts"
-
-    # stream_consumer.properties.on_changed = on_stream_changed
-
 
 def get_or_create_forecast_stream(stream_id: str, stream_name: str):
     stream_producer = producer_topic.get_or_create_stream(f"{stream_id}-forecast")
@@ -170,7 +163,6 @@ def generate_forecast(df, printer_name):
         elif all_are_smaller(list(fcast[forecast_label].iloc[i: i + 3]), [lthreshold, lthreshold, lthreshold]):
             # In order to trigger the alert, the forecasted values need to be under
             # the lower threshold for 3 consecutive seconds
-
             alertstatus["status"] = "under-fcast"
             alertstatus[
                 "message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
@@ -269,21 +261,9 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False
 
-        # For debugging purposes
-        stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id, stream_consumer.properties.name)
-        send_alerts_every_15_seconds(stream_alerts_producer)
-
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
                      f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
-
-
-def send_alerts_every_15_seconds(stream_alerts_producer: qx.StreamProducer):
-    message = (f"The value of 'TESTING' is not expected to hit the lower "
-               f"threshold of 45 degrees within the forecast range of "
-               f"99999 seconds (99999 hours).")
-    event = qx.EventData("under-fcast", pd.Timestamp.utcnow(), message)
-    stream_alerts_producer.events.publish(event)
 
 
 if __name__ == "__main__":
