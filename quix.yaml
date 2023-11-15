@@ -185,51 +185,6 @@ deployments:
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
         required: false
         value: Data
-  - name: InfluxDB 3.0 Forecast
-    application: InfluxDB 3.0
-    deploymentType: Service
-    version: 19146f413b91523c1aa626c5da1594f01c23b169
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    desiredStatus: Running
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: This is the input topic
-        required: true
-        value: downsampled-forecast
-      - name: INFLUXDB_HOST
-        inputType: FreeText
-        description: Host address for the InfluxDB instance.
-        required: true
-        value: https://us-east-1-1.aws.cloud2.influxdata.com
-      - name: INFLUXDB_TOKEN
-        inputType: FreeText
-        description: Authentication token to access InfluxDB.
-        required: true
-        value: lmBSqe8VbOqu5G083yLAr4iGgm7vQQJ4h_sEnWWZ7zKWi0_Iv6qxlPoD9YAyKdrM-NQVrfP7zvtSJLsODvGYRQ==
-      - name: INFLUXDB_ORG
-        inputType: FreeText
-        description: Organization name in InfluxDB.
-        required: false
-        value: Quix
-      - name: INFLUXDB_DATABASE
-        inputType: FreeText
-        description: Database name in InfluxDB where data should be stored.
-        required: true
-        value: PredictiveMaintenance
-      - name: INFLUXDB_TAG_COLUMNS
-        inputType: FreeText
-        description: Columns to be used as tags when writing data to InfluxDB.
-        required: false
-        value: '[]'
-      - name: INFLUXDB_MEASUREMENT_NAME
-        inputType: FreeText
-        description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: false
-        value: Forecast
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
