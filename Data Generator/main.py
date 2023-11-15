@@ -136,7 +136,8 @@ async def main():
         stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
 
         # Send data every 30 seconds
-        stream.timeseries.buffer.time_span_in_milliseconds = 30000
+        # TODO: changed to 10 seconds, move back to 30 when finished testing
+        stream.timeseries.buffer.time_span_in_milliseconds = 10000
 
         # Start sending data, each printer will start 5 minutes after the previous one
         tasks.append(asyncio.create_task(generate_data_and_close_stream_async(stream.properties.name, stream, i * 300)))
