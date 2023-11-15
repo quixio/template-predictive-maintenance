@@ -76,7 +76,7 @@ def read_stream(stream_consumer: qx.StreamConsumer):
 
 
 def get_or_create_forecast_stream(stream_id: str, stream_name: str):
-    stream_producer = producer_topic.create_stream(f"{stream_id}-forecast")
+    stream_producer = producer_topic.get_or_create_stream(f"{stream_id}-forecast")
     stream_producer.properties.parents.append(stream_id)
 
     if stream_name is not None:
@@ -87,7 +87,7 @@ def get_or_create_forecast_stream(stream_id: str, stream_name: str):
 
 
 def get_or_create_alerts_stream(stream_id: str, stream_name: str):
-    stream_alerts_producer = producer_topic.create_stream(f"{stream_id}-alerts")
+    stream_alerts_producer = producer_topic.get_or_create_stream(f"{stream_id}-alerts")
     stream_alerts_producer.properties.parents.append(stream_id)
     if stream_name is not None:
         stream_alerts_producer.properties.name = f"Printer {stream_name} - Alerts"
