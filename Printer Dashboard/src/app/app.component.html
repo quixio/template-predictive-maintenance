@@ -81,16 +81,29 @@
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Ambient temperature</h2>
-            <app-chart fxFlex key="ambient_temperature" [data]="(parameterData$ | async)!"
-              forecastKey="forecastParameterIds"
-              [duration]="duration"
-              [delay]="-(duration - offset) / 2"
-              [reset$]="streamsControl.valueChanges"
-              [range]="ranges['ambient_temperature']">
-            </app-chart>
+            <div fxFlex fxLayout="row">
+              <app-chart fxFlex
+                key="ambient_temperature"
+                label="Progress"
+                [data]="(printerData$ | async)!"
+                [duration]="1 * 60 * 1000"
+                [reset$]="streamsControl.valueChanges"
+                [range]="ranges['ambient_temperature']">
+              </app-chart>
+              <app-chart fxFlex
+                key="forecast_fluctuated_ambient_temperature"
+                label="Forecast"
+                hiddenAxe="y"
+                color="#ff0000"
+                [data]="(forecastData$ | async)!"
+                [duration]="4 * 60 * 60 * 1000"
+                [reset$]="resetForecast$"
+                [range]="ranges['ambient_temperature']">
+              </app-chart>
+            </div>
           </div>
           <div fxFlex="33.33">
-            <app-table  [data]="(eventData$ | async)!"></app-table>
+            <app-table [data]="(eventData$ | async)!"></app-table>
           </div>
         </div>
       </div>
@@ -98,14 +111,17 @@
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Bed temperature</h2>
-            <app-chart fxFlex key="bed_temperature" [data]="(parameterData$ | async)!"
-              [duration]="duration"
+            <app-chart fxFlex
+              key="bed_temperature"
+              label="Progress"
+              [data]="(printerData$ | async)!"
+              [duration]="2 * 60 * 1000"
               [reset$]="streamsControl.valueChanges"
               [range]="ranges['bed_temperature']">
             </app-chart>
           </div>
           <div fxFlex="33.33">
-            <app-table  [data]="(eventData$ | async)!"></app-table>
+            <app-table [data]="(eventData$ | async)!"></app-table>
           </div>
         </div>
       </div>
@@ -113,14 +129,17 @@
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Hotend temperature</h2>
-            <app-chart fxFlex key="hotend_temperature" [data]="(parameterData$ | async)!"
-              [duration]="duration"
+            <app-chart fxFlex
+              key="hotend_temperature"
+              label="Progress"
+              [data]="(printerData$ | async)!"
+              [duration]="2 * 60 * 1000"
               [reset$]="streamsControl.valueChanges"
               [range]="ranges['hotend_temperature']">
             </app-chart>
           </div>
           <div fxFlex="33.33">
-            <app-table  [data]="(eventData$ | async)!"></app-table>
+            <app-table [data]="(eventData$ | async)!"></app-table>
           </div>
         </div>
       </div>
