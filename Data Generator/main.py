@@ -102,18 +102,24 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
 async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
     await asyncio.sleep(initial_delay)
-    stream = topic_producer.create_stream()
-    stream.properties.name = printer
-
-    # Add metadata about time series data you are about to send.
-    stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
-    stream.timeseries.add_definition("bed_temperature", "Bed temperature")
-    stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
-    stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
-    
     while True:
+        stream = topic_producer.create_stream()
+        stream.properties.name = printer
+
+        # Add metadata about time series data you are about to send.
+        stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
+        stream.timeseries.add_definition("bed_temperature", "Bed temperature")
+        stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
+        stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
+
+        # Send data every 30 seconds
+        stream.timeseries.buffer.time_span_in_milliseconds = 30000
+
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
+
+        print(f"{printer}: Closing stream")
+        stream.close()
 
         # Wait 5 minutes before starting again
         await asyncio.sleep(5 * 60)
