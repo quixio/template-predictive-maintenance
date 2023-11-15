@@ -11,6 +11,6 @@ export class TableComponent {
   dataSource: EventData[] = [];
   @Input() set data(data: EventData){
     if (!data) return;
-    this.dataSource.push(data);
+    this.dataSource = [data, ...this.dataSource];
   }
 }
