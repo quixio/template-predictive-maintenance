@@ -168,7 +168,8 @@ def generate_forecast(df, printer_name):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
             alertstatus["status"] = UNDER_NOW
             alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_temperature"] = pd.to_datetime(fcast[forecast_label].iloc[i]).strftime('%Y-%m-%d %H:%M:%S %Z')
+            alertstatus["alert_timestamp"] = pd.to_datetime(fcast[forecast_label].iloc[i]).strftime('%Y-%m-%d %H:%M:%S %Z')
+            alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
             logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
