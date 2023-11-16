@@ -4,7 +4,7 @@ import os
 from sklearn.preprocessing import PolynomialFeatures
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 import pandas as pd
 import json
@@ -168,8 +168,8 @@ def generate_forecast(df, printer_name):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
             alertstatus["status"] = UNDER_NOW
             alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_timestamp"] = pd.to_datetime(fcast[forecast_label].iloc[i]).strftime('%Y-%m-%d %H:%M:%S %Z')
             alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
+            alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i])
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
             logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
@@ -178,7 +178,7 @@ def generate_forecast(df, printer_name):
             # the lower threshold for 3 consecutive seconds
             alertstatus["status"] = UNDER_FORECAST
             alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_timestamp"] = pd.to_datetime(fcast['timestamp'].iloc[i]).strftime('%Y-%m-%d %H:%M:%S %Z')
+            alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i])
             alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
             alertstatus["message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
                                       f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
@@ -260,13 +260,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
-            alert_df = pd.DataFrame([alert_status])
-            # Get current date and time
-            now = datetime.now()
-            # Add new column with current timestamp
-            alert_df['timestamp'] = now
-            logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
-
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
             # Tag the data with the printer name for joining operations later
             event.add_tag("TAG__printer", stream_consumer.properties.name)
@@ -296,7 +289,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     if force_alert < 10:
         fake_alert["status"] = UNDER_FORECAST
-        fake_alert["alert_timestamp"] = pd.to_datetime(pd.Timestamp.now() + pd.Timedelta(10, unit='m')).strftime('%Y-%m-%d %H:%M:%S %Z')
+        fake_alert["alert_timestamp"] = datetime.timestamp(datetime.utcnow() + timedelta(minutes=10))
         fake_alert["alert_temperature"] = 44.9
         force_alert += 1
     else:
@@ -306,7 +299,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                          stream_consumer.properties.name)
-    event = qx.EventData(fake_alert["status"], pd.Timestamp.now(), json.dumps(fake_alert))
+    event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
     stream_alerts_producer.events.publish(event)
 
 
