@@ -6,6 +6,7 @@ import { Data } from 'src/app/models/data';
 import { Observable } from 'rxjs';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { ParameterData } from 'src/app/models/parameterData';
+import { EventData } from 'src/app/models/eventData';
 
 @Component({
   selector: 'app-chart',
@@ -57,7 +58,6 @@ export class ChartComponent implements OnInit {
   };
   dataset: ChartDataset<'line'> = {
     data: [],
-    yAxisID: 'y',
     pointHoverBorderWidth: 0,
     pointRadius: 0,
     borderColor: '#0088ff',
@@ -102,15 +102,20 @@ export class ChartComponent implements OnInit {
   @Input() set hiddenAxe(key: 'x' | 'y') {
     (this.options as any).scales[key].ticks.display = false;
   }
-  @Input() set data(data: ParameterData) {
-    const values = data?.numericValues![this._key];
-    if (values) {
-      data.timestamps?.forEach((timestamp, i) => {
-        this.dataset.data.push({ x: timestamp / 1000000, y: values[i] });
-      });
-      const lastTimestamp: number = data.timestamps[data.timestamps.length - 1];
-      this.updateDelay(lastTimestamp);
-    }
+  @Input() set parameterData(data: ParameterData) {
+    if (!data) return;
+    const values = data.numericValues![this._key];
+    data.timestamps?.forEach((timestamp, i) => {
+      this.dataset.data.push({ x: timestamp / 1000000, y: values[i] });
+    });
+    const lastTimestamp: number = data.timestamps[data.timestamps.length - 1];
+    this.updateDelay(lastTimestamp);
+    this.chart?.update();
+  }
+  @Input() set eventData(data: EventData) {
+    if (!data) return;
+    const value = JSON.parse(data.value);
+    this.dataset.data.push({ x: data.timestamp / 1000000, y: 50 });
     this.chart?.update();
   }
 

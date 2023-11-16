@@ -67,23 +67,27 @@ export class AppComponent implements OnInit {
       const printerDataTopicId = this.quixService.workspaceId + '-' + this.quixService.printerDataTopic;
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
       const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
-      this.parameterIds.forEach((parameter) => {
-        this.subscribeToParameter(printerDataTopicId, stream.streamId, parameter);
-      })
-      this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast', 'forecast_fluctuated_ambient_temperature');
-      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', 'under-fcast');
+      this.subscribeToParameter(printerDataTopicId, stream.streamId, this.parameterIds);
+      this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast', ['forecast_fluctuated_ambient_temperature']);
+      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', ['under-fcast', 'under-now', 'no-alert']);
     });
   }
 
-  subscribeToParameter(topicId: string, streamId: string, parameterId: string): void {
-    if (this.streamsMap.get(topicId)) this.quixService.unsubscribeFromParameter(topicId, this.streamsMap.get(topicId)!, parameterId);
-    this.quixService.subscribeToParameter(topicId, streamId, parameterId);
+  subscribeToParameter(topicId: string, streamId: string, parameterIds: string[]): void {
+    const previousStream = this.streamsMap.get(topicId);
+    parameterIds.forEach(id => {
+      if (previousStream) this.quixService.unsubscribeFromParameter(topicId, previousStream, id);
+      this.quixService.subscribeToParameter(topicId, streamId, id)
+    });
     this.streamsMap.set(topicId, streamId);
   }
 
-  subscribeToEvent(topicId: string, streamId: string, eventId: string): void {
-    if (this.streamsMap.get(topicId)) this.quixService.unsubscribeFromEvent(topicId, this.streamsMap.get(topicId)!, eventId);
-    this.quixService.subscribeToEvent(topicId, streamId, eventId);
+  subscribeToEvent(topicId: string, streamId: string, eventIds: string[]): void {
+    const previousStream = this.streamsMap.get(topicId);
+    eventIds.forEach(id => {
+      if (previousStream) this.quixService.unsubscribeFromEvent(topicId, previousStream, id);
+      this.quixService.subscribeToEvent(topicId, streamId, id)
+    });
     this.streamsMap.set(topicId, streamId);
   }
 
