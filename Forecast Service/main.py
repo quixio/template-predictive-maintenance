@@ -7,6 +7,7 @@ from sklearn.pipeline import make_pipeline
 from datetime import datetime
 import numpy as np
 import pandas as pd
+import json
 
 import logging
 import sys
@@ -265,7 +266,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             alert_df['timestamp'] = now
             logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
 
-            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status)
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
             # Tag the data with the printer name for joining operations later
             event.add_tag("TAG__printer", stream_consumer.properties.name)
             stream_alerts_producer.events.publish(event)
@@ -275,7 +276,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             # If it was triggered, and now it's not, send a "noalert" event
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
-            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status)
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False
 
@@ -302,7 +303,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                          stream_consumer.properties.name)
-    event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), fake_alert)
+    event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
     stream_alerts_producer.events.publish(event)
 
 
