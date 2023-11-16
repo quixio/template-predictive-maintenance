@@ -7,6 +7,8 @@ import { MatSelectModule } from "@angular/material/select";
 import { MatSidenavModule } from "@angular/material/sidenav";
 import { MatTableModule } from "@angular/material/table";
 import { MatToolbarModule } from "@angular/material/toolbar";
+import { MatDividerModule } from "@angular/material/divider";
+import { MatTooltipModule } from "@angular/material/tooltip";
 
 
 @NgModule({
@@ -18,7 +20,9 @@ import { MatToolbarModule } from "@angular/material/toolbar";
     MatFormFieldModule,
     MatInputModule,
     MatSelectModule,
-    MatTableModule
+    MatTableModule,
+    MatDividerModule,
+    MatTooltipModule
   ]
 })
 export class MaterialModule { }

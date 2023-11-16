@@ -1,4 +1,5 @@
 import { Component, ElementRef, Input, ViewChild } from '@angular/core';
+import { Alert } from 'src/app/models/alert';
 import { Data } from 'src/app/models/data';
 import { EventData } from 'src/app/models/eventData';
 
@@ -8,9 +9,13 @@ import { EventData } from 'src/app/models/eventData';
   styleUrls: ['./table.component.scss']
 })
 export class TableComponent {
-  dataSource: EventData[] = [];
+  dataSource: Alert[] = [];
+  @Input() eventIds: string[];
   @Input() set data(data: EventData){
     if (!data) return;
-    this.dataSource = [data, ...this.dataSource];
+    const value: Alert = JSON.parse(data.value);
+    console.log(value)
+    if (this.eventIds.includes(value.status!)) this.dataSource = [value, ...this.dataSource];
+    if (value.status === "no-alert") this.dataSource = [];
   }
 }

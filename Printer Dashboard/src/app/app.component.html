@@ -19,7 +19,7 @@
         </div>
       </a>
       <a mat-raised-button color="accent" class="small" fxLayout="row" fxLayoutAlign="center center"
-        href="https://github.com/quixio/template-clickstream-front-end" target="_blank">
+        href="https://github.com/quixio/template-predictive-maintenance" target="_blank">
         <div fxLayout="row" fxLayoutAlign="start center">
           <img src="assets/github.svg" alt="Quix" height="16" class="me-2" />
           <span>View repo</span>
@@ -33,10 +33,10 @@
     [opened]="!media.isActive(['sm', 'xs'])" class="mat-elevation-z4" #sidenav>
     <div class="p-5">
       <div class="mb-5">
-        <h1 class="mb-1">Clickstream <br> Event Detection</h1>
+        <h1 class="mb-1">Real-time Failure Prediction for a 3D Printer</h1>
         <p class="mb-3 text-body text-uppercase">Project template</p>
         <p class="mat-body-1">
-          Trigger events such as special offer popups based on real-time analysis of your click behavior.
+          This project demonstrates how easy it is to do real-time predictive analytics on any machine with sensors attached. It simulates three temperature sensors on a fleet of 3D printers.
         </p>
         <div fxLayout="row">
           <a mat-raised-button color="primary" class="small me-2" fxLayout="row" fxLayoutAlign="center center"
@@ -48,7 +48,7 @@
             </div>
           </a>
           <a mat-raised-button color="accent" class="small" fxLayout="row" fxLayoutAlign="center center"
-            href="https://github.com/quixio/template-clickstream-front-end" target="_blank">
+            href="https://github.com/quixio/template-predictive-maintenance" target="_blank">
             <div fxLayout="row" fxLayoutAlign="start center">
               <img src="assets/github.svg" alt="Quix" height="16" class="me-2" />
               <span class="text-nowrap">View repo</span>
@@ -56,13 +56,23 @@
           </a>
         </div>
       </div>
+      <div class="mb-5">
+        <p>Built with Quix and Grafana</p>
+        <div fxLayout="row" fxFlexAlign="start center">
+          <img src="assets/quix-logo-black.svg" alt="Quix" height="25" />
+          <mat-divider [vertical]="true" class="mx-3 border-dark"></mat-divider>
+          <img src="assets/grafana.svg" alt="Redpanda" height="25" />
+        </div>
+      </div>
       <div class="mb-3">
-        <h4 class="mb-2 mat-subtitle-2">Select an identity</h4>
+        <h4 class="mb-2 mat-subtitle-2">Select a printer</h4>
         <p class="text-body mb-3">
-          Choose a mock demographic profile which will be included in the clickstream analysis.
+          Each “virtual” printer is continuously printing in 8 hour cycles. For each printer,
+          the enclosure temperature is programmed to drop at 4h:35s—the failure point.
           <br />
           <br />
-          List items annotated with an asterisk '*' are part of the target audience for special offers.
+          To see forecast update after the failure point,
+          select the printer where the progress is currently closest to the failure point.
         </p>
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Printers</mat-label>
@@ -73,25 +83,56 @@
           </mat-select>
         </mat-form-field>
       </div>
+      <div class="mb-3">
+        <h4 class="mb-2 mat-subtitle-2">Tracking the printers’ temperature sensors</h4>
+        <p class="text-body mb-3">
+          When printing with a heat-sensitive material such as ABS (Acrylonitrile Butadiene Styrene),
+          it’s important to ensure that the temperatures remain stable.
+          <br />
+          <br />
+          In the back end, we are simulating real-time data readouts for all three of a 3D printer’s
+          temperature sensors for an 8-hour ABS print.
+          <br />
+          <br />
+          In our simulation, the enclosure temperature slowly starts to drop about halfway through
+          the print (at <b>4hrs 35</b>).
+          <br />
+          <br />
+          You’ll want to know about this before it drops below the acceptable lower temperature
+          threshold for ABS.
+          <br />
+          <br />
+          Our demo  forecasting algorithm that attempts to estimate when this is going to happen,
+          sends a Slack alert, and displays the alert on a dashboard.
+          <br />
+          <br />
+          For more information on how to use this template, see the
+          <a href="" target="_blank">accompanying tutorial</a>.
+        </p>
+      </div>
     </div>
   </mat-drawer>
   <mat-drawer-content class="w-100">
     <div fxLayout="column" class="h-100 p-3">
-      <div fxLayout="column" fxFlex="33.33">
+      <div fxLayout="column" fxFlex="33.33" class="chart-section">
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Ambient temperature</h2>
             <div fxFlex fxLayout="row">
               <app-chart fxFlex
-                key="ambient_temperature"
+                parameterId="ambient_temperature"
+                eventId="under-now"
                 label="Progress"
                 [parameterData]="(printerData$ | async)!"
+                [eventData]="(eventData$ | async)!"
                 [duration]="1 * 60 * 1000"
                 [reset$]="streamsControl.valueChanges"
-                [range]="ranges['ambient_temperature']">
+                [range]="ranges['ambient_temperature']"
+                (limitChange)="forecastLimit = $event">
               </app-chart>
               <app-chart fxFlex
-                key="forecast_fluctuated_ambient_temperature"
+                parameterId="forecast_fluctuated_ambient_temperature"
+                eventId="under-forecast"
                 label="Forecast"
                 hiddenAxe="y"
                 color="#ff0000"
@@ -99,21 +140,22 @@
                 [eventData]="(eventData$ | async)!"
                 [duration]="4 * 60 * 60 * 1000"
                 [reset$]="resetForecast$"
-                [range]="ranges['ambient_temperature']">
+                [range]="ranges['ambient_temperature']"
+                [limit]="forecastLimit">
               </app-chart>
             </div>
           </div>
           <div fxFlex="33.33">
-            <app-table [data]="(eventData$ | async)!"></app-table>
+            <app-table [data]="(eventData$ | async)!" [eventIds]="['under-forecast', 'under-now']"></app-table>
           </div>
         </div>
       </div>
-      <div fxLayout="column" fxFlex="33.33">
+      <div fxLayout="column" fxFlex="33.33" class="chart-section">
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Bed temperature</h2>
             <app-chart fxFlex
-              key="bed_temperature"
+              parameterId="bed_temperature"
               label="Progress"
               [parameterData]="(printerData$ | async)!"
               [duration]="2 * 60 * 1000"
@@ -123,12 +165,12 @@
           </div>
         </div>
       </div>
-      <div fxLayout="column" fxFlex="33.33">
+      <div fxLayout="column" fxFlex="33.33" class="chart-section">
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Hotend temperature</h2>
             <app-chart fxFlex
-              key="hotend_temperature"
+              parameterId="hotend_temperature"
               label="Progress"
               [parameterData]="(printerData$ | async)!"
               [duration]="2 * 60 * 1000"

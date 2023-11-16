@@ -1,18 +1,27 @@
 <div class="h-100 overflow-auto">
-  <table mat-table [dataSource]="dataSource" class="w-100">
+  <table mat-table [dataSource]="dataSource" class="w-100 mat-caption">
     <ng-container matColumnDef="timestamp">
       <th mat-header-cell *matHeaderCellDef class="mat-body-2">Timestamp</th>
-      <td mat-cell *matCellDef="let element; let i = index" class="mat-body-2">
-        {{ (element.timestamp / 1000000) | date: 'HH:mm:ss.SSS' }}
+      <td mat-cell *matCellDef="let alert; let i = index" class="mat-body-2">
+        {{ (alert.alert_timestamp / 1000000) | date: 'HH:mm:ss' }}
       </td>
     </ng-container>
     <ng-container matColumnDef="type">
-      <th mat-header-cell *matHeaderCellDef class="mat-body-2" style="width: 100%">Type</th>
-      <td mat-cell *matCellDef="let element; let i = index" class="mat-body-2">
-        {{ element.value }}
+      <th mat-header-cell *matHeaderCellDef class="mat-body-2">Type</th>
+      <td mat-cell *matCellDef="let alert; let i = index" class="mat-body-2">
+        <div fxLayout="row">
+          <mat-icon color="warn" class="cursor-pointer" [matTooltip]="alert.message">warning</mat-icon>
+          <span>{{ alert.status }}</span>
+        </div>
       </td>
     </ng-container>
-    <tr mat-header-row *matHeaderRowDef="['timestamp', 'type']; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['timestamp', 'type']"></tr>
+    <ng-container matColumnDef="temperature">
+      <th mat-header-cell *matHeaderCellDef class="mat-body-2">Temp. Cº</th>
+      <td mat-cell *matCellDef="let alert; let i = index" class="mat-body-2">
+        {{ alert.alert_temperature | number : '1.0-2' }}
+      </td>
+    </ng-container>
+    <tr mat-header-row *matHeaderRowDef="['timestamp', 'type', 'temperature']; sticky: true"></tr>
+    <tr mat-row *matRowDef="let row; columns: ['timestamp', 'type', 'temperature']"></tr>
   </table>
 </div>
