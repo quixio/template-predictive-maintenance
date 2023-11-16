@@ -295,15 +295,15 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     if force_alert % 2 == 0:
         fake_alert["status"] = UNDER_FORECAST
-        fake_alert["alert_timestamp"] = pd.to_datetime(pd.Timestamp.utcnow() + pd.Timedelta(10, unit='m')).strftime('%Y-%m-%d %H:%M:%S')
-        fake_alert["alert_temperature"] = 40
+        fake_alert["alert_timestamp"] = pd.to_datetime(pd.Timestamp.now() + pd.Timedelta(10, unit='m')).strftime('%Y-%m-%d %H:%M:%S')
+        fake_alert["alert_temperature"] = 44.9
 
     else:
         fake_alert["status"] = NO_ALERT
 
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                          stream_consumer.properties.name)
-    event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
+    event = qx.EventData(fake_alert["status"], pd.Timestamp.now(), json.dumps(fake_alert))
     stream_alerts_producer.events.publish(event)
 
 
