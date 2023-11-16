@@ -25,10 +25,12 @@ export class AppComponent implements OnInit {
   activeStreams: ActiveStream[] = [];
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
-  resetForecast$: Observable<void>;
   eventData$: Observable<EventData>;
+  resetForecast$: Observable<void>;
+  forecastLimit: { min: number, max: number }
   streamsMap = new Map<string, string>();
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
+  eventsIds: string[] = ['under-forecast', 'under-now', 'no-alert'];
   ranges: { [key: string]: { min: number, max: number } } = {
     'ambient_temperature': { min: 45, max: 55 },
     'bed_temperature': { min: 105, max: 115 },
@@ -69,7 +71,7 @@ export class AppComponent implements OnInit {
       const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
       this.subscribeToParameter(printerDataTopicId, stream.streamId, this.parameterIds);
       this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast', ['forecast_fluctuated_ambient_temperature']);
-      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', ['under-fcast', 'under-now', 'no-alert']);
+      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', this.eventsIds);
     });
   }
 
