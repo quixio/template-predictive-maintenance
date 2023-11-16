@@ -45,8 +45,8 @@ export class AppComponent implements OnInit {
     this.quixService.activeStreamsChanged$.subscribe((streamSubscription: ActiveStreamSubscription) => {
       const { streams } = streamSubscription;
       if (!streams?.length) return;
-      this.setActiveSteams(streamSubscription)
-      if (!this.streamsControl.value) this.streamsControl.setValue(streams.at(0))
+      this.activeStreams = this.updateActiveSteams(streamSubscription).sort((a, b) => a.name < b.name ? -1 : 1)
+      if (!this.streamsControl.value) this.streamsControl.setValue(this.activeStreams.at(0))
     });
 
     this.printerData$ = this.quixService.paramDataReceived$
@@ -97,17 +97,16 @@ export class AppComponent implements OnInit {
    * @param action The action we are performing.
    * @param streams The data within the stream.
    */
-  private setActiveSteams(streamSubscription: ActiveStreamSubscription): void {
+  private updateActiveSteams(streamSubscription: ActiveStreamSubscription): ActiveStream[] {
     const { streams, action } = streamSubscription;
     switch (action) {
       case ActiveStreamAction.AddUpdate:
         const newStreams = streams?.filter((stream) => !this.activeStreams.some((s) => s.streamId === stream.streamId)) || [];
-        this.activeStreams.push(...newStreams);
-        break;
+        return [...this.activeStreams, ...newStreams]
       case ActiveStreamAction.Remove:
-        this.activeStreams = this.activeStreams.filter((stream) => streams?.some((s) => s.streamId === stream.streamId));
-        break;
-      default: break;
+        return this.activeStreams.filter((stream) => streams?.some((s) => s.streamId === stream.streamId));
+      default:
+        return this.activeStreams;
     }
   }
 }
