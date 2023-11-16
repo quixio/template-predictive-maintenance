@@ -168,7 +168,7 @@ def generate_forecast(df, printer_name):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
             alertstatus["status"] = UNDER_NOW
             alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
+            alertstatus["alert_temperature"] = pd.to_datetime(fcast[forecast_label].iloc[i])
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
             logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
@@ -177,7 +177,7 @@ def generate_forecast(df, printer_name):
             # the lower threshold for 3 consecutive seconds
             alertstatus["status"] = UNDER_FORECAST
             alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_timestamp"] = fcast['timestamp'].iloc[i]
+            alertstatus["alert_timestamp"] = pd.to_datetime(fcast['timestamp'].iloc[i])
             alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
             alertstatus["message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
                                       f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
@@ -295,7 +295,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     if force_alert % 2 == 0:
         fake_alert["status"] = UNDER_FORECAST
-        fake_alert["alert_timestamp"] = pd.Timestamp.utcnow() + pd.Timedelta(10, unit='m')
+        fake_alert["alert_timestamp"] = pd.to_datetime(pd.Timestamp.utcnow() + pd.Timedelta(10, unit='m'))
         fake_alert["alert_temperature"] = 40
 
     else:
