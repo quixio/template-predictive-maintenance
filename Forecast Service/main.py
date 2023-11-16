@@ -11,6 +11,10 @@ import pandas as pd
 import logging
 import sys
 
+NO_ALERT = "no-alert"
+UNDER_FORECAST = "under-forecast"
+UNDER_NOW = "under-now"
+
 # Assigning environ vars to local variables
 topic_input = os.environ["input"]
 topic_output = os.environ["output"]
@@ -31,7 +35,6 @@ else:
 debug = os.environ["debug"] == "1" if "debug" in os.environ else False
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging.INFO)
 
-
 # buffer 30 seconds of data
 buffer_configuration = qx.TimeseriesBufferConfiguration()
 buffer_configuration.time_span_in_milliseconds = 30 * 1000
@@ -49,7 +52,6 @@ def read_stream(stream_consumer: qx.StreamConsumer):
     # Use buffer to calculate forecast only every 30 seconds
     buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
     buffer.on_dataframe_released = on_dataframe_handler
-
 
     # When input stream closes, we close output stream as well.
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
@@ -97,9 +99,9 @@ def get_or_create_alerts_stream(stream_id: str, stream_name: str):
     if stream_name is not None:
         stream_alerts_producer.properties.name = f"{stream_name} - Alerts"
 
-    stream_alerts_producer.events.add_definition("under-now", "Under lower threshold now")
-    stream_alerts_producer.events.add_definition("under-fcast", "Under lower threshold in forecast")
-    stream_alerts_producer.events.add_definition("noalert", "No alert")
+    stream_alerts_producer.events.add_definition(UNDER_NOW, "Under lower threshold now")
+    stream_alerts_producer.events.add_definition(UNDER_FORECAST, "Under lower threshold in forecast")
+    stream_alerts_producer.events.add_definition(NO_ALERT, "No alert")
     return stream_alerts_producer
 
 
@@ -163,21 +165,27 @@ def generate_forecast(df, printer_name):
     # Find the time it takes for the forecasted values to hit the lower threshold of 45
     for i in range(len(fcast[forecast_label]) - 3):
         if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
-            alertstatus["status"] = "under-now"
+            alertstatus["status"] = UNDER_NOW
+            alertstatus["parameter_name"] = parameter_name
+            alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
             alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
             logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
         elif all_are_smaller(list(fcast[forecast_label].iloc[i: i + 3]), [lthreshold, lthreshold, lthreshold]):
             # In order to trigger the alert, the forecasted values need to be under
             # the lower threshold for 3 consecutive seconds
-            alertstatus["status"] = "under-fcast"
-            alertstatus[
-                "message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
-                              f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
+            alertstatus["status"] = UNDER_FORECAST
+            alertstatus["parameter_name"] = parameter_name
+            alertstatus["alert_timestamp"] = fcast['timestamp'].iloc[i]
+            alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
+            alertstatus["message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
+                                      f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
+
             logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
             break
     else:
-        alertstatus["status"] = "noalert"
+        alertstatus["status"] = NO_ALERT
+        alertstatus["parameter_name"] = parameter_name
         alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
                                   f"threshold of {lthreshold} degrees within the forecast range of "
                                   f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
@@ -197,6 +205,9 @@ def alert_triggered(stream_id):
         return alerts_triggered[stream_id]
 
     return False
+
+
+force_alert = 0
 
 
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
@@ -243,7 +254,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
         stream_producer.timeseries.buffer.publish(forecast)
 
-        if status in ["under-now", "under-fcast"] and not alert_triggered(stream_id):
+        if status in [UNDER_NOW, UNDER_FORECAST]:
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
@@ -254,23 +265,45 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             alert_df['timestamp'] = now
             logging.debug(f"{stream_consumer.properties.name}: Triggering alert...{alert_df}")
 
-            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status)
             # Tag the data with the printer name for joining operations later
             event.add_tag("TAG__printer", stream_consumer.properties.name)
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = True
 
-        elif status == "noalert" and alert_triggered(stream_id):
-            # If it was triggered and now it's not, send a "noalert" event
+        elif status == NO_ALERT and alert_triggered(stream_id):
+            # If it was triggered, and now it's not, send a "noalert" event
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
-            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status["message"])
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), alert_status)
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_id] = False
 
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
                      f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
+
+    # For debug purposes
+    global force_alert
+    force_alert += 1
+
+    fake_alert = {
+        "parameter_name": "fluctuated_ambient_temperature",
+        "message": "fake alert",
+    }
+
+    if force_alert % 2 == 0:
+        fake_alert["status"] = UNDER_FORECAST
+        fake_alert["alert_timestamp"] = pd.Timestamp.utcnow() + pd.Timedelta(10, unit='m')
+        fake_alert["alert_temperature"] = 40
+
+    else:
+        fake_alert["status"] = NO_ALERT
+
+    stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+                                                         stream_consumer.properties.name)
+    event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), fake_alert)
+    stream_alerts_producer.events.publish(event)
 
 
 if __name__ == "__main__":
