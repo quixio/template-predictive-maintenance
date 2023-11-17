@@ -301,7 +301,7 @@ def send_fake_alert(stream_consumer):
         fake_alert["alert_temperature"] = 44.9
     else:
         fake_alert["status"] = NO_ALERT
-        if force_alert > 20:
+        if force_alert > 30:
             force_alert = 0
 
     
