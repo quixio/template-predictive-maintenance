@@ -32,6 +32,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
     hotend_sigma = 0.5
     bed_sigma = 0.5
+    ambient_sigma = 0.1
 
     datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
 
@@ -47,6 +48,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     next_fluctuation = timestamp + timedelta(seconds=random.randint(5, 300))
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
+
+    start_time = timestamp.timestamp() * 1e9
 
     for i in range(datalength):
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
@@ -68,7 +71,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             # Use a quadratic function to calculate the decrease
             ambient_t = target_ambient_t - (target_ambient_t / 2) * (proportion ** 2)
 
-        ambient_temperature = ambient_t
+        ambient_temperature = temp(ambient_t, ambient_sigma, 0)
 
         # Add fluctuations
         if next_fluctuation <= timestamp <= fluctuation_end:
@@ -85,9 +88,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
         df = pd.DataFrame(
             [[timestamp, timestamp, hotend_temperature, bed_temperature, ambient_temperature,
-              fluctuated_ambient_temperature, printer]],
+              fluctuated_ambient_temperature, printer, start_time]],
             columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature',
-                     'fluctuated_ambient_temperature', 'TAG__printer'])
+                     'fluctuated_ambient_temperature', 'TAG__printer', 'TAG__start_time'])
 
         stream.timeseries.buffer.publish(df)
         logging.debug(f"{printer}: Published:\n{df}")
