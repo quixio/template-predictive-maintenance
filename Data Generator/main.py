@@ -49,8 +49,6 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
 
-    start_time = int(timestamp.timestamp()) * 1000000000
-
     for i in range(datalength):
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
@@ -88,9 +86,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
         df = pd.DataFrame(
             [[timestamp, timestamp, hotend_temperature, bed_temperature, ambient_temperature,
-              fluctuated_ambient_temperature, printer, start_time]],
+              fluctuated_ambient_temperature, printer]],
             columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature',
-                     'fluctuated_ambient_temperature', 'TAG__printer', 'TAG__start_time'])
+                     'fluctuated_ambient_temperature', 'TAG__printer'])
 
         stream.timeseries.buffer.publish(df)
         logging.debug(f"{printer}: Published:\n{df}")
@@ -114,6 +112,7 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.timeseries.add_definition("bed_temperature", "Bed temperature")
         stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
         stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
+        stream.properties.metadata["start_time"] = str(int(datetime.now().timestamp()) * 1000000000)
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
