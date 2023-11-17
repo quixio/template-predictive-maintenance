@@ -49,7 +49,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
 
-    start_time = int(timestamp.timestamp()) * 1e9
+    start_time = int(timestamp.timestamp()) * 1000000000
 
     for i in range(datalength):
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
