@@ -74,11 +74,15 @@
           To see forecast update after the failure point,
           select the printer where the progress is currently closest to the failure point.
         </p>
+
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Printers</mat-label>
           <mat-select [formControl]="streamsControl">
-            <mat-option *ngFor="let stream of activeStreams; let i = index" [value]="stream">
+            <mat-option *ngFor="let stream of activeStreams$ | async; let i = index" [value]="stream">
               {{ stream.name || stream.streamId }}
+              <span class="text-muted" *ngIf="activeStreamsStartTime[i] as startTime">
+                (Time to failure: {{ forHumans(startTime, 2) }})
+              </span>
             </mat-option>
           </mat-select>
         </mat-form-field>
@@ -92,12 +96,18 @@
           <br />
           In the back end, we are simulating real-time data readouts for all three of a 3D printer’s
           temperature sensors for an 8-hour ABS print.
-          <br />
-          <br />
+        </p>
+        <div fxLayoutAlign="center">
+          <img src="assets/printer.png" alt="3D printer" height="300">
+        </div>
+        <p>
           In our simulation, the enclosure temperature slowly starts to drop about halfway through
           the print (at <b>4hrs 35</b>).
-          <br />
-          <br />
+        </p>
+        <div fxLayoutAlign="center" class="my-4">
+          <img src="assets/chart.png" alt="chart" height="150">
+        </div>
+        <p>
           You’ll want to know about this before it drops below the acceptable lower temperature
           threshold for ABS.
           <br />
@@ -107,7 +117,7 @@
           <br />
           <br />
           For more information on how to use this template, see the
-          <a href="" target="_blank">accompanying tutorial</a>.
+          <a href="https://quix.io/blog/build-deploy-predictive-maintenace-app" target="_blank">accompanying tutorial</a>.
         </p>
       </div>
     </div>

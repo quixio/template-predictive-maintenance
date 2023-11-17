@@ -15,7 +15,7 @@ export class TableComponent {
     if (!data) return;
     const value: Alert = JSON.parse(data.value);
     console.log(value)
-    if (this.eventIds.includes(value.status!)) this.dataSource = [value, ...this.dataSource];
-    if (value.status === "no-alert") this.dataSource = [];
+    if (this.eventIds.includes(value.status!)) this.dataSource = [value, ...this.dataSource].slice(0, 9);
+    if (value.status === "no-alert") this.dataSource.forEach((alert) => alert.disabled = true);
   }
 }

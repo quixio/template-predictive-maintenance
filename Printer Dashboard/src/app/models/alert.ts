@@ -3,5 +3,6 @@ export interface Alert {
   parameter_name?: string,
   message?: string,
   alert_timestamp?: number,
-  alert_temperature?: number
+  alert_temperature?: number,
+  disabled?: boolean;
 }
