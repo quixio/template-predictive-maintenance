@@ -46,10 +46,10 @@ buffer_configuration.time_span_in_milliseconds = buffer_seconds * 1000
 def read_stream(stream_consumer: qx.StreamConsumer):
     # Create a new stream to output data
     stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
-    logging.info(f"Created stream {stream_producer.stream_id}")
+    logging.info(f"Created stream '{stream_producer.stream_id}' ({stream_consumer.properties.name})")
 
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id, stream_consumer.properties.name)
-    logging.info(f"Created stream '{stream_alerts_producer.stream_id}'")
+    logging.info(f"Created stream '{stream_alerts_producer.stream_id}' ({stream_consumer.properties.name})")
 
     # Use buffer to calculate forecast only every 30 seconds
     buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
