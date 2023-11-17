@@ -295,11 +295,17 @@ def send_fake_alert(stream_consumer):
         fake_alert["status"] = UNDER_FORECAST
         fake_alert["alert_timestamp"] = datetime.timestamp(datetime.utcnow() + timedelta(minutes=10)) * 1e9
         fake_alert["alert_temperature"] = 44.9
-        force_alert += 1
+    if force_alert < 20:
+        fake_alert["status"] = UNDER_NOW
+        fake_alert["alert_timestamp"] = datetime.timestamp(datetime.utcnow()) * 1e9
+        fake_alert["alert_temperature"] = 44.9
     else:
         fake_alert["status"] = NO_ALERT
         if force_alert > 20:
             force_alert = 0
+
+    
+    force_alert += 1
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                          stream_consumer.properties.name)
     event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
