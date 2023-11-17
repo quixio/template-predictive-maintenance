@@ -7,7 +7,7 @@ import { ActiveStream } from './models/activeStream';
 import { ActiveStreamAction } from './models/activeStreamAction';
 import { ActiveStreamSubscription } from './models/activeStreamSubscription';
 import { ParameterData } from './models/parameterData';
-import { Observable, filter, merge } from 'rxjs';
+import { Observable, filter, interval, map, merge, tap, timer, withLatestFrom } from 'rxjs';
 import { ChartComponent } from './components/chart/chart.component';
 
 @Component({
@@ -23,12 +23,14 @@ export class AppComponent implements OnInit {
   deploymentId: string;
   ungatedToken: string;
   activeStreams: ActiveStream[] = [];
+  activeStreamsStartTime: number[] = [];
+  activeStreams$: Observable<ActiveStream[]>;
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
   eventData$: Observable<EventData>;
   resetForecast$: Observable<void>;
-  forecastLimit: { min: number, max: number }
   streamsMap = new Map<string, string>();
+  forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   eventsIds: string[] = ['under-forecast', 'under-now', 'no-alert'];
   ranges: { [key: string]: { min: number, max: number } } = {
@@ -44,11 +46,26 @@ export class AppComponent implements OnInit {
     this.ungatedToken = this.quixService.ungatedToken;
     this.deploymentId = '';
 
-    this.quixService.activeStreamsChanged$.subscribe((streamSubscription: ActiveStreamSubscription) => {
-      const { streams } = streamSubscription;
-      if (!streams?.length) return;
-      this.activeStreams = this.updateActiveSteams(streamSubscription).sort((a, b) => a.name < b.name ? -1 : 1)
-      if (!this.streamsControl.value) this.streamsControl.setValue(this.activeStreams.at(0))
+    this.activeStreams$ = this.quixService.activeStreamsChanged$.pipe(
+      map((streamSubscription: ActiveStreamSubscription) => {
+        const { streams } = streamSubscription;
+        if (!streams?.length) return [];
+        return this.updateActiveSteams(streamSubscription).sort((a, b) => {
+          return +a.metadata['start_time'] < +b.metadata['start_time'] ? -1 : 1
+        })
+      })
+    );
+
+    this.activeStreams$.subscribe((activeStreams) => {
+      if (!this.streamsControl.value) this.streamsControl.setValue(activeStreams.at(0))
+      this.activeStreams = activeStreams;
+    });
+
+    interval(1000).pipe(withLatestFrom(this.activeStreams$)).subscribe(([_, activeStreams]) => {
+      this.activeStreamsStartTime = activeStreams.map((m) => {
+        const timeToFailure: number = (4 * 60 + 35) * 60 * 1000;
+        return (timeToFailure + +m.metadata['start_time'] / 1000000) - new Date().getTime()
+      });
     });
 
     this.printerData$ = this.quixService.paramDataReceived$
@@ -72,6 +89,7 @@ export class AppComponent implements OnInit {
       this.subscribeToParameter(printerDataTopicId, stream.streamId, this.parameterIds);
       this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast', ['forecast_fluctuated_ambient_temperature']);
       this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', this.eventsIds);
+      this.forecastLimit = { min: 40, max: 60 };
     });
   }
 
@@ -99,16 +117,43 @@ export class AppComponent implements OnInit {
    * @param action The action we are performing.
    * @param streams The data within the stream.
    */
-  private updateActiveSteams(streamSubscription: ActiveStreamSubscription): ActiveStream[] {
+  updateActiveSteams(streamSubscription: ActiveStreamSubscription): ActiveStream[] {
     const { streams, action } = streamSubscription;
+    const currentStreams = this.activeStreams.filter((stream) => !streams?.some((s) => s.streamId === stream.streamId));
     switch (action) {
       case ActiveStreamAction.AddUpdate:
-        const newStreams = streams?.filter((stream) => !this.activeStreams.some((s) => s.streamId === stream.streamId)) || [];
-        return [...this.activeStreams, ...newStreams]
+        return [...currentStreams, ...(streams || [])];
       case ActiveStreamAction.Remove:
-        return this.activeStreams.filter((stream) => streams?.some((s) => s.streamId === stream.streamId));
+        return currentStreams;
       default:
         return this.activeStreams;
     }
+  }
+
+  /**
+   * Converts the seconds into a readable format
+   * @param timestamp noOfMilliseconds
+   * @returns the time in a human readable string
+   */
+  forHumans(timestamp: number, levelsCount?: number) {
+    timestamp = Math.abs(timestamp);
+
+    const levels: any = [
+      [Math.floor(timestamp / 31536000000), 'years'],
+      [Math.floor((timestamp % 31536000000) / 86400000), 'days'],
+      [Math.floor(((timestamp % 31536000000) % 86400000) / 3600000), 'hours'],
+      [Math.floor((((timestamp % 31536000000) % 86400000) % 3600000) / 60000), 'min'],
+      [Math.floor(((((timestamp % 31536000000) % 86400000) % 3600000) % 60000) / 1000), 'sec'],
+      [Math.floor((((((timestamp % 31536000000) % 86400000) % 3600000) % 60000) % 1000) * 100) / 100, 'ms']
+    ];
+    let returnText = '';
+
+    for (let i = 0, max = levels.length; i < max; i += 1) {
+      if (levels[i][0] > 0) {
+        returnText += ` ${levels[i][0]} ${levels[i][1]}`;
+        if (levelsCount && i > levelsCount) break;
+      }
+    }
+    return returnText.trim();
   }
 }
