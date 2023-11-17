@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import quixstreams as qx
 import os
 
@@ -14,7 +16,9 @@ import sys
 
 NO_ALERT = "no-alert"
 UNDER_FORECAST = "under-forecast"
+OVER_FORECAST = "over-forecast"
 UNDER_NOW = "under-now"
+OVER_NOW = "over-now"
 
 # Assigning environ vars to local variables
 topic_input = os.environ["input"]
@@ -104,6 +108,8 @@ def get_or_create_alerts_stream(stream_id: str, stream_name: str):
     stream_alerts_producer.events.add_definition(UNDER_NOW, "Under lower threshold now")
     stream_alerts_producer.events.add_definition(UNDER_FORECAST, "Under lower threshold in forecast")
     stream_alerts_producer.events.add_definition(NO_ALERT, "No alert")
+    stream_alerts_producer.events.add_definition(OVER_FORECAST, "Over upper threshold in forecast")
+    stream_alerts_producer.events.add_definition(OVER_NOW, "Over upper threshold now")
     return stream_alerts_producer
 
 
@@ -113,6 +119,20 @@ def all_are_smaller(param1: list, param2: list):
             return False
 
     return True
+
+
+def all_are_higher(param1: list, param2: list):
+    for i in range(len(param1)):
+        if param1[i] <= param2[i]:
+            return False
+
+    return True
+
+
+THRESHOLDS = {'ambient_temperature': (45, 55),
+              'fluctuated_ambient_temperature': (45, 55),
+              'bed_temperature': (105, 115),
+              'hotend_temperature': (245, 255)}
 
 
 def generate_forecast(df, printer_name):
@@ -159,53 +179,115 @@ def generate_forecast(df, printer_name):
     # Add the forecasted timestamps to the DataFrame - these are in the future
     fcast['timestamp'] = forecast_timestamp
 
-    lthreshold = 45
+    lthreshold = THRESHOLDS[parameter_name][0]
+    hthreshold = THRESHOLDS[parameter_name][1]
+
     alertstatus = {"status": "unknown", "message": "empty"}
 
-    # Find the time it takes for the forecasted values to hit the lower threshold of 45
-    for i in range(len(fcast[forecast_label]) - 3):
-        if fcast[forecast_label].iloc[i] <= lthreshold and i == 0:
-            alertstatus["status"] = UNDER_NOW
-            alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
-            alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9
-            alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
-            logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
-            break
-        elif all_are_smaller(list(fcast[forecast_label].iloc[i: i + 3]), [lthreshold, lthreshold, lthreshold]):
-            # In order to trigger the alert, the forecasted values need to be under
-            # the lower threshold for 3 consecutive seconds
-            alertstatus["status"] = UNDER_FORECAST
-            alertstatus["parameter_name"] = parameter_name
-            alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9
-            alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
-            alertstatus["message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
-                                      f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
-
-            logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
-            break
-    else:
-        alertstatus["status"] = NO_ALERT
+    if fcast[forecast_label].iloc[0] <= lthreshold:
+        alertstatus["status"] = UNDER_NOW
         alertstatus["parameter_name"] = parameter_name
-        alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
-                                  f"threshold of {lthreshold} degrees within the forecast range of "
-                                  f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
+        alertstatus["alert_temperature"] = fcast[forecast_label].iloc[0]
+        alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[0]) * 1e9
+        alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already under the forecast range."
         logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+    elif fcast[forecast_label].iloc[0] >= hthreshold:
+        alertstatus["status"] = OVER_NOW
+        alertstatus["parameter_name"] = parameter_name
+        alertstatus["alert_temperature"] = fcast[forecast_label].iloc[0]
+        alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[0]) * 1e9
+        alertstatus["message"] = f"It looks like the value of '{smooth_label}' is already over the forecast range."
+        logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+    else:
+        # Find the time it takes for the forecasted values to hit the lower threshold of 45
+        for i in range(len(fcast[forecast_label]) - 3):
+            if all_are_smaller(list(fcast[forecast_label].iloc[i: i + 3]), [lthreshold, lthreshold, lthreshold]):
+                # In order to trigger the alert, the forecasted values need to be under
+                # the lower threshold for 3 consecutive seconds
+                alertstatus["status"] = UNDER_FORECAST
+                alertstatus["parameter_name"] = parameter_name
+                alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9
+                alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
+                alertstatus["message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
+                                          f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
+
+                logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+                break
+            elif all_are_higher(list(fcast[forecast_label].iloc[i: i + 3]), [hthreshold, hthreshold, hthreshold]):
+                # In order to trigger the alert, the forecasted values need to be under
+                # the lower threshold for 3 consecutive seconds
+                alertstatus["status"] = OVER_FORECAST
+                alertstatus["parameter_name"] = parameter_name
+                alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9
+                alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
+                alertstatus["message"] = (
+                    f"The value of '{smooth_label}' is expected to hit the higher threshold of "
+                    f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
+
+                logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+                break
+        else:
+            alertstatus["status"] = NO_ALERT
+            alertstatus["parameter_name"] = parameter_name
+            alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
+                                      f"threshold of {lthreshold} degrees within the forecast range of "
+                                      f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
+            logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+
     return fcast, alertstatus
 
 
 windows = {}
-alerts_triggered = {}
+alerts_triggered = defaultdict(dict)
 storage = qx.LocalFileStorage()
 
 
-def alert_triggered(stream_id):
+def alert_triggered(stream_id, parameter):
     global alerts_triggered
 
     if stream_id in alerts_triggered:
-        return alerts_triggered[stream_id]
+        return alerts_triggered[stream_id].get(parameter, False)
 
     return False
+
+
+def check_other_parameters(stream_consumer, df):
+    for parameter in ['bed_temperature', 'hotend_temperature']:
+        # Check last value of df
+        alert = None
+        if df[parameter].iloc[-1] <= THRESHOLDS[parameter][0]:
+            alert = {
+                "status": UNDER_NOW,
+                "parameter_name": parameter_name,
+                "alert_timestamp": datetime.timestamp(df['timestamp'].iloc[-1]) * 1e9,
+                "alert_temperature": df[parameter].iloc[-1],
+                "message": f"It looks like the value of '{parameter}' is already under the forecast range."
+            }
+        elif df[parameter].iloc[-1] >= THRESHOLDS[parameter][1]:
+            alert = {
+                "status": OVER_NOW,
+                "parameter_name": parameter_name,
+                "alert_timestamp": datetime.timestamp(df['timestamp'].iloc[-1]) * 1e9,
+                "alert_temperature": df[parameter].iloc[-1],
+                "message": f"It looks like the value of '{parameter}' is already over the forecast range."
+            }
+
+        if alert is not None and not alert_triggered(stream_consumer.stream_id, parameter):
+            stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+                                                                 stream_consumer.properties.name)
+            event = qx.EventData(alert["status"], pd.Timestamp.utcnow(), json.dumps(alert))
+            stream_alerts_producer.events.publish(event)
+            alerts_triggered[stream_consumer.stream_id][parameter] = True
+
+        if alert is None and alert_triggered(stream_consumer.stream_id, parameter):
+            stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+                                                                 stream_consumer.properties.name)
+            alert = {
+                "status": NO_ALERT
+            }
+            event = qx.EventData(NO_ALERT, pd.Timestamp.utcnow(), json.dumps(alert))
+            stream_alerts_producer.events.publish(event)
+            alerts_triggered[stream_consumer.stream_id][parameter] = False
 
 
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
@@ -260,22 +342,24 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             # Tag the data with the printer name for joining operations later
             event.add_tag("TAG__printer", stream_consumer.properties.name)
             stream_alerts_producer.events.publish(event)
-            alerts_triggered[stream_id] = True
+            alerts_triggered[stream_id][parameter_name] = True
 
-        elif status == NO_ALERT and alert_triggered(stream_id):
+        elif status == NO_ALERT and alert_triggered(stream_id, parameter_name):
             logging.info(f"{stream_consumer.properties.name}: Setting to no alert...")
             # If it was triggered, and now it's not, send a "noalert" event
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
             stream_alerts_producer.events.publish(event)
-            alerts_triggered[stream_id] = False
+            alerts_triggered[stream_id][parameter_name] = False
 
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
                      f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
 
     send_fake_alert(stream_consumer)
+
+    check_other_parameters(stream_consumer, df)
 
 
 # region Fake alert
@@ -304,12 +388,12 @@ def send_fake_alert(stream_consumer):
         if force_alert > 30:
             force_alert = 0
 
-    
     force_alert += 1
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                          stream_consumer.properties.name)
     event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
     stream_alerts_producer.events.publish(event)
+
 
 # endregion
 
