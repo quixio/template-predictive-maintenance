@@ -38,7 +38,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging
 
 # buffer 30 seconds of data
 buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_seconds = os.environ["input_buffer_seconds"]
+buffer_seconds = int(os.environ["input_buffer_seconds"])
 buffer_configuration.time_span_in_milliseconds = buffer_seconds * 1000
 
 
