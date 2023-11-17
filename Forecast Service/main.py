@@ -133,12 +133,10 @@ def generate_forecast(df, printer_name):
     # Backfill NaNs with the first non-NaN value
     df[smooth_label] = df[parameter_name].rolling(window_range).mean()
     df[smooth_label] = df[smooth_label].bfill()
-    data_smoov = df[smooth_label]
+    forecast_input = df[smooth_label]
 
     # DEBUG LINE  make sure that the data looks OK after smoothing
-    logging.debug(f"{printer_name}:SMOOTHED DATA:\n{data_smoov.tail(1)}")
-
-    forecast_input = data_smoov
+    logging.debug(f"{printer_name}:SMOOTHED DATA:\n{df[smooth_label].tail(1)}")
 
     # Define the degree of the polynomial regression model
     degree = 2
@@ -209,9 +207,6 @@ def alert_triggered(stream_id):
     return False
 
 
-force_alert = 0
-
-
 def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     global windows, alerts_triggered
 
@@ -267,6 +262,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             alerts_triggered[stream_id] = True
 
         elif status == NO_ALERT and alert_triggered(stream_id):
+            logging.info(f"{stream_consumer.properties.name}: Setting to no alert...")
             # If it was triggered, and now it's not, send a "noalert" event
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
@@ -278,15 +274,22 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
                      f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
 
+    send_fake_alert(stream_consumer)
+
+
+# region Fake alert
+# TODO: To be removed
+force_alert = 0
+
+
+def send_fake_alert(stream_consumer):
     # For debug purposes
     global force_alert
     force_alert += 1
-
     fake_alert = {
         "parameter_name": "fluctuated_ambient_temperature",
         "message": "fake alert",
     }
-
     if force_alert < 10:
         fake_alert["status"] = UNDER_FORECAST
         fake_alert["alert_timestamp"] = datetime.timestamp(datetime.utcnow() + timedelta(minutes=10)) * 1e9
@@ -296,11 +299,12 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         fake_alert["status"] = NO_ALERT
         if force_alert > 20:
             force_alert = 0
-
     stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                          stream_consumer.properties.name)
     event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
     stream_alerts_producer.events.publish(event)
+
+# endregion
 
 
 if __name__ == "__main__":
