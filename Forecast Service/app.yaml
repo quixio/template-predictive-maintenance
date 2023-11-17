@@ -36,6 +36,11 @@ variables:
     description: 1 for "Number of Observations", 2 for "Time Period"
     defaultValue: 1
     required: true
+  - name: input_buffer_seconds
+    inputType: FreeText
+    description: Number of seconds of buffer to store input data. Forecast will be calculated each time the buffer is full
+    defaultValue: 60
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
