@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 08f66079d9dafaa6abb1bd51285b85eda44ad16f
+    version: 01aaa9f09e73d48b12a5b2bff83b35da9d90eeb0
     resources:
       cpu: 1000
       memory: 1000
