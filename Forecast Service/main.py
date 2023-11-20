@@ -146,9 +146,14 @@ def generate_forecast(df, printer_name):
     forecast_label = "forecast_" + str(parameter_name)
 
     # Make sure that the 'original_timestamp' column is datetime
-    df['original_timestamp'] = pd.to_datetime(df['original_timestamp'])
+    if 'original_timestamp' not in df.columns:
+        timestamp_column_name = 'timestamp'
+    else:
+        timestamp_column_name = 'original_timestamp'
+
+    df[timestamp_column_name] = pd.to_datetime(df[timestamp_column_name])
     # Set the 'timestamp' column as the index
-    df.set_index(pd.DatetimeIndex(df['original_timestamp']), inplace=True)
+    df.set_index(pd.DatetimeIndex(df[timestamp_column_name]), inplace=True)
 
     # DEBUG LINE make sure that the data looks OK before smoothing
     logging.debug(f"{printer_name}:PRE-SMOOTHED DATA:\n{df[parameter_name].tail(5)}")
@@ -307,7 +312,12 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # DEBUG LINE
     logging.debug(f"{stream_consumer.properties.name}: Received:\n{df}")
     # Append latest data to df_window
-    df_window = pd.concat([df_window, df[["timestamp", "original_timestamp", parameter_name]]])
+
+    columns = ["timestamp", parameter_name]
+    if 'original_timestamp' in df.columns:
+        columns.append('original_timestamp')
+
+    df_window = pd.concat([df_window, df[columns]])
 
     # Store in memory for each printer
     windows[stream_id] = df_window
