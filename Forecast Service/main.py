@@ -150,8 +150,8 @@ def generate_forecast(df, printer_name):
         timestamp_column_name = 'timestamp'
     else:
         timestamp_column_name = 'original_timestamp'
-
-    df[timestamp_column_name] = pd.to_datetime(df[timestamp_column_name])
+        df[timestamp_column_name] = pd.to_datetime(df[timestamp_column_name])
+    
     # Set the 'timestamp' column as the index
     df.set_index(pd.DatetimeIndex(df[timestamp_column_name]), inplace=True)
 
