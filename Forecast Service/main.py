@@ -335,11 +335,13 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
             logging.warning(f"{stream_consumer.properties.name}: Processing data that was generated more than 1 minute ago ({datetime.now().timestamp() - last_timestamp} seconds).")
 
         # Generate forecast
+        start = datetime.now().timestamp()
         forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name)
         status = alert_status["status"]
         logging.debug(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
         stream_producer.timeseries.buffer.publish(forecast)
+        logging.debug(f"{{stream_consumer.properties.name}: Took {datetime.now().timestamp() - start} seconds to calculate the forecast")
 
         if status in [UNDER_NOW, UNDER_FORECAST]:
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
