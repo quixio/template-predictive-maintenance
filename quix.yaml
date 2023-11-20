@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 01aaa9f09e73d48b12a5b2bff83b35da9d90eeb0
+    version: fb11226a1d4d34b642ac03e267a283bb60db512e
     resources:
       cpu: 1000
       memory: 1000
@@ -101,6 +101,16 @@ deployments:
         description: Number of seconds of buffer to store input data. Forecast will be calculated each time the buffer is full
         required: false
         value: 30
+      - name: forecast_length
+        inputType: FreeText
+        description: Forecast Length (check forecast_unit for the units)
+        required: true
+        value: 14400
+      - name: forecast_unit
+        inputType: FreeText
+        description: Forecast units (S - Seconds, M - Minutes)
+        required: true
+        value: S
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
