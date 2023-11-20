@@ -327,9 +327,12 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
     if len(df_window) >= window_value:
-        # Warn if we are processing data that was generated more than 30 seconds ago
-        if (pd.Timestamp.utcnow() - df_window['timestamp'].iloc[-1]) > pd.Timedelta(30, unit='s'):
-            logging.warning(f"{stream_consumer.properties.name}: Processing data that was generated more than 30 seconds ago ({pd.Timestamp.utcnow() - df_window['timestamp'].iloc[-1]} seconds).")
+        # Last data point timestamp
+        last_timestamp = df_window['timestamp'].iloc[-1] / 1e9
+
+        # Warn if we are processing data that was generated more than 1 minute ago
+        if (datetime.now().timestamp() - last_timestamp) > 60:
+            logging.warning(f"{stream_consumer.properties.name}: Processing data that was generated more than 1 minute ago ({datetime.now().timestamp() - last_timestamp} seconds).")
 
         # Generate forecast
         forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name)
