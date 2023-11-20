@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 221999e43bfb867ce33b3344e00538272de0d928
+    version: 08f66079d9dafaa6abb1bd51285b85eda44ad16f
     resources:
       cpu: 1000
       memory: 1000
@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Debug mode (1 enabled, 0 disabled)
         required: false
-        value: 0
+        value: 1
       - name: window_value
         inputType: FreeText
         description: Window value
