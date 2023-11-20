@@ -56,9 +56,9 @@ deployments:
     deploymentType: Service
     version: 221999e43bfb867ce33b3344e00538272de0d928
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 1000
-      replicas: 2
+      replicas: 4
     desiredStatus: Running
     variables:
       - name: input
@@ -282,7 +282,7 @@ topics:
   - name: 3d-printer-data
     persisted: false
     configuration:
-      partitions: 2
+      partitions: 4
       replicationFactor: 2
       retentionInMinutes: 60
       retentionInBytes: 52428800
