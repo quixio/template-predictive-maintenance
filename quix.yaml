@@ -289,7 +289,7 @@ deployments:
   - name: Forecast Service (From downsampled input)
     application: Forecast Service
     deploymentType: Service
-    version: 6ceb7b21a2db553521ac4ea2bc2afdb49c457229
+    version: 2995ededc890ad1ff1abc476a9560d8c58705d65
     resources:
       cpu: 1000
       memory: 500
