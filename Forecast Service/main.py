@@ -139,6 +139,8 @@ def generate_forecast(df, printer_name):
     global window_value
 
     forecast_length = 14400  # 4 hours into the future
+    forecast_unit = 'S'  # Seconds
+
     window_range = pd.Timedelta(36, unit='s')  # Window range used for smoothing (not forecasting), 36 secs
     smooth_label = "smoothed_" + str(parameter_name)
     forecast_label = "forecast_" + str(parameter_name)
@@ -174,7 +176,7 @@ def generate_forecast(df, printer_name):
     fcast["TAG__printer"] = printer_name
 
     # Create a timestamp for the forecasted values
-    forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
+    forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq=forecast_unit)
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
     fcast['timestamp'] = forecast_timestamp
@@ -209,7 +211,7 @@ def generate_forecast(df, printer_name):
                 alertstatus["alert_timestamp"] = datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9
                 alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
                 alertstatus["message"] = (f"The value of '{smooth_label}' is expected to hit the lower threshold of "
-                                          f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
+                                          f"{lthreshold} degrees in {i}  {forecast_unit}.")
 
                 logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
                 break
@@ -222,7 +224,7 @@ def generate_forecast(df, printer_name):
                 alertstatus["alert_temperature"] = fcast[forecast_label].iloc[i]
                 alertstatus["message"] = (
                     f"The value of '{smooth_label}' is expected to hit the higher threshold of "
-                    f"{lthreshold} degrees in {i} seconds ({i / 3600} hours).")
+                    f"{lthreshold} degrees in {i} {forecast_unit}.")
 
                 logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
                 break
@@ -231,7 +233,7 @@ def generate_forecast(df, printer_name):
             alertstatus["parameter_name"] = parameter_name
             alertstatus["message"] = (f"The value of '{smooth_label}' is not expected to hit the lower "
                                       f"threshold of {lthreshold} degrees within the forecast range of "
-                                      f"{forecast_length} seconds ({int(forecast_length / 3600)} hours).")
+                                      f"{forecast_length} {forecast_unit}.")
             logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
 
     return fcast, alertstatus
