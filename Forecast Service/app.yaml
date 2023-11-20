@@ -46,6 +46,11 @@ variables:
     description: Forecast Length (check forecast_unit for the units)
     defaultValue: 14400
     required: true
+  - name: forecast_unit
+    inputType: FreeText
+    description: Forecast units (S - Seconds, M - Minutes)
+    defaultValue: S
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
