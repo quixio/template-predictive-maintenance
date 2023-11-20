@@ -286,6 +286,66 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-forecast
+  - name: Forecast Service (From downsampled input)
+    application: Forecast Service
+    deploymentType: Service
+    version: fb11226a1d4d34b642ac03e267a283bb60db512e
+    resources:
+      cpu: 1000
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: Topic to read data from
+        required: true
+        value: downsampled-3d-printer-data
+      - name: output
+        inputType: OutputTopic
+        description: Topic to send the forecasts
+        required: true
+        value: forecast-from-downsampled
+      - name: output_alerts
+        inputType: OutputTopic
+        description: Topic for sending alerts
+        required: true
+        value: forecast-alerts
+      - name: parameter_name
+        inputType: FreeText
+        description: Name of the parameter for forecasting
+        required: false
+        value: fluctuated_ambient_temperature
+      - name: debug
+        inputType: FreeText
+        description: Debug mode (1 enabled, 0 disabled)
+        required: false
+        value: 0
+      - name: window_value
+        inputType: FreeText
+        description: Window value
+        required: true
+        value: 1200
+      - name: window_type
+        inputType: FreeText
+        description: 1 for "Number of Observations", 2 for "Time Period"
+        required: true
+        value: 1
+      - name: input_buffer_seconds
+        inputType: FreeText
+        description: Number of seconds of buffer to store input data. Forecast will be calculated each time the buffer is full
+        required: true
+        value: 60
+      - name: forecast_length
+        inputType: FreeText
+        description: Forecast Length (check forecast_unit for the units)
+        required: true
+        value: 480
+      - name: forecast_unit
+        inputType: FreeText
+        description: Forecast units (S - Seconds, M - Minutes)
+        required: true
+        value: M
 
 # This section describes the Topics of the data pipeline
 topics:
