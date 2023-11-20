@@ -54,12 +54,12 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: ce13b5bf63a7208e3c5884dd5867c947a59ffb74
+    version: 4de6c2af5f23235dcec452648b3f1d5f0239ab1f
     resources:
       cpu: 500
       memory: 1000
       replicas: 2
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
