@@ -138,8 +138,8 @@ THRESHOLDS = {'ambient_temperature': (45, 55),
 def generate_forecast(df, printer_name):
     global window_value
 
-    forecast_length = 14400  # 4 hours into the future
-    forecast_unit = 'S'  # Seconds
+    forecast_length = os.environ['forecast_length'] 
+    forecast_unit = os.environ['forecast_unit']
 
     window_range = pd.Timedelta(36, unit='s')  # Window range used for smoothing (not forecasting), 36 secs
     smooth_label = "smoothed_" + str(parameter_name)
