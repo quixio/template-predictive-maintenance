@@ -45,7 +45,7 @@ deployments:
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 5
+        value: 20
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
@@ -54,12 +54,12 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 4de6c2af5f23235dcec452648b3f1d5f0239ab1f
+    version: 01aaa9f09e73d48b12a5b2bff83b35da9d90eeb0
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 1000
-      replicas: 2
-    desiredStatus: Stopped
+      replicas: 4
+    desiredStatus: Running
     variables:
       - name: input
         inputType: InputTopic
@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Debug mode (1 enabled, 0 disabled)
         required: false
-        value: 0
+        value: 1
       - name: window_value
         inputType: FreeText
         description: Window value
@@ -100,7 +100,7 @@ deployments:
         inputType: FreeText
         description: Number of seconds of buffer to store input data. Forecast will be calculated each time the buffer is full
         required: false
-        value: 10
+        value: 30
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
@@ -261,7 +261,7 @@ deployments:
     deploymentType: Service
     version: 30bc0bde61c0f0cbcc128c1f6747f13f7aa316d9
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 500
       replicas: 1
     desiredStatus: Running
@@ -282,7 +282,7 @@ topics:
   - name: 3d-printer-data
     persisted: false
     configuration:
-      partitions: 2
+      partitions: 4
       replicationFactor: 2
       retentionInMinutes: 60
       retentionInBytes: 52428800
