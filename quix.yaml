@@ -286,6 +286,26 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-forecast
+  - name: Printer data down-sampling
+    application: Down-sampling
+    deploymentType: Service
+    version: 30bc0bde61c0f0cbcc128c1f6747f13f7aa316d9
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: This is the input topic to read data from
+        required: true
+        value: 3d-printer-data
+      - name: output
+        inputType: OutputTopic
+        description: This is the output topic to write data to
+        required: true
+        value: downsampled-3d-printer-data
 
 # This section describes the Topics of the data pipeline
 topics:
