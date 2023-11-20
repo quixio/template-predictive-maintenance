@@ -100,7 +100,7 @@ deployments:
         inputType: FreeText
         description: Number of seconds of buffer to store input data. Forecast will be calculated each time the buffer is full
         required: false
-        value: 10
+        value: 15
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
