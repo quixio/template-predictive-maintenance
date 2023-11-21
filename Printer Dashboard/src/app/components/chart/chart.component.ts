@@ -88,7 +88,9 @@ export class ChartComponent implements OnInit {
   private _min: number = Infinity;
   private _max: number = -Infinity;
   private _limit: { min: number, max: number }
-  @Input() reset$: Observable<void>;
+  @Input() reset$: Observable<any>;
+  @Input() resetParameter$: Observable<any>;
+  @Input() resetEvent$: Observable<any>;
   @Input() set parameterId(parameterId: string) {
     this.parameterDataset.label = parameterId;
     this._parameterId = parameterId;
@@ -185,7 +187,16 @@ export class ChartComponent implements OnInit {
   ngOnInit(): void {
     const ctx = this.canvas.nativeElement.getContext('2d');
     this.chart = new Chart(ctx!, this.configuration);
-    this.reset$.subscribe(() => this.reset());
+    this.reset$.subscribe(() => {
+      this.parameterDataset.data = [];
+      this.eventDataset.data = [];
+    });
+    this.resetParameter$.subscribe(() => {
+      this.parameterDataset.data = [];
+    });
+    this.resetEvent$.subscribe(() => {
+      this.eventDataset.data = [];
+    });
   }
 
   updateDelay(timestamp: number): void {
@@ -195,9 +206,5 @@ export class ChartComponent implements OnInit {
       (this.options!.scales!['x'] as any).realtime.delay = delay + offset;
       this._currentDelay = delay;
     }
-  }
-
-  reset() {
-    this.parameterDataset.data = [];
   }
 }

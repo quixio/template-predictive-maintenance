@@ -36,7 +36,8 @@
         <h1 class="mb-1">Real-time Failure Prediction for a 3D Printer</h1>
         <p class="mb-3 text-body text-uppercase">Project template</p>
         <p class="mat-body-1">
-          This project demonstrates how easy it is to do real-time predictive analytics on any machine with sensors attached. It simulates three temperature sensors on a fleet of 3D printers.
+          This project demonstrates how easy it is to do real-time predictive analytics on any machine with sensors
+          attached. It simulates three temperature sensors on a fleet of 3D printers.
         </p>
         <div fxLayout="row">
           <a mat-raised-button color="primary" class="small me-2" fxLayout="row" fxLayoutAlign="center center"
@@ -112,12 +113,13 @@
           threshold for ABS.
           <br />
           <br />
-          Our demo  forecasting algorithm that attempts to estimate when this is going to happen,
+          Our demo forecasting algorithm that attempts to estimate when this is going to happen,
           sends a Slack alert, and displays the alert on a dashboard.
           <br />
           <br />
           For more information on how to use this template, see the
-          <a href="https://quix.io/blog/build-deploy-predictive-maintenace-app" target="_blank">accompanying tutorial</a>.
+          <a href="https://quix.io/blog/build-deploy-predictive-maintenace-app" target="_blank">accompanying
+            tutorial</a>.
         </p>
       </div>
     </div>
@@ -129,34 +131,24 @@
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Ambient temperature</h2>
             <div fxFlex fxLayout="row">
-              <app-chart fxFlex
-                parameterId="ambient_temperature"
-                eventId="under-now"
-                label="Progress"
-                [parameterData]="(printerData$ | async)!"
-                [eventData]="(eventData$ | async)!"
-                [duration]="1 * 60 * 1000"
-                [reset$]="streamsControl.valueChanges"
-                [range]="ranges['ambient_temperature']"
+              <app-chart fxFlex parameterId="ambient_temperature" eventId="under-now" label="Progress"
+                [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!" [duration]="1 * 60 * 1000"
+                [reset$]="streamsControl.valueChanges" [range]="ranges['ambient_temperature']"
                 (limitChange)="forecastLimit = $event">
               </app-chart>
-              <app-chart fxFlex
-                parameterId="forecast_fluctuated_ambient_temperature"
-                eventId="under-forecast"
-                label="Forecast"
-                hiddenAxe="y"
-                color="#ff0000"
-                [parameterData]="(forecastData$ | async)!"
-                [eventData]="(eventData$ | async)!"
-                [duration]="4 * 60 * 60 * 1000"
-                [reset$]="resetForecast$"
-                [range]="ranges['ambient_temperature']"
-                [limit]="forecastLimit">
+              <app-chart fxFlex parameterId="forecast_fluctuated_ambient_temperature" eventId="under-forecast"
+                label="Forecast" hiddenAxe="y" color="#ff0000" [parameterData]="(forecastData$ | async)!"
+                [eventData]="(eventData$ | async)!" [duration]="4 * 60 * 60 * 1000" [resetParameter$]="forecastData$"
+                [reset$]="streamsControl.valueChanges" [range]="ranges['ambient_temperature']" [limit]="forecastLimit">
               </app-chart>
             </div>
           </div>
           <div fxFlex="33.33">
-            <app-table [data]="(eventData$ | async)!" [eventIds]="['under-forecast', 'under-now']"></app-table>
+            <app-table
+              [data]="(eventData$ | async)!"
+              [eventIds]="['under-forecast', 'under-now']"
+              [reset$]="streamsControl.valueChanges">
+            </app-table>
           </div>
         </div>
       </div>
@@ -164,13 +156,8 @@
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Bed temperature</h2>
-            <app-chart fxFlex
-              parameterId="bed_temperature"
-              label="Progress"
-              [parameterData]="(printerData$ | async)!"
-              [duration]="2 * 60 * 1000"
-              [reset$]="streamsControl.valueChanges"
-              [range]="ranges['bed_temperature']">
+            <app-chart fxFlex parameterId="bed_temperature" label="Progress" [parameterData]="(printerData$ | async)!"
+              [duration]="2 * 60 * 1000" [reset$]="streamsControl.valueChanges" [range]="ranges['bed_temperature']">
             </app-chart>
           </div>
         </div>
@@ -179,13 +166,9 @@
         <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
           <div fxLayout="column" fxFlex class="overflow-hidden">
             <h2 class="mb-1">Hotend temperature</h2>
-            <app-chart fxFlex
-              parameterId="hotend_temperature"
-              label="Progress"
-              [parameterData]="(printerData$ | async)!"
-              [duration]="2 * 60 * 1000"
-              [reset$]="streamsControl.valueChanges"
-              [range]="ranges['hotend_temperature']">
+            <app-chart fxFlex parameterId="hotend_temperature" label="Progress"
+              [parameterData]="(printerData$ | async)!" [duration]="2 * 60 * 1000"
+              [reset$]="streamsControl.valueChanges" [range]="ranges['hotend_temperature']">
             </app-chart>
           </div>
         </div>
