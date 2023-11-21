@@ -134,28 +134,18 @@ def generate_forecast(df, printer_name):
 
     forecast_length = int(os.environ['forecast_length'])
     forecast_unit = os.environ['forecast_unit']
-
-    window_range = pd.Timedelta(36, unit='s')  # Window range used for smoothing (not forecasting), 36 secs
-    smooth_label = "smoothed_" + str(parameter_name)
     forecast_label = "forecast_" + str(parameter_name)
 
-    # Make sure that the 'original_timestamp' column is datetime
-    df['original_timestamp'] = pd.to_datetime(df['original_timestamp'])
     # Set the 'timestamp' column as the index
-    df.set_index(pd.DatetimeIndex(df['original_timestamp']), inplace=True)
+    if 'original_timestamp' not in df.columns:
+        timestamp_column_name = 'timestamp'
+    else:
+        timestamp_column_name = 'original_timestamp'
+        df[timestamp_column_name] = pd.to_datetime(df[timestamp_column_name])
 
-    # DEBUG LINE make sure that the data looks OK before smoothing
-    logging.debug(f"{printer_name}:PRE-SMOOTHED DATA:\n{df[parameter_name].tail(5)}")
+    df.set_index(pd.DatetimeIndex(df[timestamp_column_name]), inplace=True)
 
-    # Backfill NaNs with the first non-NaN value
-    df[smooth_label] = df[parameter_name].rolling(window_range).mean()
-    df[smooth_label] = df[smooth_label].bfill()
-    data_smoov = df[smooth_label]
-
-    # DEBUG LINE  make sure that the data looks OK after smoothing
-    logging.debug(f"{printer_name}:SMOOTHED DATA:\n{data_smoov.tail(1)}")
-
-    forecast_input = data_smoov
+    forecast_input = df[parameter_name]
 
     # Define the degree of the polynomial regression model
     degree = 2
@@ -172,7 +162,7 @@ def generate_forecast(df, printer_name):
     fcast["TAG__printer"] = printer_name
 
     # Create a timestamp for the forecasted values
-    forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq='S')
+    forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq=forecast_unit)
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
     fcast['timestamp'] = forecast_timestamp
@@ -188,7 +178,7 @@ def generate_forecast(df, printer_name):
             "parameter_name": parameter_name,
             "alert_temperature": fcast[forecast_label].iloc[0],
             "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[0]) * 1e9,
-            "message": f"It looks like the value of '{smooth_label}' is already under the forecast range."
+            "message": f"It looks like the value of '{parameter_name}' is already under the forecast range."
         }
         logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
     elif fcast[forecast_label].iloc[0] >= hthreshold:
@@ -197,7 +187,7 @@ def generate_forecast(df, printer_name):
             "parameter_name": parameter_name,
             "alert_temperature": fcast[forecast_label].iloc[0],
             "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[0]) * 1e9,
-            "message": f"It looks like the value of '{smooth_label}' is already over the forecast range."
+            "message": f"It looks like the value of '{parameter_name}' is already over the forecast range."
         }
         logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
     else:
@@ -211,7 +201,7 @@ def generate_forecast(df, printer_name):
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9,
-                    "message": f"The value of '{smooth_label}' is expected to hit the lower threshold of "
+                    "message": f"The value of '{parameter_name}' is expected to hit the lower threshold of "
                                f"{lthreshold} degrees in {i}  {forecast_unit}."
                 }
                 logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
@@ -224,7 +214,7 @@ def generate_forecast(df, printer_name):
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9,
-                    "message": f"The value of '{smooth_label}' is expected to hit the higher threshold of "
+                    "message": f"The value of '{parameter_name}' is expected to hit the higher threshold of "
                                f"{hthreshold} degrees in {i}  {forecast_unit}."
                 }
 
@@ -234,7 +224,7 @@ def generate_forecast(df, printer_name):
             alertstatus = {
                 "status": NO_ALERT,
                 "parameter_name": parameter_name,
-                "message": f"The value of '{smooth_label}' is not expected to hit the lower threshold of "
+                "message": f"The value of '{parameter_name}' is not expected to hit the lower threshold of "
                            f"{lthreshold} degrees within the forecast range of {forecast_length} {forecast_unit}."
             }
 
@@ -351,8 +341,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         logging.debug(
             f"{stream_consumer.properties.name}: Took {datetime.now().timestamp() - start} seconds to calculate the forecast")
 
-        if status in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST] and not alert_triggered(stream_id,
-                                                                                                  parameter_name):
+        if status in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST]:
             logging.info(f"{stream_consumer.properties.name}: Triggering alert...")
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
