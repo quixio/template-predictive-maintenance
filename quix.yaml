@@ -211,7 +211,7 @@ deployments:
     deploymentType: Service
     version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 500
       replicas: 1
     desiredStatus: Running
