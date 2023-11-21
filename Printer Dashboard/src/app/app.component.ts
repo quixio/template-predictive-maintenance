@@ -28,7 +28,6 @@ export class AppComponent implements OnInit {
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
   eventData$: Observable<EventData>;
-  resetForecast$: Observable<void>;
   streamsMap = new Map<string, string>();
   forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
@@ -73,8 +72,6 @@ export class AppComponent implements OnInit {
     this.forecastData$ = this.quixService.paramDataReceived$
       .pipe(filter((f) => f.topicName === this.quixService.forecastTopic));
     this.eventData$ = this.quixService.eventDataReceived$;
-
-    this.resetForecast$ = merge(this.forecastData$, this.streamsControl.valueChanges)
 
     this.quixService.readerConnStatusChanged$.subscribe((status) => {
       if (status !== ConnectionStatus.Connected) return;
