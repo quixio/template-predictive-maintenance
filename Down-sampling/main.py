@@ -58,7 +58,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # When input stream closes, we close output stream as well.
     def on_stream_close(stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
         stream_producer.close()
-        print("Stream closed:" + stream_producer.stream_id)
+        print(f"Stream closed: {stream_producer.stream_id} ({stream_producer.properties.name})")
 
     stream_consumer.on_stream_closed = on_stream_close
 
