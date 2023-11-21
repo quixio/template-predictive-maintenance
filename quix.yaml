@@ -231,7 +231,7 @@ topics:
   - name: 3d-printer-data
     persisted: false
     configuration:
-      partitions: 3
+      partitions: 4
       replicationFactor: 2
       retentionInMinutes: 60
       retentionInBytes: 52428800
