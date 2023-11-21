@@ -32,6 +32,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
     hotend_sigma = 0.5
     bed_sigma = 0.5
+    ambient_sigma = 0.2
 
     datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
 
@@ -68,7 +69,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             # Use a quadratic function to calculate the decrease
             ambient_t = target_ambient_t - (target_ambient_t / 2) * (proportion ** 2)
 
-        ambient_temperature = ambient_t
+        ambient_temperature = temp(ambient_t, ambient_sigma, 0)
 
         # Add fluctuations
         if next_fluctuation <= timestamp <= fluctuation_end:
