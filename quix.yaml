@@ -229,6 +229,13 @@ deployments:
 
 # This section describes the Topics of the data pipeline
 topics:
+  - name: 3d-printer-data
+    persisted: false
+    configuration:
+      partitions: 2
+      replicationFactor: 2
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
   - name: forecast
     persisted: false
     configuration:
@@ -256,11 +263,4 @@ topics:
       partitions: 1
       replicationFactor: 2
       retentionInMinutes: 1440
-      retentionInBytes: 52428800
-  - name: 3d-printer-data
-    persisted: false
-    configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 480
       retentionInBytes: 52428800
