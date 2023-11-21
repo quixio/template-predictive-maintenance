@@ -95,6 +95,36 @@ deployments:
         description: 1 for "Number of Observations", 2 for "Time Period"
         required: true
         value: 1
+  - name: Printers Dashboard
+    application: Printer Dashboard
+    deploymentType: Service
+    version: 6d4fc998b82859cb8a30a9f29099e8876e961dd7
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: bearer_token
+        inputType: FreeText
+        description: ''
+        required: false
+        value: abc111
+      - name: Deployment__Id
+        inputType: FreeText
+        description: ''
+        required: false
+        value: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
+      - name: offers_topic
+        inputType: InputTopic
+        description: ''
+        required: false
+        value: special-offers
+      - name: click_topic
+        inputType: OutputTopic
+        description: ''
+        required: false
+        value: click-data
 
 # This section describes the Topics of the data pipeline
 topics:
