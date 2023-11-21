@@ -300,7 +300,11 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     # DEBUG LINE
     logging.debug(f"{stream_consumer.properties.name}: Received:\n{df}")
     # Append latest data to df_window
-    df_window = pd.concat([df_window, df[["timestamp", "original_timestamp", parameter_name]]])
+    columns = ["timestamp", parameter_name]
+    if 'original_timestamp' in df.columns:
+        columns.append('original_timestamp')
+
+    df_window = pd.concat([df_window, df[columns]])
 
     # Store in memory for each printer
     windows[stream_id] = df_window
