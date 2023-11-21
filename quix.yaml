@@ -189,7 +189,7 @@ deployments:
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: a1bad7719c3e73f759ca171fbc8231d728aaa7d7
+    version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
     resources:
       cpu: 200
       memory: 500
@@ -209,7 +209,7 @@ deployments:
   - name: Forecast Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: a1bad7719c3e73f759ca171fbc8231d728aaa7d7
+    version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
     resources:
       cpu: 500
       memory: 500
