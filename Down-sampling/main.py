@@ -19,6 +19,9 @@ buffer_configuration.time_span_in_milliseconds = 1 * 60 * 1000
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # called for each incoming DataFrame
     def on_dataframe_received_handler(originating_stream: qx.StreamConsumer, df: pd.DataFrame):
+        if originating_stream.properties.name is not None and stream_producer.properties.name is None:
+            stream_producer.properties.name = originating_stream.properties.name + "-down-sampled"
+
         # Identify numeric and string columns
         numeric_columns = [col for col in df.columns if not col.startswith('TAG__') and
                            col not in ['time', 'timestamp', 'original_timestamp', 'date_time']]
@@ -58,7 +61,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # When input stream closes, we close output stream as well.
     def on_stream_close(stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
         stream_producer.close()
-        print(f"Stream closed: {stream_producer.stream_id} ({stream_producer.properties.name})")
+        print(f"Stream closed: {stream_producer.stream_id}")
 
     stream_consumer.on_stream_closed = on_stream_close
 
