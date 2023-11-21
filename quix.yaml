@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 72a96a07950c198ffbadf8a7e53155f33d42de88
+    version: bcb0587e73cc2efd7beeb3bb3691658e950eb91d
     resources:
       cpu: 1000
       memory: 1000
@@ -96,6 +96,16 @@ deployments:
         description: 1 for "Number of Observations", 2 for "Time Period"
         required: true
         value: 1
+      - name: forecast_length
+        inputType: FreeText
+        description: Forecast length (check forecast_unit variable)
+        required: true
+        value: 14400
+      - name: forecast_unit
+        inputType: FreeText
+        description: Unit for the forecast_length
+        required: true
+        value: S
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service

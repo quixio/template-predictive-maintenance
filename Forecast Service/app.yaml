@@ -36,6 +36,16 @@ variables:
     description: 1 for "Number of Observations", 2 for "Time Period"
     defaultValue: 1
     required: true
+  - name: forecast_length
+    inputType: FreeText
+    description: Forecast length (check forecast_unit variable)
+    defaultValue: 14400
+    required: true
+  - name: forecast_unit
+    inputType: FreeText
+    description: Unit for the forecast_length
+    defaultValue: S
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
