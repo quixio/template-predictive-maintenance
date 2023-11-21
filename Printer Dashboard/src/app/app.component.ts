@@ -50,7 +50,7 @@ export class AppComponent implements OnInit {
         const { streams } = streamSubscription;
         if (!streams?.length) return [];
         return this.updateActiveSteams(streamSubscription).sort((a, b) => {
-          return +a.metadata['start_time'] < +b.metadata['start_time'] ? -1 : 1
+          return +a.metadata['start_time'] > +b.metadata['start_time'] ? -1 : 1
         })
       })
     );
