@@ -105,7 +105,7 @@ deployments:
         inputType: FreeText
         description: Unit for the forecast_length
         required: true
-        value: M
+        value: m
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
