@@ -367,7 +367,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
-                     f" ({len(df_window)} seconds, forecast needs {window_value} seconds)")
+                     f" ({len(df_window)} {os.environ['forecast_unit']},"
+                     f" forecast needs {window_value} {os.environ['forecast_unit']})")
 
     check_other_parameters(stream_consumer, df)
 
@@ -393,7 +394,7 @@ def send_fake_alert(stream_consumer, df: pd.DataFrame):
         fake_alert["alert_temperature"] = 44.9
     if force_alert < 20:
         fake_alert["status"] = UNDER_NOW
-        fake_alert["alert_timestamp"] = df["timestamp"].iloc[-1]
+        fake_alert["alert_timestamp"] = int(df["timestamp"].iloc[-1])
         fake_alert["alert_temperature"] = 44.9
     else:
         fake_alert["status"] = NO_ALERT
