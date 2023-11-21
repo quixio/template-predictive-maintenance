@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: bcb0587e73cc2efd7beeb3bb3691658e950eb91d
+    version: 59f253a13606bf4a2e8c903772502b29dfc62d0e
     resources:
       cpu: 1000
       memory: 1000
@@ -65,7 +65,7 @@ deployments:
         inputType: InputTopic
         description: Name of the input topic to listen to.
         required: false
-        value: 3d-printer-data
+        value: downsampled-3d-printer-data
       - name: output
         inputType: OutputTopic
         description: Name of the output topic to write to.
@@ -100,12 +100,12 @@ deployments:
         inputType: FreeText
         description: Forecast length (check forecast_unit variable)
         required: true
-        value: 14400
+        value: 480
       - name: forecast_unit
         inputType: FreeText
         description: Unit for the forecast_length
         required: true
-        value: S
+        value: M
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
