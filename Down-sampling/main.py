@@ -45,6 +45,9 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     stream_producer = topic_producer.get_or_create_stream(stream_consumer.stream_id + "-down-sampled")
     stream_producer.properties.parents.append(stream_consumer.stream_id)
 
+    if stream_consumer.properties.name is not None:
+        stream_producer.properties.name = stream_consumer.properties.name + "-down-sampled"
+
     # create the buffer
     buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
 
@@ -55,7 +58,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # When input stream closes, we close output stream as well.
     def on_stream_close(stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
         stream_producer.close()
-        print("Stream closed:" + stream_producer.stream_id)
+        print(f"Stream closed: {stream_producer.stream_id} ({stream_producer.properties.name})")
 
     stream_consumer.on_stream_closed = on_stream_close
 
