@@ -172,6 +172,9 @@ def generate_forecast(df, printer_name):
     lthreshold = THRESHOLDS[parameter_name][0]
     hthreshold = THRESHOLDS[parameter_name][1]
 
+    logging.debug(f"TS={df['timestamp']}")
+    logging.debug(f"df['timestamp'].iloc[-1]={df['timestamp'].iloc[-1]}")
+
     if fcast[forecast_label].iloc[0] <= lthreshold:
         alertstatus = {
             "status": UNDER_NOW,
@@ -267,8 +270,6 @@ def check_other_parameters(stream_consumer, df):
     for parameter in ['bed_temperature', 'hotend_temperature']:
         # Check last value of df
         alert = None
-        logging.debug(f"TS={df['timestamp']}")
-        logging.debug(f"df['timestamp'].iloc[-1]={df['timestamp'].iloc[-1]}")
         if df[parameter].iloc[-1] <= THRESHOLDS[parameter][0]:
             alert = {
                 "status": UNDER_NOW,
