@@ -158,6 +158,7 @@ def generate_forecast(df, printer_name):
     forecast_values = model.predict(forecast_array)
     # Create a DataFrame for the forecast
     fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
+    
     # Tag the data with the printer name for joining operations later
     fcast["TAG__printer"] = printer_name
 
