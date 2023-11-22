@@ -24,16 +24,16 @@ export class QuixService {
   // this is the token that will authenticate the user into the ungated product experience.
   // ungated means no password or login is needed.
   // the token is locked down to the max and everything is read only.
-  public ungatedToken: string = 'pat-1bb3d78414e049a09ab6a9a6a9f9f7eb';
+  public ungatedToken: string = 'pat-b88b3caf912641a1b0fa8b47b262868b';
 
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
   /*WORKING LOCALLY? UPDATE THESE!*/
-  private workingLocally = true; // set to true if working locally
-  private token: string = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoiZGVtbyIsImh0dHBzOi8vcXVpeC5haS9vd25lcl9pZCI6ImF1dGgwfGM1NzNiNzdiLTczYTUtNGU3OS05MjJlLTRiMDM5YTk3NGQ0NCIsImh0dHBzOi8vcXVpeC5haS90b2tlbl9pZCI6ImZjMjI2NWI2LWZiMzQtNDYyOC05ZDU3LWQ4ODAwYmI3MmE5NyIsImh0dHBzOi8vcXVpeC5haS9leHAiOiIxNzExODM5NjAwIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnF1aXguYWkvIiwic3ViIjoiOUdwcno3WE51V3VxQ0Fxb0cwa09JQTAyMUNSOFZmRUVAY2xpZW50cyIsImF1ZCI6InF1aXgiLCJpYXQiOjE2OTY5MjgyNTYsImV4cCI6MTY5OTUyMDI1NiwiYXpwIjoiOUdwcno3WE51V3VxQ0Fxb0cwa09JQTAyMUNSOFZmRUUiLCJndHkiOiJjbGllbnQtY3JlZGVudGlhbHMiLCJwZXJtaXNzaW9ucyI6W119.CTI9ohxNx9Jsu1yLkfZjww4cQWL8mjRMsattMnno7SwC5qJiER5CuV6AGxLOBOfgZR3W67QdO9VrZN9pr8qgvFJ-I0rH1qtXRMGsnrYAGko5NDpswd96bF8jsmxDxkCqdNztrCOELYBlC35hCfrfTdzYGYAwMIWdk0K5H6kGV1mkMEffM0wj_z8FAP-1s8h7_GkWCFZ8HdA4z7fLLjYFXPxzPUOodZktpj5QuluS1gpVjfuN-nm3787T7H7n3hS_Jdwtwp8QhseWoPRJikJBYKhI6FIRQQHvuEyPkBQSpKbIFW9dyK2TlrHqEFAGRRv3p63oovPU0H34SNIgeFSL4g'; // Create a token in the Tokens menu and paste it here
-  public workspaceId: string = 'demo-predictivemaintenance-env01'; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
-  public printerDataTopic: string = '3d-printer-data'; // get topic name from the Topics page in the Quix portal
-  public forecastTopic: string = 'forecast'; // get topic name from the Topics page in the Quix portal
-  public forecastAlertsTopic: string = 'forecast-alerts'; // get topic name from the Topics page in the Quix portal
+  private workingLocally = false; // set to true if working locally
+  private token: string = ''; // Create a token in the Tokens menu and paste it here
+  public workspaceId: string = ''; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
+  public printerDataTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  public forecastTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  public forecastAlertsTopic: string = ''; // get topic name from the Topics page in the Quix portal
   /* optional */
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
 
@@ -66,9 +66,9 @@ export class QuixService {
       let bearerToken$ = this.httpClient.get(this.server + 'bearer_token', { headers, responseType: 'text' });
       let workspaceId$ = this.httpClient.get(this.server + 'workspace_id', { headers, responseType: 'text' });
       let portalApi$ = this.httpClient.get(this.server + 'portal_api', { headers, responseType: 'text' })
-      let printerData$ = this.httpClient.get(this.server + '3d-printer-data', { headers, responseType: 'text' });
-      let forecast$ = this.httpClient.get(this.server + 'forecast', { headers, responseType: 'text' });
-      let forecastAlerts$ = this.httpClient.get(this.server + 'forecast-alerts', { headers, responseType: 'text' });
+      let printerData$ = this.httpClient.get(this.server + 'printer_data_topic', { headers, responseType: 'text' });
+      let forecast$ = this.httpClient.get(this.server + 'forecast_topic', { headers, responseType: 'text' });
+      let forecastAlerts$ = this.httpClient.get(this.server + 'alerts_topic', { headers, responseType: 'text' });
 
       combineLatest([
         bearerToken$,
