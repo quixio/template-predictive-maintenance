@@ -155,7 +155,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
                     "message": f"The value of '{parameter_name}' is expected to hit the lower threshold of "
-                               f"{low_threshold} degrees in {get_time_left(datetime.timestamp(fcast['timestamp'].iloc[i]))}."
+                               f"{low_threshold} degrees in {get_time_left(fcast['timestamp'].iloc[i])}."
                 }
                 break
             elif all_are_higher(list(fcast[forecast_label].iloc[i: i + 3]),
@@ -168,7 +168,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
                     "message": f"The value of '{parameter_name}' is expected to hit the higher threshold of "
-                               f"{high_threshold} degrees in {get_time_left(datetime.timestamp(fcast['timestamp'].iloc[i]))}."
+                               f"{high_threshold} degrees in {get_time_left(fcast['timestamp'].iloc[i])}."
                 }
                 break
         else:
@@ -176,7 +176,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                 "status": NO_ALERT,
                 "parameter_name": parameter_name,
                 "message": f"The value of '{parameter_name}' is not expected to hit the lower threshold of "
-                           f"{low_threshold} degrees within the forecast range of {datetime.timestamp(fcast['timestamp'].iloc[-1])}."
+                           f"{low_threshold} degrees within the forecast range."
             }
     else:
         # If the value is already under the lower threshold, or over the upper threshold,
