@@ -63,7 +63,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
-                "message": f"'{parameter}' is under the threshold"
+                "message": f"'{parameter}' is under the threshold {THRESHOLDS[parameter][0]}"
             }
         elif df[parameter].iloc[-1] >= THRESHOLDS[parameter][1]:
             alert = {
@@ -71,10 +71,10 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
-                "message": f"'{parameter}' is over the threshold"
+                "message": f"'{parameter}' is over the threshold {THRESHOLDS[parameter][1]}"
             }
 
-        if alert is not None:
+        if alert is not None and not alert_triggered(stream_consumer.stream_id, parameter):
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
             event = qx.EventData(alert["status"], pd.Timestamp.utcnow(), json.dumps(alert))
