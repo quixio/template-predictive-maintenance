@@ -1,11 +1,11 @@
 name: Alert Service
 language: python
 variables:
-  - name: output
+  - name: alerts
     inputType: OutputTopic
-    description: Name of the output topic to write to.
-    defaultValue: transform
-    required: false
+    description: Alerts topic
+    defaultValue: alerts
+    required: true
   - name: printer_data
     inputType: InputTopic
     description: 3D printer data
