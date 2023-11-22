@@ -1,18 +1,15 @@
-import json
-from collections import defaultdict
-
 import quixstreams as qx
-import os
-
-from sklearn.preprocessing import PolynomialFeatures
-from sklearn.linear_model import LinearRegression
-from sklearn.pipeline import make_pipeline
-from datetime import datetime, timedelta
-import numpy as np
-import pandas as pd
 
 import logging
+import os
 import sys
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
+from sklearn.linear_model import LinearRegression
+from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import PolynomialFeatures
 
 # Assigning environ vars to local variables
 topic_input = os.environ["input"]
