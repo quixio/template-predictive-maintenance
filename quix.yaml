@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 7ebb6bbead96a8ad7b62f45dd360dc7cffcda023
+    version: db153d7ca41f749298405456a8a78444d0196606
     resources:
       cpu: 500
       memory: 1000
@@ -109,7 +109,7 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 01e705334db52e4415bec492b720203467c33d27
+    version: 31fbab8f1d2fce8c05c4b2efc365c87d93b8d54f
     resources:
       cpu: 200
       memory: 500
@@ -135,7 +135,7 @@ deployments:
         required: true
         value: 3d-printer-data
       - name: forecast_topic
-        inputType: OutputTopic
+        inputType: InputTopic
         description: ''
         required: true
         value: forecast
@@ -143,7 +143,7 @@ deployments:
         inputType: InputTopic
         description: The topic to receive alerts on
         required: true
-        value: forecast-alerts
+        value: alerts
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
@@ -254,6 +254,31 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-3d-printer-data
+  - name: Alert Service
+    application: Alert Service
+    deploymentType: Service
+    version: 30083682552f22889227174e7372a28c154a41c2
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: alerts
+        inputType: OutputTopic
+        description: Alerts topic
+        required: true
+        value: alerts
+      - name: printer_data
+        inputType: InputTopic
+        description: 3D printer data
+        required: true
+        value: 3d-printer-data
+      - name: forecast_data
+        inputType: InputTopic
+        description: Forecast Data
+        required: true
+        value: forecast
 
 # This section describes the Topics of the data pipeline
 topics:
@@ -285,7 +310,7 @@ topics:
       replicationFactor: 2
       retentionInMinutes: 1440
       retentionInBytes: 52428800
-  - name: downsampled-forecast
+  - name: alerts
     persisted: false
     configuration:
       partitions: 1
