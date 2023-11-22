@@ -38,7 +38,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
     # Generate 20 random anomaly timestamps
     number_of_anomalies = int(os.environ["number_of_anomalies"])
-    anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
+    hotend_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
+    bed_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
+
     anomaly_end = -1
 
     fluctuated_ambient_temperatures = []
@@ -54,13 +56,22 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         bed_temperature = temp(bed_t, bed_sigma, 0)
 
         # Check if current timestamp is an anomaly timestamp
-        if i in anomaly_timestamps:
+        if i in hotend_anomaly_timestamps:
             # Start a new anomaly
             hotend_temperature -= anomaly_fluctuation
             anomaly_end = i + random.randint(3, 5)
             # Continue anomaly if within duration
         elif i <= anomaly_end:
             hotend_temperature -= anomaly_fluctuation
+
+        if i in bed_anomaly_timestamps:
+            # Start a new anomaly
+            bed_temperature -= anomaly_fluctuation
+            bed_anomaly_end = i + random.randint(3, 5)
+            # Continue anomaly if within duration
+        elif i <= bed_anomaly_end:
+            bed_temperature -= anomaly_fluctuation
+
 
         # Introduce a curve-like downward trend in the final half of the data range
         if i > datalength / 2:
