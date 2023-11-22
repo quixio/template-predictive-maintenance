@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: db153d7ca41f749298405456a8a78444d0196606
+    version: 893744e3f58b304b125e7d313477e0dd95ce121b
     resources:
       cpu: 500
       memory: 1000
@@ -71,11 +71,6 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: forecast
-      - name: output_alerts
-        inputType: OutputTopic
-        description: Topic for sending alerts
-        required: true
-        value: forecast-alerts
       - name: parameter_name
         inputType: FreeText
         description: Name of the parameter for forecasting
@@ -257,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 30083682552f22889227174e7372a28c154a41c2
+    version: a6767d9871a277d2469acb37daab5d04ed899213
     resources:
       cpu: 200
       memory: 500

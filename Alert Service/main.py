@@ -63,7 +63,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
-                "message": f"It looks like the value of '{parameter}' is already under the forecast range."
+                "message": f"'{parameter}' is under the threshold {THRESHOLDS[parameter][0]}"
             }
         elif df[parameter].iloc[-1] >= THRESHOLDS[parameter][1]:
             alert = {
@@ -71,10 +71,10 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
-                "message": f"It looks like the value of '{parameter}' is already over the forecast range."
+                "message": f"'{parameter}' is over the threshold {THRESHOLDS[parameter][1]}"
             }
 
-        if alert is not None:
+        if alert is not None and not alert_triggered(stream_consumer.stream_id, parameter):
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
             event = qx.EventData(alert["status"], pd.Timestamp.utcnow(), json.dumps(alert))
@@ -154,7 +154,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
-                    "message": f"The value of '{parameter_name}' is expected to hit the lower threshold of "
+                    "message": f"'{parameter_name}' is expected to hit the lower threshold of "
                                f"{low_threshold} degrees in {get_time_left(fcast['timestamp'].iloc[i])}."
                 }
                 break
@@ -167,7 +167,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
-                    "message": f"The value of '{parameter_name}' is expected to hit the higher threshold of "
+                    "message": f"'{parameter_name}' is expected to hit the higher threshold of "
                                f"{high_threshold} degrees in {get_time_left(fcast['timestamp'].iloc[i])}."
                 }
                 break
