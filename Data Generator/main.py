@@ -67,11 +67,11 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
         if i in bed_anomaly_timestamps:
             # Start a new anomaly
-            bed_temperature -= anomaly_fluctuation
-            bed_anomaly_end = i + random.randint(2, 6)
+            bed_temperature -= anomaly_fluctuation / 2
+            bed_anomaly_end = i + random.randint(9, 16)
             # Continue anomaly if within duration
         elif i <= bed_anomaly_end:
-            bed_temperature -= anomaly_fluctuation
+            bed_temperature -= anomaly_fluctuation / 2
 
 
         # Introduce a curve-like downward trend in the final half of the data range
