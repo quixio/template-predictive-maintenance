@@ -15,12 +15,12 @@ variables:
     inputType: InputTopic
     description: ''
     defaultValue: 3d-printer-data
-    required: false
+    required: true
   - name: forecast_topic
     inputType: OutputTopic
     description: ''
     defaultValue: forecast
-    required: false
+    required: true
   - name: alerts_topic
     inputType: InputTopic
     description: The topic to receive alerts on
