@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 8203cf3f4c73173df7d9f00278a9825024435aea
+    version: 59f253a13606bf4a2e8c903772502b29dfc62d0e
     resources:
       cpu: 200
       memory: 500
@@ -54,18 +54,18 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: bcb0587e73cc2efd7beeb3bb3691658e950eb91d
+    version: e10fa5186af6782d6265bd1971f5aa745274e1e5
     resources:
-      cpu: 1000
+      cpu: 500
       memory: 1000
-      replicas: 2
+      replicas: 1
     desiredStatus: Running
     variables:
       - name: input
         inputType: InputTopic
         description: Name of the input topic to listen to.
         required: false
-        value: 3d-printer-data
+        value: downsampled-3d-printer-data
       - name: output
         inputType: OutputTopic
         description: Name of the output topic to write to.
@@ -85,12 +85,12 @@ deployments:
         inputType: FreeText
         description: Debug mode (1 enabled, 0 disabled)
         required: false
-        value: 1
+        value: 0
       - name: window_value
         inputType: FreeText
         description: Window value
         required: true
-        value: 1200
+        value: 10
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
@@ -100,12 +100,12 @@ deployments:
         inputType: FreeText
         description: Forecast length (check forecast_unit variable)
         required: true
-        value: 14400
+        value: 480
       - name: forecast_unit
         inputType: FreeText
         description: Unit for the forecast_length
         required: true
-        value: S
+        value: min
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
@@ -216,26 +216,6 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-3d-printer-data
-  - name: Forecast Down Sampling
-    application: Down-sampling
-    deploymentType: Service
-    version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
-    resources:
-      cpu: 1000
-      memory: 500
-      replicas: 1
-    desiredStatus: Running
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: This is the input topic to read data from
-        required: true
-        value: forecast
-      - name: output
-        inputType: OutputTopic
-        description: This is the output topic to write data to
-        required: true
-        value: downsampled-forecast
 
 # This section describes the Topics of the data pipeline
 topics:
