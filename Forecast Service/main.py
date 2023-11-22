@@ -273,7 +273,7 @@ def check_other_parameters(stream_consumer, df):
         if df[parameter].iloc[-1] <= THRESHOLDS[parameter][0]:
             alert = {
                 "status": UNDER_NOW,
-                "parameter_name": parameter_name,
+                "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
                 "message": f"It looks like the value of '{parameter}' is already under the forecast range."
@@ -281,7 +281,7 @@ def check_other_parameters(stream_consumer, df):
         elif df[parameter].iloc[-1] >= THRESHOLDS[parameter][1]:
             alert = {
                 "status": OVER_NOW,
-                "parameter_name": parameter_name,
+                "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
                 "message": f"It looks like the value of '{parameter}' is already over the forecast range."
