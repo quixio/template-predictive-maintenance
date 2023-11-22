@@ -148,7 +148,7 @@ def generate_forecast(df, printer_name):
     forecast_input = df[parameter_name]
 
     # Define the degree of the polynomial regression model
-    degree = 4
+    degree = 2
     # Create a polynomial regression model
     model = make_pipeline(PolynomialFeatures(degree), LinearRegression())
     # Fit the model to the data
@@ -225,7 +225,7 @@ def generate_forecast(df, printer_name):
     logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
 
     # Print first and last entries of df and the forecast
-    print("#########################################################")
+
     first_timestamp = pd.to_datetime(df[timestamp_column_name].iloc[0])
     last_timestamp = pd.to_datetime(df[timestamp_column_name].iloc[-1])
     first_temperature = df[parameter_name].iloc[0]
@@ -236,11 +236,13 @@ def generate_forecast(df, printer_name):
     first_forecast_temperature = fcast[forecast_label].iloc[0]
     last_forecast_temperature = fcast[forecast_label].iloc[-1]
 
-    print("Current first ", first_timestamp, first_temperature)
-    print("Current last  ", last_timestamp, last_temperature)
-    print("Forecast first", first_forecast_timestamp, first_forecast_temperature)
-    print("Forecast last ", last_forecast_timestamp, last_forecast_temperature)
-    print("#########################################################")
+    logging.info("#######################################################")
+    logging.info(f"{printer_name : 55^ }")
+    logging.info("Current first ", first_timestamp, first_temperature)
+    logging.info("Current last  ", last_timestamp, last_temperature)
+    logging.info("Forecast first", first_forecast_timestamp, first_forecast_temperature)
+    logging.info("Forecast last ", last_forecast_timestamp, last_forecast_temperature)
+    logging.info("#######################################################")
 
     return fcast, alertstatus
 
