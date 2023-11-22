@@ -11,6 +11,11 @@ variables:
     description: 3D printer data
     defaultValue: 3d-printer-data
     required: true
+  - name: forecast_data
+    inputType: InputTopic
+    description: Forecast Data
+    defaultValue: forecast
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
