@@ -11,10 +11,10 @@ variables:
     description: ''
     defaultValue: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
     required: false
-  - name: offers_topic
+  - name: printer_data_topic
     inputType: InputTopic
     description: ''
-    defaultValue: special-offers
+    defaultValue: 3d-printer-data
     required: false
   - name: click_topic
     inputType: OutputTopic
