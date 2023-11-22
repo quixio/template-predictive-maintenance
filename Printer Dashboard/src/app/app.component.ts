@@ -84,8 +84,8 @@ export class AppComponent implements OnInit {
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
       const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
       this.subscribeToParameter(printerDataTopicId, stream.streamId, this.parameterIds);
-      this.subscribeToParameter(forecastTopicId, stream.streamId + '-forecast', ['forecast_fluctuated_ambient_temperature']);
-      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', this.eventsIds);
+      this.subscribeToParameter(forecastTopicId, stream.streamId + '-down-sampled-forecast', ['forecast_fluctuated_ambient_temperature']);
+      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-down-sampled-alerts', this.eventsIds);
       this.forecastLimit = { min: 40, max: 60 };
     });
   }
