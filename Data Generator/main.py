@@ -41,7 +41,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     hotend_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
     bed_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
 
-    anomaly_end = -1
+    hotend_anomaly_end = -1
+    bed_anomaly_end = -1
 
     fluctuated_ambient_temperatures = []
 
@@ -59,9 +60,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         if i in hotend_anomaly_timestamps:
             # Start a new anomaly
             hotend_temperature -= anomaly_fluctuation
-            anomaly_end = i + random.randint(3, 5)
+            hotend_anomaly_end = i + random.randint(3, 5)
             # Continue anomaly if within duration
-        elif i <= anomaly_end:
+        elif i <= hotend_anomaly_end:
             hotend_temperature -= anomaly_fluctuation
 
         if i in bed_anomaly_timestamps:
