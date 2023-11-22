@@ -226,12 +226,20 @@ def generate_forecast(df, printer_name):
 
     # Print first and last entries of df and the forecast
     print("#########################################################")
-    print("First and last entries of current data:")
-    print(df[['timestamp', 'fluctuated_ambient_temperature']].head(1))
-    print(df[['timestamp', 'fluctuated_ambient_temperature']].tail(1))
-    print("First and last entries of forecast:")
-    print(fcast.head(1))
-    print(fcast.tail(1))
+    first_timestamp = df[timestamp_column_name].iloc[0]
+    last_timestamp = df[timestamp_column_name].iloc[-1]
+    first_temperature = df[parameter_name].iloc[0]
+    last_temperature = df[parameter_name].iloc[-1]
+
+    first_forecast_timestamp = fcast['timestamp'].iloc[0]
+    last_forecast_timestamp = fcast['timestamp'].iloc[-1]
+    first_forecast_temperature = fcast[forecast_label].iloc[0]
+    last_forecast_temperature = fcast[forecast_label].iloc[-1]
+
+    print(first_timestamp, first_temperature)
+    print(last_timestamp, last_temperature)
+    print(first_forecast_timestamp, first_forecast_temperature)
+    print(last_forecast_timestamp, last_forecast_temperature)
     print("#########################################################")
 
     return fcast, alertstatus
@@ -302,8 +310,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     df_window = windows[stream_id]
 
-    # DEBUG LINE
-    logging.debug(f"{stream_consumer.properties.name}: Received:\n{df}")
     # Append latest data to df_window
     columns = ["timestamp", parameter_name]
     if 'original_timestamp' in df.columns:
@@ -324,10 +330,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         min_date = df_window['timestamp'].iloc[-1] - window.delta
         df_window = df_window[df_window['timestamp'] > min_date]
 
-    # DEBUG LINE
-    logging.debug(
-        f"{stream_consumer.properties.name}: Loaded from state:\n{df_window['fluctuated_ambient_temperature'].tail(1)}")
-
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least windowval number of rows
     if len(df_window) >= window_value:
@@ -344,7 +346,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         start = datetime.now().timestamp()
         forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name)
         status = alert_status["status"]
-        logging.debug(f"{stream_consumer.properties.name}: Forecast generated — last 5 rows:\n {forecast.tail(5)}")
         stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
         stream_producer.timeseries.buffer.publish(forecast)
         logging.debug(
