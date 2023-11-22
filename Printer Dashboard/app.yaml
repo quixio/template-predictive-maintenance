@@ -21,5 +21,10 @@ variables:
     description: ''
     defaultValue: forecast
     required: false
+  - name: alerts_topic
+    inputType: InputTopic
+    description: The topic to receive alerts on
+    defaultValue: forecast-alerts
+    required: false
 dockerfile: src/build/dockerfile
 defaultFile: src/app/services/quix.service.ts
