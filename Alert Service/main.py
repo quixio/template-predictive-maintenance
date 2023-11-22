@@ -74,7 +74,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "message": f"It looks like the value of '{parameter}' is already over the forecast range."
             }
 
-        if alert is not None and not alert_triggered(stream_consumer.stream_id, parameter):
+        if alert is not None:
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
             event = qx.EventData(alert["status"], pd.Timestamp.utcnow(), json.dumps(alert))
