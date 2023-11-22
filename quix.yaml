@@ -135,7 +135,7 @@ deployments:
         required: true
         value: 3d-printer-data
       - name: forecast_topic
-        inputType: OutputTopic
+        inputType: InputTopic
         description: ''
         required: true
         value: forecast
