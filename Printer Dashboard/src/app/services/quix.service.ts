@@ -84,6 +84,12 @@ export class QuixService {
         this.forecastTopic = forecast.replace('\n', '');
         this.forecastAlertsTopic = forecastAlerts.replace('\n', '');
 
+        console.log(this.token);
+        console.log(this.workspaceId);
+        console.log(this.printerDataTopic);
+        console.log(this.forecastTopic);
+        console.log(this.forecastAlertsTopic);
+
         // work out what domain the portal api is on:
         portalApi = portalApi.replace("\n", "");
         let matches = portalApi.match(this.domainRegex);
