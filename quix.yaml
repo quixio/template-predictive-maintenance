@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 89f02f69ff1fdc8e868ceb234b51b66a2655d2a4
+    version: 1ab650822bdbe1f54a5bdbd78159960a629d66ad
     resources:
       cpu: 1000
       memory: 1000
@@ -216,26 +216,6 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-3d-printer-data
-  - name: Forecast Down Sampling
-    application: Down-sampling
-    deploymentType: Service
-    version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
-    resources:
-      cpu: 1000
-      memory: 500
-      replicas: 1
-    desiredStatus: Running
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: This is the input topic to read data from
-        required: true
-        value: forecast
-      - name: output
-        inputType: OutputTopic
-        description: This is the output topic to write data to
-        required: true
-        value: downsampled-forecast
 
 # This section describes the Topics of the data pipeline
 topics:
