@@ -225,10 +225,14 @@ def generate_forecast(df, printer_name):
     logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
 
     # Print first and last entries of df and the forecast
+    print("#########################################################")
+    print("First and last entries of current data:")
     print(df[['timestamp', 'fluctuated_ambient_temperature']].head(1))
     print(df[['timestamp', 'fluctuated_ambient_temperature']].tail(1))
+    print("First and last entries of forecast:")
     print(fcast.head(1))
     print(fcast.tail(1))
+    print("#########################################################")
 
     return fcast, alertstatus
 
