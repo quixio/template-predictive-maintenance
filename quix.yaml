@@ -254,6 +254,31 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-3d-printer-data
+  - name: Alert Service
+    application: Alert Service
+    deploymentType: Service
+    version: db153d7ca41f749298405456a8a78444d0196606
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: alerts
+        inputType: OutputTopic
+        description: Alerts topic
+        required: true
+        value: alerts
+      - name: printer_data
+        inputType: InputTopic
+        description: 3D printer data
+        required: true
+        value: 3d-printer-data
+      - name: forecast_data
+        inputType: InputTopic
+        description: Forecast Data
+        required: true
+        value: forecast
 
 # This section describes the Topics of the data pipeline
 topics:
