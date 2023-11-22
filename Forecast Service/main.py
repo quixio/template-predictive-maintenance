@@ -170,8 +170,6 @@ def generate_forecast(df, printer_name):
     lthreshold = THRESHOLDS[parameter_name][0]
     hthreshold = THRESHOLDS[parameter_name][1]
 
-    alertstatus = {"status": "unknown", "message": "empty"}
-
     if fcast[forecast_label].iloc[0] <= lthreshold:
         alertstatus = {
             "status": UNDER_NOW,
@@ -180,7 +178,6 @@ def generate_forecast(df, printer_name):
             "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[0]) * 1e9,
             "message": f"It looks like the value of '{parameter_name}' is already under the forecast range."
         }
-        logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
     elif fcast[forecast_label].iloc[0] >= hthreshold:
         alertstatus = {
             "status": OVER_NOW,
@@ -189,7 +186,6 @@ def generate_forecast(df, printer_name):
             "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[0]) * 1e9,
             "message": f"It looks like the value of '{parameter_name}' is already over the forecast range."
         }
-        logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
     else:
         # Find the time it takes for the forecasted values to hit the lower threshold of 45
         for i in range(len(fcast[forecast_label]) - 3):
@@ -204,7 +200,6 @@ def generate_forecast(df, printer_name):
                     "message": f"The value of '{parameter_name}' is expected to hit the lower threshold of "
                                f"{lthreshold} degrees in {i}  {forecast_unit}."
                 }
-                logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
                 break
             elif all_are_higher(list(fcast[forecast_label].iloc[i: i + 3]), [hthreshold, hthreshold, hthreshold]):
                 # In order to trigger the alert, the forecasted values need to be under
@@ -218,7 +213,6 @@ def generate_forecast(df, printer_name):
                                f"{hthreshold} degrees in {i}  {forecast_unit}."
                 }
 
-                logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
                 break
         else:
             alertstatus = {
@@ -228,7 +222,14 @@ def generate_forecast(df, printer_name):
                            f"{lthreshold} degrees within the forecast range of {forecast_length} {forecast_unit}."
             }
 
-            logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+    logging.debug(f"{printer_name}:{alertstatus['status']}: {alertstatus['message']}")
+
+    # Print first and last entries of df and the forecast
+    print(df[['timestamp', 'fluctuated_ambient_temperature']].head(1))
+    print(df[['timestamp', 'fluctuated_ambient_temperature']].tail(1))
+    print(fcast.head(1))
+    print(fcast.tail(1))
+
     return fcast, alertstatus
 
 
