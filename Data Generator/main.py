@@ -14,7 +14,7 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # Display all columns
-pd.set_option('display.max_columns', 10)
+pd.set_option('display.max_columns', None)
 
 # Replay speed
 replay_speed = 10.0
