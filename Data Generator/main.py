@@ -18,7 +18,7 @@ pd.set_option('display.max_columns', 6)
 
 # Replay speed
 replay_speed = 10.0
-
+anomaly_fluctuation = 8 # was 3
 
 def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
@@ -56,11 +56,11 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         # Check if current timestamp is an anomaly timestamp
         if i in anomaly_timestamps:
             # Start a new anomaly
-            hotend_temperature -= 3
+            hotend_temperature -= anomaly_fluctuation
             anomaly_end = i + random.randint(3, 5)
             # Continue anomaly if within duration
         elif i <= anomaly_end:
-            hotend_temperature -= 3
+            hotend_temperature -= anomaly_fluctuation
 
         # Introduce a curve-like downward trend in the final half of the data range
         if i > datalength / 2:
