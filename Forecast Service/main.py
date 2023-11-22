@@ -385,44 +385,6 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     check_other_parameters(stream_consumer, df)
 
-    send_fake_alert(stream_consumer, df)
-
-
-# region Fake alert
-# TODO: To be removed
-force_alert = 0
-
-
-def send_fake_alert(stream_consumer, df: pd.DataFrame):
-    # For debug purposes
-    global force_alert
-    force_alert += 1
-    fake_alert = {
-        "parameter_name": "fluctuated_ambient_temperature",
-        "message": "fake alert",
-    }
-    if force_alert < 10:
-        fake_alert["status"] = UNDER_FORECAST
-        fake_alert["alert_timestamp"] = datetime.timestamp(datetime.utcnow() + timedelta(minutes=10)) * 1e9
-        fake_alert["alert_temperature"] = 44.9
-    if force_alert < 20:
-        fake_alert["status"] = UNDER_NOW
-        fake_alert["alert_timestamp"] = int(df["timestamp"].iloc[-1])
-        fake_alert["alert_temperature"] = 44.9
-    else:
-        fake_alert["status"] = NO_ALERT
-        if force_alert > 30:
-            force_alert = 0
-
-    force_alert += 1
-    stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
-                                                         stream_consumer.properties.name)
-    event = qx.EventData(fake_alert["status"], pd.Timestamp.utcnow(), json.dumps(fake_alert))
-    stream_alerts_producer.events.publish(event)
-
-
-# endregion
-
 
 if __name__ == "__main__":
     # Alternatively, you can always pass an SDK token manually as an argument.
