@@ -153,7 +153,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "status": UNDER_FORECAST,
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
-                    "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9,
+                    "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
                     "message": f"The value of '{parameter_name}' is expected to hit the lower threshold of "
                                f"{low_threshold} degrees in {get_time_left(datetime.timestamp(fcast['timestamp'].iloc[i]))}."
                 }
@@ -166,7 +166,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "status": OVER_FORECAST,
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
-                    "alert_timestamp": datetime.timestamp(fcast['timestamp'].iloc[i]) * 1e9,
+                    "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
                     "message": f"The value of '{parameter_name}' is expected to hit the higher threshold of "
                                f"{high_threshold} degrees in {get_time_left(datetime.timestamp(fcast['timestamp'].iloc[i]))}."
                 }
