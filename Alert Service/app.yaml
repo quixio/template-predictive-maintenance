@@ -10,6 +10,11 @@ variables:
     description: Name of the output topic to write to.
     defaultValue: transform
     required: false
+  - name: printer_data
+    inputType: InputTopic
+    description: 3D printer data
+    defaultValue: 3d-printer-data
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
