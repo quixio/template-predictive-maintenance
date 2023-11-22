@@ -109,7 +109,7 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 01e705334db52e4415bec492b720203467c33d27
+    version: 31fbab8f1d2fce8c05c4b2efc365c87d93b8d54f
     resources:
       cpu: 200
       memory: 500
@@ -143,7 +143,7 @@ deployments:
         inputType: InputTopic
         description: The topic to receive alerts on
         required: true
-        value: forecast-alerts
+        value: alerts
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
