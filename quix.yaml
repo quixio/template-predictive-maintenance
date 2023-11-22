@@ -109,14 +109,14 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 31fbab8f1d2fce8c05c4b2efc365c87d93b8d54f
+    version: 157d17273136ead92ddf5d59dbf6857580841162
     resources:
       cpu: 200
       memory: 500
       replicas: 1
     publicAccess:
       enabled: true
-      urlPrefix: printerdashboard-6d4fc99
+      urlPrefix: dash
     desiredStatus: Running
     variables:
       - name: bearer_token
