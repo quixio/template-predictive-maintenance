@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 04cd6cb477e51096e312988b76e95c740f9cafa7
+    version: c07a0cb87f3e631ccfd7b98d3084574aee87506e
     resources:
       cpu: 1000
       memory: 1000
@@ -90,7 +90,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 10
+        value: 2
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
