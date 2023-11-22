@@ -17,7 +17,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 pd.set_option('display.max_columns', 6)
 
 # Replay speed
-replay_speed = 1.0
+replay_speed = 10.0
 
 
 def temp(target, sigma, offset):
