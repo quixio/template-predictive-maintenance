@@ -20,7 +20,7 @@ variables:
     inputType: OutputTopic
     description: ''
     defaultValue: forecast
-    required: false
+    required: true
   - name: alerts_topic
     inputType: InputTopic
     description: The topic to receive alerts on
