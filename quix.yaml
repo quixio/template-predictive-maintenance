@@ -85,12 +85,12 @@ deployments:
         inputType: FreeText
         description: Debug mode (1 enabled, 0 disabled)
         required: false
-        value: 1
+        value: 0
       - name: window_value
         inputType: FreeText
         description: Window value
         required: true
-        value: 2
+        value: 10
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
