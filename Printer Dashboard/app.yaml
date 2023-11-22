@@ -15,7 +15,7 @@ variables:
     inputType: InputTopic
     description: ''
     defaultValue: 3d-printer-data
-    required: false
+    required: true
   - name: forecast_topic
     inputType: OutputTopic
     description: ''
