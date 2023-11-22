@@ -1,0 +1,30 @@
+name: Printers Dashboard
+language: nodejs
+variables:
+  - name: bearer_token
+    inputType: FreeText
+    description: ''
+    defaultValue: abc111
+    required: false
+  - name: Deployment__Id
+    inputType: FreeText
+    description: ''
+    defaultValue: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
+    required: false
+  - name: printer_data_topic
+    inputType: InputTopic
+    description: ''
+    defaultValue: 3d-printer-data
+    required: true
+  - name: forecast_topic
+    inputType: OutputTopic
+    description: ''
+    defaultValue: forecast
+    required: true
+  - name: alerts_topic
+    inputType: InputTopic
+    description: The topic to receive alerts on
+    defaultValue: forecast-alerts
+    required: true
+dockerfile: src/build/dockerfile
+defaultFile: src/app/services/quix.service.ts
