@@ -237,7 +237,7 @@ def generate_forecast(df, printer_name):
     last_forecast_temperature = fcast[forecast_label].iloc[-1]
 
     logging.info("#######################################################")
-    logging.info(f"{printer_name : 55^ }")
+    logging.info(f"{printer_name : ^55 }")
     logging.info("Current first ", first_timestamp, first_temperature)
     logging.info("Current last  ", last_timestamp, last_temperature)
     logging.info("Forecast first", first_forecast_timestamp, first_forecast_temperature)
