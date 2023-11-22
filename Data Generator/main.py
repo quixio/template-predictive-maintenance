@@ -19,6 +19,10 @@ pd.set_option('display.max_columns', None)
 # Replay speed
 replay_speed = 10.0
 anomaly_fluctuation = 8 # was 3
+hot_end_anomaly_min_duration = 30 # 3
+hot_end_anomaly_max_duration = 35 # 5
+bed_anomaly_min_duration = 30 # 9
+bed_anomaly_max_duration = 35 # 12
 
 def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
@@ -60,7 +64,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         if i in hotend_anomaly_timestamps:
             # Start a new anomaly
             hotend_temperature -= anomaly_fluctuation
-            hotend_anomaly_end = i + random.randint(3, 5)
+            hotend_anomaly_end = i + random.randint(hot_end_anomaly_min_duration, hot_end_anomaly_max_duration)
             # Continue anomaly if within duration
         elif i <= hotend_anomaly_end:
             hotend_temperature -= anomaly_fluctuation
@@ -68,7 +72,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         if i in bed_anomaly_timestamps:
             # Start a new anomaly
             bed_temperature -= anomaly_fluctuation / 2
-            bed_anomaly_end = i + random.randint(9, 16)
+            bed_anomaly_end = i + random.randint(bed_anomaly_min_duration, bed_anomaly_max_duration)
             # Continue anomaly if within duration
         elif i <= bed_anomaly_end:
             bed_temperature -= anomaly_fluctuation / 2
