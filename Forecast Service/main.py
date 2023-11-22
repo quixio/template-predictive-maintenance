@@ -158,11 +158,13 @@ def generate_forecast(df, printer_name):
     forecast_values = model.predict(forecast_array)
     # Create a DataFrame for the forecast
     fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
+    
     # Tag the data with the printer name for joining operations later
     fcast["TAG__printer"] = printer_name
 
     # Create a timestamp for the forecasted values
-    forecast_timestamp = pd.date_range(start=forecast_input.index[-1], periods=forecast_length, freq=forecast_unit)
+    forecast_timestamp = pd.date_range(start=forecast_input.index[-1] + pd.Timedelta(value=1, unit=forecast_unit),
+                                       periods=forecast_length, freq=forecast_unit)
 
     # Add the forecasted timestamps to the DataFrame - these are in the future
     fcast['timestamp'] = forecast_timestamp
@@ -346,7 +348,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
         # Generate forecast
         start = datetime.now().timestamp()
-        forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name)
+        forecast, alert_status = generate_forecast(df_window, stream_consumer.properties.name or "Unknown")
         status = alert_status["status"]
         stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
         stream_producer.timeseries.buffer.publish(forecast)
