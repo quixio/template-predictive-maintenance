@@ -71,11 +71,6 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: forecast
-      - name: output_alerts
-        inputType: OutputTopic
-        description: Topic for sending alerts
-        required: true
-        value: forecast-alerts
       - name: parameter_name
         inputType: FreeText
         description: Name of the parameter for forecasting
