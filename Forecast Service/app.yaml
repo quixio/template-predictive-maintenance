@@ -11,11 +11,6 @@ variables:
     description: Topic to send the forecasts
     defaultValue: forecast
     required: true
-  - name: output_alerts
-    inputType: OutputTopic
-    description: Topic for sending alerts
-    defaultValue: forecast-alerts
-    required: true
   - name: parameter_name
     inputType: FreeText
     description: Name of the parameter for forecasting
