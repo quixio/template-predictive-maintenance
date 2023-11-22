@@ -178,6 +178,9 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                 "message": f"The value of '{parameter_name}' is not expected to hit the lower threshold of "
                            f"{low_threshold} degrees within the forecast range of {datetime.timestamp(fcast['timestamp'].iloc[-1])}."
             }
+    else:
+        # If the value is already under the lower threshold, or over the upper threshold,
+        return
 
     if alert_status["status"] in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST]:
         print(f"{stream_consumer.properties.name}: Triggering alert...")
