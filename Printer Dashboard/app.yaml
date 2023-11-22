@@ -16,10 +16,10 @@ variables:
     description: ''
     defaultValue: 3d-printer-data
     required: false
-  - name: click_topic
+  - name: forecast_topic
     inputType: OutputTopic
     description: ''
-    defaultValue: click-data
+    defaultValue: forecast
     required: false
 dockerfile: src/build/dockerfile
 defaultFile: src/app/services/quix.service.ts
