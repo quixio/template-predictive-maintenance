@@ -238,10 +238,10 @@ def generate_forecast(df, printer_name):
 
     logging.info("#######################################################")
     logging.info(f"{printer_name : ^55}")
-    logging.info("Current first ", first_timestamp, first_temperature)
-    logging.info("Current last  ", last_timestamp, last_temperature)
-    logging.info("Forecast first", first_forecast_timestamp, first_forecast_temperature)
-    logging.info("Forecast last ", last_forecast_timestamp, last_forecast_temperature)
+    logging.info(f"Current first  {first_timestamp : <12} {first_temperature}")
+    logging.info(f"Current last   {last_timestamp : <12} {last_temperature}")
+    logging.info(f"Forecast first {first_forecast_timestamp : <12} {first_forecast_temperature}")
+    logging.info(f"Forecast last  {last_forecast_timestamp : <12} {last_forecast_temperature}")
     logging.info("#######################################################")
 
     return fcast, alertstatus
