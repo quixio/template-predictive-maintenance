@@ -168,8 +168,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
         df_window = df_window[df_window['timestamp'] > min_date]
 
     # PERFORM A OPERATION ON THE WINDOW
-    # Check if df_window has at least windowval number of rows
-    if len(df_window) >= window_value:
+    # Check if df_window has at least 10 rows
+    if len(df_window) >= 10:
         # Last data point timestamp
         last_timestamp = df_window['timestamp'].iloc[-1] / 1e9
 
