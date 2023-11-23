@@ -151,12 +151,12 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
     low_threshold = THRESHOLDS[parameter_name][0]
     high_threshold = THRESHOLDS[parameter_name][1]
 
-    print(stream_consumer.stream_id)
     suffix_to_remove = "-down-sampled-forecast"
     if stream_consumer.stream_id.endswith(suffix_to_remove):
         stream_id = stream_consumer.stream_id[:-len(suffix_to_remove)]
     else:
         stream_id = stream_consumer.stream_id
+    
 
     # Check if the value is already under the lower threshold or over the upper threshold
     # If so, the alert will be triggered by the printer data stream
@@ -202,7 +202,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
 
     if alert_status["status"] in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST]:
         print(f"{stream_consumer.properties.name}: Triggering alert...")
-        stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+        stream_alerts_producer = get_or_create_alerts_stream(stream_id,
                                                              stream_consumer.properties.name)
 
         event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
@@ -214,7 +214,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
     elif alert_status["status"] == "noalert" and is_alert_triggered(stream_id, parameter_name):
         # If it was triggered, and now it's not, send a "noalert" event
         print(f"{stream_consumer.properties.name}: Setting to no alert...")
-        stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
+        stream_alerts_producer = get_or_create_alerts_stream(stream_id,
                                                              stream_consumer.properties.name)
         event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
         stream_alerts_producer.events.publish(event)
@@ -222,8 +222,15 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
 
 
 def on_forecast_stream_received_handler(stream_consumer: qx.StreamConsumer):
+    suffix_to_remove = "-down-sampled-forecast"
+    if stream_consumer.stream_id.endswith(suffix_to_remove):
+        stream_id = stream_consumer.stream_id[:-len(suffix_to_remove)]
+    else:
+        stream_id = stream_consumer.stream_id
+    
+
     stream_consumer.timeseries.on_dataframe_received = on_forecast_dataframe_received
-    stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id, stream_consumer.properties.name)
+    stream_alerts_producer = get_or_create_alerts_stream(stream_id, stream_consumer.properties.name)
 
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
         global alerts_triggered
