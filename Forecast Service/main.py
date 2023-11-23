@@ -15,6 +15,7 @@ from sklearn.preprocessing import PolynomialFeatures
 topic_input = os.environ["input"]
 topic_output = os.environ["output"]
 parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ else "fluctuated_ambient_temperature"
+forecast_label = str(parameter_name)
 
 window_type_env = os.environ["window_type"] if "window_type" in os.environ else "1"
 window_type = 'Number of Observations' if window_type_env == 1 else "Time Period"
@@ -65,7 +66,7 @@ def get_or_create_forecast_stream(stream_id: str, stream_name: str):
     if stream_name is not None:
         stream_producer.properties.name = f"{stream_name} - Forecast"
 
-    stream_producer.timeseries.add_definition("forecast_" + parameter_name, "Forecasted " + parameter_name)
+    stream_producer.timeseries.add_definition(forecast_label, "Forecasted " + parameter_name)
     return stream_producer
 
 
@@ -74,7 +75,6 @@ def generate_forecast(df, printer_name):
 
     forecast_length = int(os.environ['forecast_length'])
     forecast_unit = os.environ['forecast_unit']
-    forecast_label = "forecast_" + str(parameter_name)
 
     # Set the 'timestamp' column as the index
     if 'original_timestamp' not in df.columns:
