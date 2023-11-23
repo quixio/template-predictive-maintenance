@@ -56,7 +56,7 @@ deployments:
     deploymentType: Service
     version: 893744e3f58b304b125e7d313477e0dd95ce121b
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 1000
       replicas: 1
     desiredStatus: Running
@@ -252,9 +252,9 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: a6767d9871a277d2469acb37daab5d04ed899213
+    version: 4de34b2ed88d83e54ab7fc60ee48fa8e1f4cd31d
     resources:
-      cpu: 200
+      cpu: 1000
       memory: 500
       replicas: 1
     desiredStatus: Running
