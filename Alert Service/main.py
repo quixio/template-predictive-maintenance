@@ -150,7 +150,7 @@ def get_time_left(timestamp: float):
 
 def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd.DataFrame):
     parameter_name = "fluctuated_ambient_temperature"
-    forecast_label = f"forecast_{parameter_name}"
+    forecast_label = parameter_name
 
     low_threshold = THRESHOLDS[parameter_name][0]
     high_threshold = THRESHOLDS[parameter_name][1]
