@@ -78,12 +78,13 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             bed_temperature -= anomaly_fluctuation / 2
 
 
-        # Introduce a curve-like downward trend in the final half of the data range
-        if i > datalength / 2:
-            # Calculate the proportion of the way through the second half of the data
-            proportion = 2 * (i - datalength / 2) / datalength
-            # Use a quadratic function to calculate the decrease
-            ambient_t = target_ambient_t - (target_ambient_t / 2) * (proportion ** 2)
+        # Introduce a curve-like downward trend every 2 hours
+        time_since_2_hours = i % (2 * 3600)
+        two_hours = 2 * 3600
+        # Calculate the proportion of the way through the second half of the data
+        proportion = 2 * (time_since_2_hours - two_hours / 2) / two_hours
+        # Use a quadratic function to calculate the decrease
+        ambient_t = target_ambient_t - (target_ambient_t / 2) * (proportion ** 2)
 
         ambient_temperature = temp(ambient_t, ambient_sigma, 0)
 
