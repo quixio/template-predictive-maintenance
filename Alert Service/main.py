@@ -103,6 +103,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "message": f"'{parameter}' is not over/under the threshold.",
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
+                "alert_temperature": df[parameter].iloc[-1],
             }
             event = qx.EventData(NO_ALERT, pd.Timestamp.utcnow(), json.dumps(alert))
             stream_alerts_producer.events.publish(event)
@@ -149,7 +150,7 @@ def get_time_left(timestamp: float):
 
 def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd.DataFrame):
     parameter_name = "fluctuated_ambient_temperature"
-    forecast_label = f"forecast_{parameter_name}"
+    forecast_label = parameter_name
 
     low_threshold = THRESHOLDS[parameter_name][0]
     high_threshold = THRESHOLDS[parameter_name][1]
@@ -199,6 +200,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                 "message": f"The value of '{parameter_name}' is not expected to hit the lower threshold of "
                            f"{low_threshold} degrees within the forecast range.",
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[0])) * 1e9,
+                "alert_temperature": fcast[forecast_label].iloc[0],
             }
     else:
         # If the value is already under the lower threshold, or over the upper threshold,
