@@ -53,6 +53,8 @@ def is_alert_triggered(stream_id, parameter):
         # If it was triggered more than a minute ago, reset it
         if triggered and triggered < datetime.now() - pd.Timedelta(minutes=1):
             alerts_triggered[stream_id][parameter] = datetime.now()
+            return False
+        elif triggered:
             return True
 
     return False
