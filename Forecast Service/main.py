@@ -169,7 +169,8 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
 
     # PERFORM A OPERATION ON THE WINDOW
     # Check if df_window has at least 10 rows
-    if len(df_window) >= 10:
+    min_window_length = 10
+    if len(df_window) >= min_window_length:
         # Last data point timestamp
         last_timestamp = df_window['timestamp'].iloc[-1] / 1e9
 
@@ -191,7 +192,7 @@ def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     else:
         logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
                      f" ({len(df_window)} {os.environ['forecast_unit']},"
-                     f" forecast needs {window_value} {os.environ['forecast_unit']})")
+                     f" forecast needs {min_window_length} {os.environ['forecast_unit']})")
 
 
 if __name__ == "__main__":
