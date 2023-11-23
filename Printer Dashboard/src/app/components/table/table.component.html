@@ -1,28 +1,14 @@
 <div fxLayout="column" class="h-100 overflow-auto">
-  <table mat-table [dataSource]="dataSource" class="w-100 mat-caption">
-    <ng-container matColumnDef="timestamp">
-      <th mat-header-cell *matHeaderCellDef class="mat-body-2">Timestamp</th>
-      <td mat-cell *matCellDef="let alert; let i = index" class="mat-body-2">
-        {{ (alert.alert_timestamp / 1000000) | date: 'HH:mm:ss' }}
-      </td>
-    </ng-container>
-    <ng-container matColumnDef="type">
-      <th mat-header-cell *matHeaderCellDef class="mat-body-2">Type</th>
-      <td mat-cell *matCellDef="let alert; let i = index" class="mat-body-2">
-        <div fxLayout="row">
-          <mat-icon color="warn" class="cursor-pointer me-2" [matTooltip]="alert.message">warning</mat-icon>
-          <span>{{ alert.status }}</span>
+  <table mat-table [dataSource]="dataSource" class="w-100 mat-caption border-top">
+    <ng-container matColumnDef="alerts">
+      <td mat-cell *matCellDef="let alert; let i = index">
+        <div fxLayout="row" fxLayoutAlign="start center" [class.opacity-25]="alert.disabled">
+          <mat-icon color="warn" class="cursor-pointer me-2" [style.minWidth.px]="24">warning</mat-icon>
+          <span>{{ alert.message }}</span>
         </div>
       </td>
     </ng-container>
-    <ng-container matColumnDef="temperature">
-      <th mat-header-cell *matHeaderCellDef class="mat-body-2">Temp. Cº</th>
-      <td mat-cell *matCellDef="let alert; let i = index" class="mat-body-2">
-        {{ alert.alert_temperature | number : '1.0-2' }}
-      </td>
-    </ng-container>
-    <tr mat-header-row *matHeaderRowDef="['timestamp', 'type', 'temperature']; sticky: true"></tr>
-    <tr mat-row *matRowDef="let row; columns: ['timestamp', 'type', 'temperature']" [class.opacity-25]="row.disabled"></tr>
+    <tr mat-row *matRowDef="let alert; columns: ['alerts']"></tr>
   </table>
   <div fxFlex fxLayout="column" fxLayoutAlign="center center" class="text-muted" *ngIf="!dataSource.length">
     <span>No alerts to show</span>

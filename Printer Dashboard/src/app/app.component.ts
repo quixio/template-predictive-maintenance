@@ -7,7 +7,7 @@ import { ActiveStream } from './models/activeStream';
 import { ActiveStreamAction } from './models/activeStreamAction';
 import { ActiveStreamSubscription } from './models/activeStreamSubscription';
 import { ParameterData } from './models/parameterData';
-import { Observable, filter, interval, map, merge, tap, timer, withLatestFrom } from 'rxjs';
+import { Observable, filter, interval, map, merge, startWith, tap, timer, withLatestFrom } from 'rxjs';
 import { ChartComponent } from './components/chart/chart.component';
 
 @Component({
@@ -27,11 +27,14 @@ export class AppComponent implements OnInit {
   activeStreams$: Observable<ActiveStream[]>;
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
+  forecastReset$: Observable<any>;
+  forecastDuration$: Observable<number>;
   eventData$: Observable<EventData>;
   streamsMap = new Map<string, string>();
   forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
-  eventsIds: string[] = ['under-forecast', 'under-now', 'no-alert'];
+  eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert'];
+  forecastParameterId = 'fluctuated_ambient_temperature';
   ranges: { [key: string]: { min: number, max: number } } = {
     'ambient_temperature': { min: 45, max: 55 },
     'bed_temperature': { min: 105, max: 115 },
@@ -73,6 +76,13 @@ export class AppComponent implements OnInit {
       .pipe(filter((f) => f.topicName === this.quixService.forecastTopic));
     this.eventData$ = this.quixService.eventDataReceived$;
 
+    this.forecastReset$ = merge(this.streamsControl.valueChanges, this.forecastData$);
+
+    this.forecastDuration$ = this.forecastData$.pipe(
+      map((m) => (m.timestamps[m.timestamps.length - 1] - m.timestamps[0]) / 1000000),
+      startWith(8 * 60 * 60 * 1000)
+    );
+
     this.quixService.readerConnStatusChanged$.subscribe((status) => {
       if (status !== ConnectionStatus.Connected) return;
       this.quixService.subscribeToActiveStreams(this.quixService.printerDataTopic);
@@ -84,9 +94,8 @@ export class AppComponent implements OnInit {
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
       const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
       this.subscribeToParameter(printerDataTopicId, stream.streamId, this.parameterIds);
-      this.subscribeToParameter(forecastTopicId, stream.streamId + '-down-sampled-forecast', ['forecast_fluctuated_ambient_temperature']);
-      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-down-sampled-forecast-alerts', this.eventsIds);
-      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', this.eventsIds);
+      this.subscribeToParameter(forecastTopicId, stream.streamId + '-down-sampled-forecast', [this.forecastParameterId]);
+      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', this.eventIds);
       this.forecastLimit = { min: 40, max: 60 };
     });
   }
