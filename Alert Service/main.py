@@ -239,7 +239,6 @@ def on_forecast_stream_received_handler(stream_consumer: qx.StreamConsumer):
         if stream_id in alerts_triggered:
             del alerts_triggered[stream_id]
 
-        stream_alerts_producer.close()
         print(f"Closing stream '{closed_stream_consumer.properties.name}'")
 
     stream_consumer.on_stream_closed = on_stream_close
