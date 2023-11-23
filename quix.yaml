@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 522576cf1e379207ea306aa0aa1cfedc9d472f23
+    version: a5cc214d9e76f2285cfb69b5ab1da956b81f659c
     resources:
       cpu: 3000
       memory: 500
@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: ee88ebc4c2fd56fe978002ae01650164ddd86dc0
+    version: df4865cc82360bdf4a6e53aba5849487e2e7d769
     resources:
       cpu: 1000
       memory: 1000
@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 10
+        value: 45
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
