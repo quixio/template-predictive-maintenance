@@ -9,9 +9,9 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 59f253a13606bf4a2e8c903772502b29dfc62d0e
+    version: a5cc214d9e76f2285cfb69b5ab1da956b81f659c
     resources:
-      cpu: 200
+      cpu: 3000
       memory: 500
       replicas: 1
     desiredStatus: Running
@@ -45,18 +45,18 @@ deployments:
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 20
+        value: 90
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
         required: true
-        value: 20
+        value: 200
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: e10fa5186af6782d6265bd1971f5aa745274e1e5
+    version: df4865cc82360bdf4a6e53aba5849487e2e7d769
     resources:
-      cpu: 500
+      cpu: 1000
       memory: 1000
       replicas: 1
     desiredStatus: Running
@@ -71,11 +71,6 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: forecast
-      - name: output_alerts
-        inputType: OutputTopic
-        description: Topic for sending alerts
-        required: true
-        value: forecast-alerts
       - name: parameter_name
         inputType: FreeText
         description: Name of the parameter for forecasting
@@ -90,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 10
+        value: 45
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
@@ -116,14 +111,14 @@ deployments:
       replicas: 1
     publicAccess:
       enabled: true
-      urlPrefix: printerdashboard-6d4fc99
+      urlPrefix: dash
     desiredStatus: Running
     variables:
       - name: bearer_token
         inputType: FreeText
         description: ''
         required: false
-        value: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoiZGVtbyIsImh0dHBzOi8vcXVpeC5haS9yb2xlcyI6IiIsImlzcyI6Imh0dHBzOi8vYXV0aC5xdWl4LmFpLyIsInN1YiI6ImF1dGgwfDczOWMwODljLThjNzgtNDBmZi05OTQwLWFjNDVmZDlkMDUwYiIsImF1ZCI6WyJxdWl4IiwiaHR0cHM6Ly9sb2dpY2FsLXBsYXRmb3JtLmV1LmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3MDA2NDgyODEsImV4cCI6MTcwMzI0MDI4MSwiYXpwIjoiMHptV2ZKZGtpdUdQaUpXeXBTQ0E4ckthVnZmUERLTEkiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwicGVybWlzc2lvbnMiOltdfQ.bVpiAjxeoGzltweGshkDCCfY2odoXP7UC-_C1xtIsxyji0YdsrflLZrZod0K8DxOQci2EIeAy3m_E-m9aThQZ5YzL_bRvQyb8t-r6un4siWi7uuUNYdOGFvJDMBsOzhzpNMUKe7D1zxri22D_aU-8WAZv7IR0AYBqzesZC6NcApXzjGGhfpR4oZvhu9XtcdGQbH5_DzWhbPyQmxDuVjXvxGvra4228DtMCCDlhCpOpMVDkiZDkNbg3blDSKmRZGvItYQhNOG1pp-ZqjNMVaN-_Ki3Kj6NTsgm12VU8P4Uvo4yw32vlAvGSLMRD5-Tv6Iw18_quwDPzDmo8rKQfmF5w
+        value: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoiZGVtbyIsImh0dHBzOi8vcXVpeC5haS9yb2xlcyI6IiIsImlzcyI6Imh0dHBzOi8vYXV0aC5xdWl4LmFpLyIsInN1YiI6ImF1dGgwfDczOWMwODljLThjNzgtNDBmZi05OTQwLWFjNDVmZDlkMDUwYiIsImF1ZCI6WyJxdWl4IiwiaHR0cHM6Ly9sb2dpY2FsLXBsYXRmb3JtLmV1LmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3MDA1NjUyNjIsImV4cCI6MTcwMzE1NzI2MiwiYXpwIjoiMHptV2ZKZGtpdUdQaUpXeXBTQ0E4ckthVnZmUERLTEkiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwicGVybWlzc2lvbnMiOltdfQ.D7orYmlgR79lAlLWpB_WwT46S0Fj5-d6WImjfHayGnT3la39lny6bZe3LK1EBp40v3v_vkzFbZwePDFfVq7lnaHZauqLiTQPmY3clJ9ffY5YflttCj5UtpQJ07ZoZ4P31_8Td1q9-cZHs0fmbNTNyN4fy0-M9IJnUzYWaiLX1odISQpMOkx78UD-F4PCZrcnANBcFkZhaElhUAlCOQEpBruhItdONB3FJQ-KIVJRaYCrI3OixOY8zFqYGhWgA2DhMx0l8YwjEPBbaWf22GV8dyAz-b54vIzrBV8hyR0z4kPMLESbhcGCKFbYfjzCE7bk6lJNSQ_o7PXFiASAOONkJA
       - name: Deployment__Id
         inputType: FreeText
         description: ''
@@ -135,7 +130,7 @@ deployments:
         required: true
         value: 3d-printer-data
       - name: forecast_topic
-        inputType: OutputTopic
+        inputType: InputTopic
         description: ''
         required: true
         value: forecast
@@ -143,7 +138,7 @@ deployments:
         inputType: InputTopic
         description: The topic to receive alerts on
         required: true
-        value: forecast-alerts
+        value: alerts
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
@@ -254,16 +249,34 @@ deployments:
         description: This is the output topic to write data to
         required: true
         value: downsampled-3d-printer-data
+  - name: Alert Service
+    application: Alert Service
+    deploymentType: Service
+    version: cbfdfc015665dd52aa1e759aff34c3861aae17aa
+    resources:
+      cpu: 1000
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: alerts
+        inputType: OutputTopic
+        description: Alerts topic
+        required: true
+        value: alerts
+      - name: printer_data
+        inputType: InputTopic
+        description: 3D printer data
+        required: true
+        value: 3d-printer-data
+      - name: forecast_data
+        inputType: InputTopic
+        description: Forecast Data
+        required: true
+        value: forecast
 
 # This section describes the Topics of the data pipeline
 topics:
-  - name: 3d-printer-data
-    persisted: false
-    configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
   - name: forecast
     persisted: false
     configuration:
@@ -285,10 +298,17 @@ topics:
       replicationFactor: 2
       retentionInMinutes: 1440
       retentionInBytes: 52428800
-  - name: downsampled-forecast
+  - name: alerts
     persisted: false
     configuration:
       partitions: 1
       replicationFactor: 2
       retentionInMinutes: 1440
+      retentionInBytes: 52428800
+  - name: 3d-printer-data
+    persisted: false
+    configuration:
+      partitions: 2
+      replicationFactor: 2
+      retentionInMinutes: 60
       retentionInBytes: 52428800

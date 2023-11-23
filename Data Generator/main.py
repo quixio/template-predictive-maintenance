@@ -14,10 +14,15 @@ import sys
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # Display all columns
-pd.set_option('display.max_columns', 6)
+pd.set_option('display.max_columns', None)
 
 # Replay speed
-replay_speed = 1.0
+replay_speed = 10.0
+anomaly_fluctuation = 20  # was 3
+hot_end_anomaly_min_duration = 30  # 3
+hot_end_anomaly_max_duration = 35  # 5
+bed_anomaly_min_duration = 30  # 9
+bed_anomaly_max_duration = 35  # 12
 
 
 def temp(target, sigma, offset):
@@ -38,8 +43,11 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
     # Generate 20 random anomaly timestamps
     number_of_anomalies = int(os.environ["number_of_anomalies"])
-    anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
-    anomaly_end = -1
+    hotend_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
+    bed_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
+
+    hotend_anomaly_end = -1
+    bed_anomaly_end = -1
 
     fluctuated_ambient_temperatures = []
 
@@ -54,18 +62,28 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         bed_temperature = temp(bed_t, bed_sigma, 0)
 
         # Check if current timestamp is an anomaly timestamp
-        if i in anomaly_timestamps:
+        if i in hotend_anomaly_timestamps:
             # Start a new anomaly
-            hotend_temperature -= 3
-            anomaly_end = i + random.randint(3, 5)
+            hotend_temperature -= anomaly_fluctuation
+            hotend_anomaly_end = i + random.randint(hot_end_anomaly_min_duration, hot_end_anomaly_max_duration)
             # Continue anomaly if within duration
-        elif i <= anomaly_end:
-            hotend_temperature -= 3
+        elif i <= hotend_anomaly_end:
+            hotend_temperature -= anomaly_fluctuation
 
-        # Introduce a curve-like downward trend in the final half of the data range
-        if i > datalength / 2:
+        if i in bed_anomaly_timestamps:
+            # Start a new anomaly
+            bed_temperature -= anomaly_fluctuation / 2
+            bed_anomaly_end = i + random.randint(bed_anomaly_min_duration, bed_anomaly_max_duration)
+            # Continue anomaly if within duration
+        elif i <= bed_anomaly_end:
+            bed_temperature -= anomaly_fluctuation / 2
+
+        # Introduce a curve-like downward trend every 2 hours
+        time_since_2_hours = i % (2 * 3600)
+        two_hours = 2 * 3600
+        if time_since_2_hours > 3600:
             # Calculate the proportion of the way through the second half of the data
-            proportion = 2 * (i - datalength / 2) / datalength
+            proportion = 2 * (time_since_2_hours - two_hours / 2) / two_hours
             # Use a quadratic function to calculate the decrease
             ambient_t = target_ambient_t - (target_ambient_t / 2) * (proportion ** 2)
 
@@ -152,4 +170,3 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
-

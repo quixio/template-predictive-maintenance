@@ -54,7 +54,7 @@ export class QuixService {
   public eventDataReceived$ = new Subject<EventData>();
   public activeStreamsChanged$ = new Subject<ActiveStreamSubscription>();
 
-  private domainRegex = new RegExp("^https:\\/\\/portal-api\\.([a-zA-Z]+)\\.quix\\.ai");
+  private domainRegex = new RegExp("^https:\\/\\/portal-api\\.([a-zA-Z]+)\\.quix\\.io");
 
   constructor(private httpClient: HttpClient) {
 
@@ -84,6 +84,12 @@ export class QuixService {
         this.forecastTopic = forecast.replace('\n', '');
         this.forecastAlertsTopic = forecastAlerts.replace('\n', '');
 
+        console.log(this.token);
+        console.log(this.workspaceId);
+        console.log(this.printerDataTopic);
+        console.log(this.forecastTopic);
+        console.log(this.forecastAlertsTopic);
+
         // work out what domain the portal api is on:
         portalApi = portalApi.replace("\n", "");
         let matches = portalApi.match(this.domainRegex);
@@ -100,10 +106,10 @@ export class QuixService {
       accessTokenFactory: () => this.token,
     };
 
-    this.readerHubConnection = this.createHubConnection(`https://reader-${workspaceId}.${this.subdomain}.quix.ai/hub`, options, true);
+    this.readerHubConnection = this.createHubConnection(`https://reader-${workspaceId}.${this.subdomain}.quix.io/hub`, options, true);
     this.startConnection(true, this.readerReconnectAttempts);
 
-    this.writerHubConnection = this.createHubConnection(`https://writer-${workspaceId}.${this.subdomain}.quix.ai/hub`, options, false);
+    this.writerHubConnection = this.createHubConnection(`https://writer-${workspaceId}.${this.subdomain}.quix.io/hub`, options, false);
     this.startConnection(false, this.writerReconnectAttempts);
   }
 
@@ -309,7 +315,7 @@ export class QuixService {
    */
   public retrievePersistedParameterData(payload: any): Observable<ParameterData> {
     return this.httpClient.post<ParameterData>(
-      `https://telemetry-query-${this.workspaceId}.${this.subdomain}.quix.ai/parameters/data`,
+      `https://telemetry-query-${this.workspaceId}.${this.subdomain}.quix.io/parameters/data`,
       payload,
       {
         headers: { 'Authorization': 'bearer ' + this.token }

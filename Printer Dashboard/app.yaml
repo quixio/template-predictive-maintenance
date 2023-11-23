@@ -17,14 +17,14 @@ variables:
     defaultValue: 3d-printer-data
     required: true
   - name: forecast_topic
-    inputType: OutputTopic
+    inputType: InputTopic
     description: ''
     defaultValue: forecast
     required: true
   - name: alerts_topic
     inputType: InputTopic
     description: The topic to receive alerts on
-    defaultValue: forecast-alerts
+    defaultValue: alerts
     required: true
 dockerfile: src/build/dockerfile
 defaultFile: src/app/services/quix.service.ts
