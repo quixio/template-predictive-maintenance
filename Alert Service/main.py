@@ -151,6 +151,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
     low_threshold = THRESHOLDS[parameter_name][0]
     high_threshold = THRESHOLDS[parameter_name][1]
 
+    print(stream_consumer.stream_id)
     suffix_to_remove = "-down-sampled-forecast"
     if stream_consumer.stream_id.endswith(suffix_to_remove):
         stream_id = stream_consumer.stream_id[:-len(suffix_to_remove)]
