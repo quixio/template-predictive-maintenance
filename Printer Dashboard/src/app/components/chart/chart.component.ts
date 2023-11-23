@@ -1,12 +1,11 @@
 import { Component, ElementRef, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
-import { Chart, PointElement, ChartConfiguration, ChartDataset, ChartOptions, Legend, LineController, LineElement, LinearScale, Tooltip, ScaleChartOptions, ScaleOptionsByType } from 'chart.js';
+import { Chart, PointElement, ChartConfiguration, ChartDataset, ChartOptions, Legend, LineController, LineElement, LinearScale, Tooltip, ScaleChartOptions, ScaleOptionsByType, Point } from 'chart.js';
 import ChartStreaming, { RealTimeScale } from 'chartjs-plugin-streaming';
 import 'chartjs-adapter-luxon';
+import { DateTime } from 'luxon';
 import { Observable } from 'rxjs';
 import annotationPlugin from 'chartjs-plugin-annotation';
-import { ParameterData } from 'src/app/models/parameterData';
-import { EventData } from 'src/app/models/eventData';
-import { Alert } from 'src/app/models/alert';
+import { Alert, EventData, ParameterData } from 'src/app/models';
 
 @Component({
   selector: 'app-chart',
@@ -15,6 +14,7 @@ import { Alert } from 'src/app/models/alert';
 })
 export class ChartComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
+  alertImage = new Image(16, 16);
   chart: Chart;
   options: ChartOptions = {
     interaction: {
@@ -29,6 +29,11 @@ export class ChartComponent implements OnInit {
         type: 'realtime',
         realtime: {
           refresh: 500
+        },
+        time: {
+          displayFormats: {
+            hour: 'H:mm',
+          }
         }
       },
       y: {
@@ -54,6 +59,25 @@ export class ChartComponent implements OnInit {
           }
         }
       },
+      tooltip: {
+        usePointStyle: true,
+        callbacks: {
+          title: (context) => {
+            const d = new Date((context[0].raw as Point).x);
+            const luxonDate = DateTime.fromJSDate(d);
+            return luxonDate.toFormat('H:mm:ss');
+          },
+          label: (context) => context.formattedValue + ' ºC',
+          labelPointStyle: (context) => {
+            console.log(context)
+            let pointStyle: HTMLImageElement | 'circle' = 'circle';
+            if (context.dataset.label === 'Alert') {
+              pointStyle = this.alertImage;
+            };
+            return { pointStyle, rotation: 0 }
+          }
+        }
+      },
       annotation: {
         annotations: {}
       }
@@ -70,11 +94,12 @@ export class ChartComponent implements OnInit {
   eventDataset: ChartDataset<'line'> = {
     data: [],
     label: 'Alert',
-    order: 1,
+    order: -1,
     showLine: false,
     pointHoverBorderWidth: 0,
     pointRadius: 5,
     pointBackgroundColor: '#0088ff',
+    pointStyle: this.alertImage
   }
   configuration: ChartConfiguration = {
     type: 'line',
@@ -83,20 +108,14 @@ export class ChartComponent implements OnInit {
   }
   private _currentDelay: number;
   private _parameterId: string;
-  private _eventId: string;
   private _offset: number = 5;
   private _min: number = Infinity;
   private _max: number = -Infinity;
   private _limit: { min: number, max: number }
   @Input() reset$: Observable<any>;
-  @Input() resetParameter$: Observable<any>;
-  @Input() resetEvent$: Observable<any>;
   @Input() set parameterId(parameterId: string) {
-    this.parameterDataset.label = parameterId;
     this._parameterId = parameterId;
-  }
-  @Input() set eventId(eventId: string) {
-    this._eventId = eventId;
+    if (!this.parameterDataset.label) this.parameterDataset.label = parameterId;
   }
   @Input() set color(color: string) {
     this.parameterDataset.borderColor = color;
@@ -162,11 +181,10 @@ export class ChartComponent implements OnInit {
 
     // Add points to the chart
     const value: Alert = JSON.parse(data.value);
-    if (value.status === this._eventId) {
+    if (value.parameter_name === this._parameterId) {
       this.eventDataset.data.push({ x: value.alert_timestamp! / 1000000, y: value.alert_temperature! });
       this.chart?.update();
     }
-    if (value.status === "no-alert") this.eventDataset.data = [];
   }
   @Output() limitChange = new EventEmitter<{ min: number, max: number }>();
 
@@ -187,16 +205,11 @@ export class ChartComponent implements OnInit {
   ngOnInit(): void {
     const ctx = this.canvas.nativeElement.getContext('2d');
     this.chart = new Chart(ctx!, this.configuration);
-    this.reset$.subscribe(() => {
+    this.reset$?.subscribe(() => {
       this.parameterDataset.data = [];
       this.eventDataset.data = [];
     });
-    this.resetParameter$.subscribe(() => {
-      this.parameterDataset.data = [];
-    });
-    this.resetEvent$.subscribe(() => {
-      this.eventDataset.data = [];
-    });
+    this.alertImage.src = "assets/alert.png";
   }
 
   updateDelay(timestamp: number): void {

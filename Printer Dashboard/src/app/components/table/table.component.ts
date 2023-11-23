@@ -1,8 +1,6 @@
-import { Component, ElementRef, Input, OnInit, ViewChild } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { Observable } from 'rxjs';
-import { Alert } from 'src/app/models/alert';
-import { Data } from 'src/app/models/data';
-import { EventData } from 'src/app/models/eventData';
+import { Alert, EventData } from 'src/app/models';
 
 @Component({
   selector: 'app-table',
@@ -13,12 +11,18 @@ export class TableComponent implements OnInit {
   dataSource: Alert[] = [];
   @Input() reset$: Observable<any>;
   @Input() eventIds: string[];
-  @Input() set data(data: EventData){
+  @Input() disableEventId: string;
+  @Input() disableParameterId: string;
+  @Input() set data(data: EventData) {
     if (!data) return;
     const value: Alert = JSON.parse(data.value);
-    console.log(value)
-    if (this.eventIds.includes(value.status!)) this.dataSource = [value, ...this.dataSource].slice(0, 9);
-    if (value.status === "no-alert") this.dataSource.forEach((alert) => alert.disabled = true);
+    if (!this.eventIds.includes(value.status!)) return;
+    if (value.status === this.disableEventId || value.parameter_name === this.disableParameterId) {
+      this.dataSource.forEach((alert) => {
+        if (value.parameter_name === alert.parameter_name) alert.disabled = true
+      });
+    }
+    this.dataSource = [value, ...this.dataSource].slice(0, 19);
   }
 
   ngOnInit(): void {

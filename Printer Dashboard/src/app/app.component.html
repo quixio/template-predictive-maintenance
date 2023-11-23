@@ -125,54 +125,59 @@
     </div>
   </mat-drawer>
   <mat-drawer-content class="w-100">
-    <div fxFill fxLayout="row" class="w-100">
-      <div fxFlex="66.66" fxLayout="column" class="h-100 p-y ps-3 overflow-auto">
-        <div fxLayout="column" fxFlex="33.33" class="chart-section">
-          <div fxLayout="column" fxFlex class="overflow-hidden">
-            <h2 class="mb-1">Ambient temperature</h2>
-            <div fxFlex fxLayout="row">
-              <app-chart fxFlex="50" parameterId="ambient_temperature" eventId="under-now" label="Progress"
-                [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!" [duration]="1 * 60 * 1000"
-                [reset$]="streamsControl.valueChanges" [range]="ranges['ambient_temperature']"
-                (limitChange)="forecastLimit = $event">
-              </app-chart>
-              <app-chart fxFlex="50" parameterId="forecast_fluctuated_ambient_temperature" eventId="under-forecast"
-                label="Forecast" hiddenAxe="y" color="#ff0000" [parameterData]="(forecastData$ | async)!"
-                [eventData]="(eventData$ | async)!" [duration]="4 * 60 * 60 * 1000" [resetParameter$]="forecastData$"
-                [reset$]="streamsControl.valueChanges" [range]="ranges['ambient_temperature']" [limit]="forecastLimit">
-              </app-chart>
-            </div>
-          </div>
-        </div>
-        <div fxLayout="column" fxFlex="33.33" class="chart-section">
-          <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
-            <div fxLayout="column" fxFlex class="overflow-hidden">
-              <h2 class="mb-1">Bed temperature</h2>
-              <app-chart fxFlex parameterId="bed_temperature" label="Progress" [parameterData]="(printerData$ | async)!"
-                [duration]="2 * 60 * 1000" [reset$]="streamsControl.valueChanges" [range]="ranges['bed_temperature']">
-              </app-chart>
-            </div>
-          </div>
-        </div>
-        <div fxLayout="column" fxFlex="33.33" class="chart-section">
-          <div fxFlex fxLayout="row" class="overflow-hidden mb-3">
-            <div fxLayout="column" fxFlex class="overflow-hidden">
-              <h2 class="mb-1">Hotend temperature</h2>
-              <app-chart fxFlex parameterId="hotend_temperature" label="Progress"
-                [parameterData]="(printerData$ | async)!" [duration]="2 * 60 * 1000"
-                [reset$]="streamsControl.valueChanges" [range]="ranges['hotend_temperature']">
-              </app-chart>
-            </div>
+    <div fxFill fxLayout="column" class="ps-3 pt-3">
+      <div fxLayout="column" fxFlex="33.33" class="chart-section">
+        <div fxLayout="column" fxFlex class="overflow-hidden mb-3">
+          <h2 class="mb-1">Ambient temperature</h2>
+          <div fxFlex fxLayout="row">
+            <app-chart fxFlex="50" [parameterId]="parameterIds[0]" label="Progress"
+              [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
+              [reset$]="streamsControl.valueChanges"
+              [range]="ranges['ambient_temperature']" [duration]="15 * 60 * 1000"
+              (limitChange)="forecastLimit = $event">
+            </app-chart>
+            <app-chart fxFlex="50" [parameterId]="forecastParameterId" label="Forecast"
+              hiddenAxe="y" color="#ff0000"
+              [parameterData]="(forecastData$ | async)!" [eventData]="(eventData$ | async)!"
+              [reset$]="forecastReset$"
+              [duration]="(forecastDuration$ | async)!" [range]="ranges['ambient_temperature']" [limit]="forecastLimit">
+            </app-chart>
           </div>
         </div>
       </div>
-      <mat-divider vertical></mat-divider>
-      <div fxFlex="33.33">
-        <app-table
-          [data]="(eventData$ | async)!"
-          [eventIds]="['under-forecast', 'under-now']"
-          [reset$]="streamsControl.valueChanges">
-        </app-table>
+      <div fxFlex="66.66" fxLayout="row" class="w-100">
+        <div fxFlex="66.66" fxLayout="column" class="h-100 overflow-auto">
+          <div fxLayout="column" fxFlex="50" class="chart-section">
+            <div fxLayout="column" fxFlex class="overflow-hidden mb-3">
+              <h2 class="mb-1">Bed temperature</h2>
+              <app-chart fxFlex [parameterId]="parameterIds[1]" label="Progress"
+                [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
+                [reset$]="streamsControl.valueChanges"
+                [duration]="15 * 60 * 1000" [range]="ranges['bed_temperature']">
+              </app-chart>
+            </div>
+          </div>
+          <div fxLayout="column" fxFlex="50" class="chart-section">
+            <div fxLayout="column" fxFlex class="overflow-hidden mb-3">
+              <h2 class="mb-1">Hotend temperature</h2>
+              <app-chart fxFlex [parameterId]="parameterIds[2]" label="Progress"
+                [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
+                [reset$]="streamsControl.valueChanges"
+                [duration]="15 * 60 * 1000" [range]="ranges['hotend_temperature']">
+              </app-chart>
+            </div>
+          </div>
+        </div>
+        <mat-divider vertical></mat-divider>
+        <div fxFlex="33.33">
+          <app-table
+            [data]="(eventData$ | async)!"
+            [eventIds]="eventIds"
+            [reset$]="streamsControl.valueChanges"
+            disableEventId="no-alert"
+            [disableParameterId]="forecastParameterId">
+          </app-table>
+        </div>
       </div>
     </div>
   </mat-drawer-content>
