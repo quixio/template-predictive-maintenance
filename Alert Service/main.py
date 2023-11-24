@@ -1,6 +1,6 @@
 import json
 from collections import defaultdict
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import quixstreams as qx
 import os
@@ -41,6 +41,11 @@ THRESHOLDS = {'ambient_temperature': (45, 55),
               'bed_temperature': (105, 115),
               'hotend_temperature': (245, 255)}
 
+FRIENDLY_NAMES = {'ambient_temperature': "Ambient temperature",
+                  'fluctuated_ambient_temperature': "Ambient temperature",
+                  'bed_temperature': "Bed temperature",
+                  'hotend_temperature': "Hotend temperature"}
+
 alerts_triggered = defaultdict(dict)
 
 
@@ -69,6 +74,8 @@ def set_alerts_triggered(stream_id, parameter, triggered):
 
 def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
     for parameter in ['bed_temperature', 'hotend_temperature', 'fluctuated_ambient_temperature']:
+        friendly_name = FRIENDLY_NAMES[parameter]
+
         # Check last value of df
         alert = None
         if df[parameter].iloc[-1] <= THRESHOLDS[parameter][0]:
@@ -77,7 +84,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
-                "message": f"'{parameter}' is under the threshold {THRESHOLDS[parameter][0]}"
+                "message": f"'{friendly_name}' is under the threshold ({THRESHOLDS[parameter][0]}C)"
             }
         elif df[parameter].iloc[-1] >= THRESHOLDS[parameter][1]:
             alert = {
@@ -85,7 +92,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "parameter_name": parameter,
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
-                "message": f"'{parameter}' is over the threshold {THRESHOLDS[parameter][1]}"
+                "message": f"'{friendly_name}' is over the threshold ({THRESHOLDS[parameter][1]}C)"
             }
 
         if alert is not None and not is_alert_triggered(stream_consumer.stream_id, parameter):
@@ -101,7 +108,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
             alert = {
                 "status": NO_ALERT,
                 "parameter_name": parameter,
-                "message": f"'{parameter}' is not over/under the threshold.",
+                "message": f"'{friendly_name}' is within normal parameters",
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(df['timestamp'].iloc[-1])) * 1e9,
                 "alert_temperature": df[parameter].iloc[-1],
             }
@@ -145,11 +152,14 @@ def on_printer_stream_received_handler(stream_consumer: qx.StreamConsumer):
 
 
 def get_time_left(timestamp: float):
-    return datetime.timestamp(pd.to_datetime(timestamp)) - datetime.timestamp(pd.Timestamp.utcnow())
+    seconds = datetime.timestamp(pd.to_datetime(timestamp)) - datetime.timestamp(pd.Timestamp.utcnow())
+    return str(timedelta(seconds=seconds))
+
 
 
 def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd.DataFrame):
     parameter_name = "fluctuated_ambient_temperature"
+    parameter_friendly_name = FRIENDLY_NAMES[parameter_name]
     forecast_label = parameter_name
 
     low_threshold = THRESHOLDS[parameter_name][0]
@@ -160,7 +170,6 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         stream_id = stream_consumer.stream_id[:-len(suffix_to_remove)]
     else:
         stream_id = stream_consumer.stream_id
-    
 
     # Check if the value is already under the lower threshold or over the upper threshold
     # If so, the alert will be triggered by the printer data stream
@@ -176,8 +185,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
-                    "message": f"'{parameter_name}' is expected to hit the lower threshold of "
-                               f"{low_threshold} degrees in {get_time_left(fcast['timestamp'].iloc[i])}."
+                    "message": f"'{parameter_friendly_name}' is forecasted to fall below {low_threshold}C in {get_time_left(fcast['timestamp'].iloc[i])}."
                 }
                 break
             elif all_are_higher(list(fcast[forecast_label].iloc[i: i + 3]),
@@ -189,8 +197,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                     "parameter_name": parameter_name,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
-                    "message": f"'{parameter_name}' is expected to hit the higher threshold of "
-                               f"{high_threshold} degrees in {get_time_left(fcast['timestamp'].iloc[i])}."
+                    "message": f"'{parameter_friendly_name}' is forecasted to go over {high_threshold}C in {get_time_left(fcast['timestamp'].iloc[i])}."
                 }
                 break
         else:
@@ -233,10 +240,8 @@ def on_forecast_stream_received_handler(stream_consumer: qx.StreamConsumer):
         stream_id = stream_consumer.stream_id[:-len(suffix_to_remove)]
     else:
         stream_id = stream_consumer.stream_id
-    
 
     stream_consumer.timeseries.on_dataframe_received = on_forecast_dataframe_received
-    stream_alerts_producer = get_or_create_alerts_stream(stream_id, stream_consumer.properties.name)
 
     def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
         global alerts_triggered
