@@ -133,7 +133,7 @@
             <app-chart fxFlex="50" [parameterId]="parameterIds[0]" label="Progress"
               [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
               [reset$]="streamsControl.valueChanges"
-              [range]="ranges['ambient_temperature']" [duration]="15 * 60 * 1000"
+              [range]="ranges['ambient_temperature']" [duration]="duration"
               (limitChange)="forecastLimit = $event">
             </app-chart>
             <app-chart fxFlex="50" [parameterId]="forecastParameterId" label="Forecast"
@@ -153,7 +153,7 @@
               <app-chart fxFlex [parameterId]="parameterIds[1]" label="Progress"
                 [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
-                [duration]="15 * 60 * 1000" [range]="ranges['bed_temperature']">
+                [duration]="duration" [range]="ranges['bed_temperature']">
               </app-chart>
             </div>
           </div>
@@ -163,7 +163,7 @@
               <app-chart fxFlex [parameterId]="parameterIds[2]" label="Progress"
                 [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
-                [duration]="15 * 60 * 1000" [range]="ranges['hotend_temperature']">
+                [duration]="duration" [range]="ranges['hotend_temperature']">
               </app-chart>
             </div>
           </div>

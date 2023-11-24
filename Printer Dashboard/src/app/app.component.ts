@@ -7,7 +7,7 @@ import { ActiveStream } from './models/activeStream';
 import { ActiveStreamAction } from './models/activeStreamAction';
 import { ActiveStreamSubscription } from './models/activeStreamSubscription';
 import { ParameterData } from './models/parameterData';
-import { Observable, filter, interval, map, merge, startWith, tap, timer, withLatestFrom } from 'rxjs';
+import { Observable, delay, filter, interval, map, merge, startWith, tap, timer, withLatestFrom } from 'rxjs';
 import { ChartComponent } from './components/chart/chart.component';
 
 @Component({
@@ -31,6 +31,7 @@ export class AppComponent implements OnInit {
   forecastDuration$: Observable<number>;
   eventData$: Observable<EventData>;
   streamsMap = new Map<string, string>();
+  duration: number = 10 * 60 * 1000;
   forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert'];
@@ -58,7 +59,7 @@ export class AppComponent implements OnInit {
       })
     );
 
-    this.activeStreams$.subscribe((activeStreams) => {
+    this.activeStreams$.pipe(delay(0)).subscribe((activeStreams) => {
       if (!this.streamsControl.value) this.streamsControl.setValue(activeStreams.at(0))
       this.activeStreams = activeStreams;
     });

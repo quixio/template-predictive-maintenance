@@ -6,6 +6,7 @@ import { DateTime } from 'luxon';
 import { Observable } from 'rxjs';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import { Alert, EventData, ParameterData } from 'src/app/models';
+import { TooltipItem } from 'chart.js';
 
 @Component({
   selector: 'app-chart',
@@ -67,9 +68,12 @@ export class ChartComponent implements OnInit {
             const luxonDate = DateTime.fromJSDate(d);
             return luxonDate.toFormat('H:mm:ss');
           },
-          label: (context) => context.formattedValue + ' ºC',
+          label: (context) => {
+            const tooltipItems: TooltipItem<any>[] = context.chart.tooltip?.dataPoints || [];
+            if (tooltipItems.length > 1 && context.dataset.label !== 'Alert')  return '';
+            return `${context.formattedValue} ºC`
+          },
           labelPointStyle: (context) => {
-            console.log(context)
             let pointStyle: HTMLImageElement | 'circle' = 'circle';
             if (context.dataset.label === 'Alert') {
               pointStyle = this.alertImage;
