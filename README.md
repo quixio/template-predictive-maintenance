@@ -14,6 +14,7 @@ Some of the technologies used by this template project are listed here.
 * [Quix](https://quix.io/)
 * [Docker](https://www.docker.com/)
 * [Kubernetes](https://kubernetes.io/)
+* [InfluxDB](https://www.influxdata.com/products/influxdb/)
 
 **Backend:** 
 
