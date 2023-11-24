@@ -31,7 +31,7 @@ export class AppComponent implements OnInit {
   forecastDuration$: Observable<number>;
   eventData$: Observable<EventData>;
   streamsMap = new Map<string, string>();
-  duration: number = 10 * 60 * 1000;
+  duration: number = 5 * 60 * 1000;
   forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert'];

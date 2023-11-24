@@ -16,6 +16,7 @@ import { TooltipItem } from 'chart.js';
 export class ChartComponent implements OnInit {
   @ViewChild('canvas', { static: true }) canvas: ElementRef<HTMLCanvasElement>;
   alertImage = new Image(16, 16);
+  noAlertImage = new Image(18, 18);
   chart: Chart;
   options: ChartOptions = {
     interaction: {
@@ -49,7 +50,7 @@ export class ChartComponent implements OnInit {
         position: 'top',
         align: 'start',
         labels: {
-          filter: (item) => item.text !== 'Alert',
+          filter: (item) => item.text !== 'Event',
           usePointStyle: true,
           boxHeight: 7,
           padding: 15,
@@ -70,15 +71,9 @@ export class ChartComponent implements OnInit {
           },
           label: (context) => {
             const tooltipItems: TooltipItem<any>[] = context.chart.tooltip?.dataPoints || [];
-            if (tooltipItems.length > 1 && context.dataset.label !== 'Alert')  return '';
+            if (tooltipItems.length > 1 && context.dataset.label !== 'Event')  return '';
+            if (tooltipItems.length > 1 && context.dataIndex % 2 === 0) return '';
             return `${context.formattedValue} ºC`
-          },
-          labelPointStyle: (context) => {
-            let pointStyle: HTMLImageElement | 'circle' = 'circle';
-            if (context.dataset.label === 'Alert') {
-              pointStyle = this.alertImage;
-            };
-            return { pointStyle, rotation: 0 }
           }
         }
       },
@@ -97,17 +92,35 @@ export class ChartComponent implements OnInit {
   }
   eventDataset: ChartDataset<'line'> = {
     data: [],
-    label: 'Alert',
     order: -1,
     showLine: false,
     pointHoverBorderWidth: 0,
     pointRadius: 5,
     pointBackgroundColor: '#0088ff',
-    pointStyle: this.alertImage
+  }
+  alertEventDataset: ChartDataset<'line'> = {
+    data: [],
+    label: 'Event',
+    order: -1,
+    showLine: false,
+    pointRadius: 10,
+    pointHoverRadius: 10,
+    pointBackgroundColor: 'black',
+    pointStyle: ['circle', this.alertImage]
+  }
+  noAlertEventDataset: ChartDataset<'line'> = {
+    data: [],
+    label: 'Event',
+    order: -1,
+    showLine: false,
+    pointRadius: 10,
+    pointHoverRadius: 10,
+    pointBackgroundColor: 'white',
+    pointStyle: ['circle', this.noAlertImage]
   }
   configuration: ChartConfiguration = {
     type: 'line',
-    data: { datasets: [this.parameterDataset, this.eventDataset] },
+    data: { datasets: [this.parameterDataset, this.noAlertEventDataset, this.alertEventDataset] },
     options: this.options
   }
   private _currentDelay: number;
@@ -158,6 +171,10 @@ export class ChartComponent implements OnInit {
   @Input() set parameterData(data: ParameterData) {
     if (!data) return;
 
+     // Update delay
+    const lastTimestamp: number = data.timestamps[data.timestamps.length - 1];
+    this.updateDelay(lastTimestamp);
+
     // Add points to the chart
     const values = data.numericValues![this._parameterId];
     data.timestamps?.forEach((timestamp, i) => {
@@ -174,10 +191,6 @@ export class ChartComponent implements OnInit {
       this.limitChange.emit({ min: scale.min, max: scale.max });
     }
 
-    // Update delay
-    const lastTimestamp: number = data.timestamps[data.timestamps.length - 1];
-    this.updateDelay(lastTimestamp);
-
     this.chart?.update();
   }
   @Input() set eventData(data: EventData) {
@@ -186,7 +199,9 @@ export class ChartComponent implements OnInit {
     // Add points to the chart
     const value: Alert = JSON.parse(data.value);
     if (value.parameter_name === this._parameterId) {
-      this.eventDataset.data.push({ x: value.alert_timestamp! / 1000000, y: value.alert_temperature! });
+      const point: Point = { x: value.alert_timestamp! / 1000000, y: value.alert_temperature! };
+      if (value.status === 'no-alert') this.noAlertEventDataset.data.push(point, point);
+      else this.alertEventDataset.data.push(point, point);
       this.chart?.update();
     }
   }
@@ -211,9 +226,11 @@ export class ChartComponent implements OnInit {
     this.chart = new Chart(ctx!, this.configuration);
     this.reset$?.subscribe(() => {
       this.parameterDataset.data = [];
-      this.eventDataset.data = [];
+      this.noAlertEventDataset.data = [];
+      this.alertEventDataset.data = [];
     });
-    this.alertImage.src = "assets/alert.png";
+    this.alertImage.src = 'assets/alert.svg';
+    this.noAlertImage.src = 'assets/no-alert.svg'
   }
 
   updateDelay(timestamp: number): void {
