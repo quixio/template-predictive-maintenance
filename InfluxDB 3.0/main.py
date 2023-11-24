@@ -44,8 +44,7 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # Buffer to batch rows every 250ms to reduce CPU overhead.
     buffer = stream_consumer.timeseries.create_buffer()
     buffer.time_span_in_milliseconds = 250
-    buffer.buffer_timeout = 250
-
+    
     buffer.on_dataframe_released = on_dataframe_received_handler
 
 
