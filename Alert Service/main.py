@@ -225,8 +225,8 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         stream_alerts_producer.events.publish(event)
         set_alerts_triggered(stream_consumer.stream_id, parameter_name, True)
 
-    elif alert_status["status"] == "noalert" and is_alert_triggered(stream_id, parameter_name):
-        # If it was triggered, and now it's not, send a "noalert" event
+    elif alert_status["status"] == NO_ALERT and is_alert_triggered(stream_id, parameter_name):
+        # If it was triggered, and now it's not, send a "no-alert" event
         print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
         stream_alerts_producer = get_or_create_alerts_stream(stream_id,
                                                              stream_consumer.properties.name)
