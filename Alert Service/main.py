@@ -225,17 +225,21 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         # Tag the data with the printer name for joining operations later
         event.add_tag("TAG__printer", stream_consumer.properties.name)
         stream_alerts_producer.events.publish(event)
-        set_alerts_triggered(stream_consumer.stream_id, "forecast_" + parameter_name, True)
+        alerts_triggered[stream_consumer.stream_id]["forecast_" + parameter_name] = True
 
-    elif alert_status["status"] == NO_ALERT and is_alert_triggered(stream_id, "forecast_" + parameter_name, ignore_time=True):
-        # If it was triggered, and now it's not, send a "no-alert" event
-        print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
-        stream_alerts_producer = get_or_create_alerts_stream(stream_id,
-                                                             stream_consumer.properties.name)
-        event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
-        stream_alerts_producer.events.publish(event)
-        set_alerts_triggered(stream_consumer.stream_id, "forecast_" + parameter_name, False)
+    elif alert_status["status"] == NO_ALERT:
+        alert_already_triggered = alerts_triggered[stream_consumer.stream_id].get("forecast_" + parameter_name, False)
 
+        if not alert_already_triggered:
+            print(f"{stream_consumer.properties.name}: Not setting to no alert because alert was not triggered: {alert_status['message']}")
+        else:
+            # If it was triggered, and now it's not, send a "no-alert" event
+            print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
+            stream_alerts_producer = get_or_create_alerts_stream(stream_id,
+                                                                 stream_consumer.properties.name)
+            event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
+            stream_alerts_producer.events.publish(event)
+            alerts_triggered[stream_consumer.stream_id]["forecast_" + parameter_name] = False
 
 def on_forecast_stream_received_handler(stream_consumer: qx.StreamConsumer):
     suffix_to_remove = "-down-sampled-forecast"
