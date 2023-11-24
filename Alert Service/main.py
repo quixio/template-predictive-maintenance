@@ -101,6 +101,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
             event = qx.EventData(alert["status"], pd.Timestamp.utcnow(), json.dumps(alert))
             stream_alerts_producer.events.publish(event)
             set_alerts_triggered(stream_consumer.stream_id, parameter, True)
+            print(f"{stream_consumer.properties.name}: Triggering alert: {alert['message']}")
 
         if alert is None and is_alert_triggered(stream_consumer.stream_id, parameter):
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
@@ -115,6 +116,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
             event = qx.EventData(NO_ALERT, pd.Timestamp.utcnow(), json.dumps(alert))
             stream_alerts_producer.events.publish(event)
             set_alerts_triggered(stream_consumer.stream_id, parameter, False)
+            print(f"{stream_consumer.properties.name}: Setting to no alert: {alert['message']}")
 
 
 def get_or_create_alerts_stream(stream_id: str, stream_name: str):
@@ -154,7 +156,6 @@ def on_printer_stream_received_handler(stream_consumer: qx.StreamConsumer):
 def get_time_left(timestamp: float):
     seconds = datetime.timestamp(pd.to_datetime(timestamp)) - datetime.timestamp(pd.Timestamp.utcnow())
     return str(timedelta(seconds=seconds))
-
 
 
 def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd.DataFrame):
@@ -214,7 +215,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         return
 
     if alert_status["status"] in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST]:
-        print(f"{stream_consumer.properties.name}: Triggering alert...")
+        print(f"{stream_consumer.properties.name}: Triggering alert: {alert_status['message']}")
         stream_alerts_producer = get_or_create_alerts_stream(stream_id,
                                                              stream_consumer.properties.name)
 
@@ -226,7 +227,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
 
     elif alert_status["status"] == "noalert" and is_alert_triggered(stream_id, parameter_name):
         # If it was triggered, and now it's not, send a "noalert" event
-        print(f"{stream_consumer.properties.name}: Setting to no alert...")
+        print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
         stream_alerts_producer = get_or_create_alerts_stream(stream_id,
                                                              stream_consumer.properties.name)
         event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
