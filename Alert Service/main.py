@@ -49,14 +49,16 @@ FRIENDLY_NAMES = {'ambient_temperature': "Ambient temperature",
 alerts_triggered = defaultdict(dict)
 
 
-def is_alert_triggered(stream_id, parameter):
+def is_alert_triggered(stream_id, parameter, ignore_time=False):
     global alerts_triggered
 
     if stream_id in alerts_triggered:
         triggered = alerts_triggered[stream_id].get(parameter, False)
 
         # If it was triggered more than a minute ago, reset it
-        if triggered and triggered < datetime.now() - pd.Timedelta(minutes=1):
+        if triggered and ignore_time:
+            return True
+        elif triggered and triggered < datetime.now() - pd.Timedelta(minutes=1):
             alerts_triggered[stream_id][parameter] = datetime.now()
             return False
         elif triggered:
@@ -225,7 +227,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         stream_alerts_producer.events.publish(event)
         set_alerts_triggered(stream_consumer.stream_id, parameter_name, True)
 
-    elif alert_status["status"] == NO_ALERT and is_alert_triggered(stream_id, parameter_name):
+    elif alert_status["status"] == NO_ALERT and is_alert_triggered(stream_id, parameter_name, ignore_time=True):
         # If it was triggered, and now it's not, send a "no-alert" event
         print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
         stream_alerts_producer = get_or_create_alerts_stream(stream_id,
