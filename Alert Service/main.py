@@ -207,8 +207,8 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
             alert_status = {
                 "status": NO_ALERT,
                 "parameter_name": parameter_name,
-                "message": f"The value of '{parameter_name}' is not expected to hit the lower threshold of "
-                           f"{low_threshold} degrees within the forecast range.",
+                "message": f"The value of '{parameter_friendly_name}' is not expected to hit the threshold of "
+                           f"{low_threshold}C within the forecast range.",
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[0])) * 1e9,
                 "alert_temperature": fcast[forecast_label].iloc[0],
             }
@@ -227,7 +227,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         stream_alerts_producer.events.publish(event)
         set_alerts_triggered(stream_consumer.stream_id, parameter_name, True)
 
-    elif alert_status["status"] == NO_ALERT and is_alert_triggered(stream_id, parameter_name, ignore_time=True):
+    elif alert_status["status"] == NO_ALERT:
         # If it was triggered, and now it's not, send a "no-alert" event
         print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
         stream_alerts_producer = get_or_create_alerts_stream(stream_id,
