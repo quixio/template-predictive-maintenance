@@ -104,7 +104,7 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 7376e57fd6538a9d90c494bb0d20a1df9758654a
+    version: 1a2944a618a6973770296450d374f211206ea269
     resources:
       cpu: 200
       memory: 500
