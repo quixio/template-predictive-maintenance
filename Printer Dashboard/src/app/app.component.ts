@@ -54,7 +54,7 @@ export class AppComponent implements OnInit {
         const { streams } = streamSubscription;
         if (!streams?.length) return [];
         return this.updateActiveSteams(streamSubscription).sort((a, b) => {
-          return +a.metadata['start_time'] > +b.metadata['start_time'] ? -1 : 1
+          return +a.metadata['start_time'] < +b.metadata['start_time'] ? -1 : 1
         })
       })
     );
@@ -66,8 +66,9 @@ export class AppComponent implements OnInit {
 
     interval(1000).pipe(withLatestFrom(this.activeStreams$)).subscribe(([_, activeStreams]) => {
       this.activeStreamsStartTime = activeStreams.map((m) => {
-        const timeToFailure: number = (4 * 60 + 35) * 60 * 1000;
-        return (timeToFailure + +m.metadata['start_time'] / 1000000) - new Date().getTime()
+        const failures: number[] = JSON.parse(m.metadata['failures']);
+        const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime())!
+        return failure / 1000000 - new Date().getTime()
       });
     });
 
