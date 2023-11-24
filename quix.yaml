@@ -252,10 +252,10 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 66742d2a50386657ab9cdb6ce83f825c590ea3ad
+    version: 50c11dd865e1f5da95fdc95d1671d9365f3c9d08
     resources:
       cpu: 1000
-      memory: 500
+      memory: 1000
       replicas: 1
     desiredStatus: Running
     variables:
