@@ -130,10 +130,10 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.timeseries.add_definition("bed_temperature", "Bed temperature")
         stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
         stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
-        stream.properties.metadata["start_time"] = int(datetime.now().timestamp()) * 1000000000
+        stream.properties.metadata["start_time"] = str(int(datetime.now().timestamp()) * 1000000000)
 
         # Temperature will drop below threshold in second 5200 after 0, 2, 4 and 6 hours
-        stream.properties.metadata["failures"] = [int(datetime.now().timestamp() + 5200 + x * 7200) * 1000000000 for x in range(4)]
+        stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + 5200 + x * 7200) * 1000000000 for x in range(4)])
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
