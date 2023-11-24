@@ -154,7 +154,7 @@ def on_printer_stream_received_handler(stream_consumer: qx.StreamConsumer):
 
 
 def get_time_left(timestamp: float):
-    seconds = datetime.timestamp(pd.to_datetime(timestamp)) - datetime.timestamp(pd.Timestamp.utcnow())
+    seconds = int(datetime.timestamp(pd.to_datetime(timestamp)) - datetime.timestamp(pd.Timestamp.utcnow()))
     return str(timedelta(seconds=seconds))
 
 
