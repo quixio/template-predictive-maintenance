@@ -7,7 +7,7 @@ import { ActiveStream } from './models/activeStream';
 import { ActiveStreamAction } from './models/activeStreamAction';
 import { ActiveStreamSubscription } from './models/activeStreamSubscription';
 import { ParameterData } from './models/parameterData';
-import { Observable, delay, filter, interval, map, merge, startWith, tap, timer, withLatestFrom } from 'rxjs';
+import { Observable, delay, filter, interval, map, merge, pairwise, startWith, tap, timer, withLatestFrom } from 'rxjs';
 import { ChartComponent } from './components/chart/chart.component';
 
 @Component({
@@ -17,7 +17,7 @@ import { ChartComponent } from './components/chart/chart.component';
 })
 export class AppComponent implements OnInit {
   @ViewChild(ChartComponent) chart: ChartComponent;
-  streamsControl = new FormControl();
+  streamsControl = new FormControl<string>('');
   printers: any[] = [];
   workspaceId: string;
   deploymentId: string;
@@ -59,8 +59,8 @@ export class AppComponent implements OnInit {
       })
     );
 
-    this.activeStreams$.pipe(delay(0)).subscribe((activeStreams) => {
-      if (!this.streamsControl.value) this.streamsControl.setValue(activeStreams.at(0))
+    this.activeStreams$.subscribe((activeStreams) => {
+      if (!this.streamsControl.value) this.streamsControl.setValue(activeStreams.at(0)?.streamId || null)
       this.activeStreams = activeStreams;
     });
 
@@ -74,8 +74,12 @@ export class AppComponent implements OnInit {
 
     this.printerData$ = this.quixService.paramDataReceived$
       .pipe(filter((f) => f.topicName === this.quixService.printerDataTopic))
-    this.forecastData$ = this.quixService.paramDataReceived$
-      .pipe(filter((f) => f.topicName === this.quixService.forecastTopic));
+    this.forecastData$ = this.quixService.paramDataReceived$.pipe(
+      filter((f) => f.topicName === this.quixService.forecastTopic),
+      // pairwise(),
+      // tap(([prev, curr]) => curr.numericValues[`${this.forecastParameterId}_prev`] = prev.numericValues[this.forecastParameterId]),
+      // map(([prev, curr]) => curr)
+    );
     this.eventData$ = this.quixService.eventDataReceived$;
 
     this.forecastReset$ = merge(this.streamsControl.valueChanges, this.forecastData$);
@@ -91,13 +95,15 @@ export class AppComponent implements OnInit {
     });
 
 
-    this.streamsControl.valueChanges.subscribe((stream: ActiveStream) => {
+    this.streamsControl.valueChanges.subscribe((streamId) => {
+      console.log('Subscribe to', streamId)
+      if (!streamId) return;
       const printerDataTopicId = this.quixService.workspaceId + '-' + this.quixService.printerDataTopic;
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
       const forecastAlertsTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastAlertsTopic;
-      this.subscribeToParameter(printerDataTopicId, stream.streamId, this.parameterIds);
-      this.subscribeToParameter(forecastTopicId, stream.streamId + '-down-sampled-forecast', [this.forecastParameterId]);
-      this.subscribeToEvent(forecastAlertsTopicId, stream.streamId + '-alerts', this.eventIds);
+      this.subscribeToParameter(printerDataTopicId, streamId, this.parameterIds);
+      this.subscribeToParameter(forecastTopicId, streamId + '-down-sampled-forecast', [this.forecastParameterId]);
+      this.subscribeToEvent(forecastAlertsTopicId, streamId + '-alerts', this.eventIds);
       this.forecastLimit = { min: 40, max: 60 };
     });
   }

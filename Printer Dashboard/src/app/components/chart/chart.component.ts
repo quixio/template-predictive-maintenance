@@ -71,7 +71,7 @@ export class ChartComponent implements OnInit {
           },
           label: (context) => {
             const tooltipItems: TooltipItem<any>[] = context.chart.tooltip?.dataPoints || [];
-            if (tooltipItems.length > 1 && context.dataset.label !== 'Event')  return '';
+            if (tooltipItems.length > 1 && context.dataset.label !== 'Event') return '';
             if (tooltipItems.length > 1 && context.dataIndex % 2 === 0) return '';
             return `${context.formattedValue} ºC`
           }
@@ -82,20 +82,13 @@ export class ChartComponent implements OnInit {
       }
     }
   };
+
   parameterDataset: ChartDataset<'line'> = {
     data: [],
     pointHoverBorderWidth: 0,
     pointRadius: 0,
     backgroundColor: '#00ff00',
     borderColor: '#0088ff',
-    pointBackgroundColor: '#0088ff',
-  }
-  eventDataset: ChartDataset<'line'> = {
-    data: [],
-    order: -1,
-    showLine: false,
-    pointHoverBorderWidth: 0,
-    pointRadius: 5,
     pointBackgroundColor: '#0088ff',
   }
   alertEventDataset: ChartDataset<'line'> = {
@@ -118,29 +111,39 @@ export class ChartComponent implements OnInit {
     pointBackgroundColor: 'white',
     pointStyle: ['circle', this.noAlertImage]
   }
+  datasets: ChartDataset[] = [];
   configuration: ChartConfiguration = {
     type: 'line',
-    data: { datasets: [this.parameterDataset, this.noAlertEventDataset, this.alertEventDataset] },
+    data: { datasets: this.datasets },
     options: this.options
   }
   private _currentDelay: number;
-  private _parameterId: string;
+  private _parameterIds: string[];
   private _offset: number = 5;
   private _min: number = Infinity;
   private _max: number = -Infinity;
   private _limit: { min: number, max: number }
   @Input() reset$: Observable<any>;
-  @Input() set parameterId(parameterId: string) {
-    this._parameterId = parameterId;
-    if (!this.parameterDataset.label) this.parameterDataset.label = parameterId;
+  @Input() set parameterIds(parameterIds: string[]) {
+    this._parameterIds = parameterIds;
+    parameterIds.forEach((id, i) => {
+      const properties = { label: id };
+      if (!this.datasets[i]) this.datasets.push({ ...this.parameterDataset, ...properties });
+    });
   }
-  @Input() set color(color: string) {
-    this.parameterDataset.borderColor = color;
-    this.parameterDataset.pointBackgroundColor = color;
-    this.eventDataset.pointBackgroundColor = color;
+  @Input() set labels(labels: string[]) {
+    labels.forEach((label, i) => {
+      const properties = { label };
+      if (!this.datasets[i]) this.datasets.push({ ...this.parameterDataset, ...properties });
+      else this.datasets[i] = { ...this.datasets[i], ...properties };
+    });
   }
-  @Input() set label(label: string) {
-    this.parameterDataset.label = label;
+  @Input() set colors(colors: string[]) {
+    colors.forEach((color, i) => {
+      const properties = { borderColor: color, pointBackgroundColor: color };
+      if (!this.datasets[i]) this.datasets.push({ ...this.parameterDataset, ...properties });
+      else this.datasets[i] = { ...this.datasets[i], ...properties };
+    });
   }
   @Input() set range(range: { min: number, max: number }) {
     (this.options as any).plugins.annotation.annotations['range'] = {
@@ -171,17 +174,21 @@ export class ChartComponent implements OnInit {
   @Input() set parameterData(data: ParameterData) {
     if (!data) return;
 
-     // Update delay
+    // Update delay
     const lastTimestamp: number = data.timestamps[data.timestamps.length - 1];
     this.updateDelay(lastTimestamp);
 
     // Add points to the chart
-    const values = data.numericValues![this._parameterId];
-    data.timestamps?.forEach((timestamp, i) => {
-      if (values[i] < this._min) this._min = values[i];
-      if (values[i] > this._max) this._max = values[i];
-      this.parameterDataset.data.push({ x: timestamp / 1000000, y: values[i] });
-    });
+    this._parameterIds.forEach((id, i) => {
+      const values = data.numericValues[id];
+      if (values) {
+        data.timestamps?.forEach((timestamp, j) => {
+          if (values[j] < this._min) this._min = values[j];
+          if (values[j] > this._max) this._max = values[j];
+          this.datasets[i].data.push({ x: timestamp / 1000000, y: values[j] });
+        });
+      }
+    })
 
     // Emit limit if exceed ranges
     const scale = (this.options as any).scales['y'];
@@ -191,6 +198,10 @@ export class ChartComponent implements OnInit {
       this.limitChange.emit({ min: scale.min, max: scale.max });
     }
 
+    // Workaround to not lose pointStyle from events
+    this.alertEventDataset.pointStyle = ['circle', this.alertImage];
+    this.noAlertEventDataset.pointStyle = ['circle', this.noAlertImage];
+
     this.chart?.update();
   }
   @Input() set eventData(data: EventData) {
@@ -198,7 +209,7 @@ export class ChartComponent implements OnInit {
 
     // Add points to the chart
     const value: Alert = JSON.parse(data.value);
-    if (value.parameter_name === this._parameterId) {
+    if (value.parameter_name === this._parameterIds[0]) {
       const point: Point = { x: value.alert_timestamp! / 1000000, y: value.alert_temperature! };
       if (value.status === 'no-alert') this.noAlertEventDataset.data.push(point, point);
       else this.alertEventDataset.data.push(point, point);
@@ -222,20 +233,20 @@ export class ChartComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const ctx = this.canvas.nativeElement.getContext('2d');
-    this.chart = new Chart(ctx!, this.configuration);
-    this.reset$?.subscribe(() => {
-      this.parameterDataset.data = [];
-      this.noAlertEventDataset.data = [];
-      this.alertEventDataset.data = [];
-    });
+    this.datasets.push(this.noAlertEventDataset, this.alertEventDataset);
+
     this.alertImage.src = 'assets/alert.svg';
     this.noAlertImage.src = 'assets/no-alert.svg'
+
+    this.reset$?.subscribe(() => this.datasets.forEach((dataset) => dataset.data = []));
+
+    const ctx = this.canvas.nativeElement.getContext('2d');
+    this.chart = new Chart(ctx!, this.configuration);
   }
 
   updateDelay(timestamp: number): void {
     const delay = Date.now() - timestamp / 1000000;
-    const offset = 1000;
+    const offset = 100;
     if (!this._currentDelay || this._currentDelay - delay > offset || this._currentDelay - delay < -offset) {
       (this.options!.scales!['x'] as any).realtime.delay = delay + offset;
       this._currentDelay = delay;
