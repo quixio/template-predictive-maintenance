@@ -17,7 +17,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 pd.set_option('display.max_columns', None)
 
 # Replay speed
-replay_speed = 20.0
+replay_speed = 10.0
 anomaly_fluctuation = 20  # was 3
 hot_end_anomaly_min_duration = 30  # 3
 hot_end_anomaly_max_duration = 35  # 5
