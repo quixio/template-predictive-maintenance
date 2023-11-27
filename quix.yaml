@@ -58,7 +58,7 @@ deployments:
     resources:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
-      replicas: {{ forecast_service_replicas }}}
+      replicas: {{ forecast_service_replicas }}
     desiredStatus: Running
     variables:
       - name: input
@@ -236,7 +236,7 @@ deployments:
     resources:
       cpu: {{ down_sampling_cpu }}
       memory: {{ down_sampling_memory }}
-      replicas: {{ down_sampling_replicas }}}
+      replicas: {{ down_sampling_replicas }}
     desiredStatus: Running
     variables:
       - name: input
@@ -256,7 +256,7 @@ deployments:
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
-      replicas: {{ alert_service_replicas }}}
+      replicas: {{ alert_service_replicas }}
     desiredStatus: Running
     variables:
       - name: alerts
