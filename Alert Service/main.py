@@ -18,6 +18,7 @@ UNDER_FORECAST = "under-forecast"
 OVER_FORECAST = "over-forecast"
 UNDER_NOW = "under-now"
 OVER_NOW = "over-now"
+PRINTER_FINISHED = "printer-finished"
 
 
 def all_are_smaller(param1: list, param2: list):
@@ -135,6 +136,8 @@ def get_or_create_alerts_stream(stream_id: str, stream_name: str):
     stream_alerts_producer.events.add_definition(NO_ALERT, "No alert")
     stream_alerts_producer.events.add_definition(OVER_FORECAST, "Over upper threshold in forecast")
     stream_alerts_producer.events.add_definition(OVER_NOW, "Over upper threshold now")
+    stream_alerts_producer.events.add_definition(PRINTER_FINISHED, "Printer finished printing")
+
     return stream_alerts_producer
 
 
@@ -148,6 +151,13 @@ def on_printer_stream_received_handler(stream_consumer: qx.StreamConsumer):
         stream_id = closed_stream_consumer.stream_id
         if stream_id in alerts_triggered:
             del alerts_triggered[stream_id]
+
+        finish_event = {
+            "status": PRINTER_FINISHED,
+            "message": f"'{closed_stream_consumer.properties.name}' finished."
+        }
+        event = qx.EventData(finish_event["status"], pd.Timestamp.utcnow(), json.dumps(finish_event))
+        stream_alerts_producer.events.publish(event)
 
         stream_alerts_producer.close()
         print(f"Closing stream '{closed_stream_consumer.properties.name}'")
