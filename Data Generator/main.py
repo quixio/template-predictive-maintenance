@@ -1,4 +1,5 @@
 import asyncio
+import json
 import math
 
 import quixstreams as qx
@@ -121,6 +122,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         await asyncio.sleep(delay_seconds)
         timestamp = next_timestamp
 
+    return timestamp
+
 
 async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
     await asyncio.sleep(initial_delay)
@@ -133,13 +136,22 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.timeseries.add_definition("bed_temperature", "Bed temperature")
         stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
         stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
+        stream.events.add_definition("printer-finished", "Printer finished printing")
         stream.properties.metadata["start_time"] = str(int(datetime.now().timestamp()) * 1000000000)
 
         # Temperature will drop below threshold in second 5200 after 0, 2, 4 and 6 hours
         stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + (5200 + x * 7200) / replay_speed) * 1000000000 for x in range(4)])
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
-        await generate_data(printer, stream)
+        finish_time = await generate_data(printer, stream)
+
+        finish_event = {
+            "status": "printer-finished",
+            "alert_timestamp": finish_time * 1e9,
+            "message": f"'{printer}' finished."
+        }
+        event = qx.EventData(finish_event["status"], pd.Timestamp.utcnow(), json.dumps(finish_event))
+        stream.events.publish(event)
 
         print(f"{printer}: Closing stream")
         stream.close()
