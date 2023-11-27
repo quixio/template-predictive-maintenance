@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 9abc346f2691807892e1fcb42405aba3b22876d9
+    version: 60de0cd12c50c7baa4af16754927dc1c87229a24
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -252,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 2796e21539855732fc0330ff4440f77d2f3097ab
+    version: 7786b9887748fa67f3185b76e9ea0132006534c1
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
