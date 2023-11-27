@@ -284,13 +284,6 @@ topics:
       replicationFactor: 2
       retentionInMinutes: 60
       retentionInBytes: 52428800
-  - name: forecast-alerts
-    persisted: false
-    configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
   - name: downsampled-3d-printer-data
     persisted: false
     configuration:
