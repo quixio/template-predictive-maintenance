@@ -17,7 +17,7 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 pd.set_option('display.max_columns', None)
 
 # Replay speed
-replay_speed = 20.0
+replay_speed = 10.0
 anomaly_fluctuation = 20  # was 3
 hot_end_anomaly_min_duration = 30  # 3
 hot_end_anomaly_max_duration = 35  # 5
@@ -131,6 +131,9 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
         stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
         stream.properties.metadata["start_time"] = str(int(datetime.now().timestamp()) * 1000000000)
+
+        # Temperature will drop below threshold in second 5200 after 0, 2, 4 and 6 hours
+        stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + 5200 + x * 7200) * 1000000000 for x in range(4)])
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)

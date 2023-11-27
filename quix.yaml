@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 8eaedfe58f54d7d76c2d22f71e1f32f48f5eb183
+    version: 3a37105385e9b78ac843dd579e115cebea09e4fb
     resources:
       cpu: 3000
       memory: 500
@@ -104,7 +104,7 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 7376e57fd6538a9d90c494bb0d20a1df9758654a
+    version: 6ef936667304de91a2a6e83d6a0b33f00fe52317
     resources:
       cpu: 200
       memory: 500
@@ -142,7 +142,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
-    version: a0a1681ab14adf3923b87e374bf88e971df44d12
+    version: 9fc18a8559209c4663f02fc01e847c1282f55705
     resources:
       cpu: 200
       memory: 500
@@ -252,10 +252,10 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: cbfdfc015665dd52aa1e759aff34c3861aae17aa
+    version: dea3dbe449baa8640407fe8a714ce16596ce2ec8
     resources:
       cpu: 1000
-      memory: 500
+      memory: 1000
       replicas: 1
     desiredStatus: Running
     variables:
