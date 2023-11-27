@@ -139,8 +139,8 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.events.add_definition("printer-finished", "Printer finished printing")
         stream.properties.metadata["start_time"] = str(int(datetime.now().timestamp()) * 1000000000)
 
-        # Temperature will drop below threshold in second 5200 after 0, 2, 4 and 6 hours
-        stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + (5200 + x * 7200) / replay_speed) * 1000000000 for x in range(4)])
+        # Temperature will drop below threshold in second 5210 after 0, 2, 4 and 6 hours
+        stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + (5210 + x * 7200) / replay_speed) * 1000000000 for x in range(4)])
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         finish_time = await generate_data(printer, stream)
