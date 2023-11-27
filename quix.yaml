@@ -153,7 +153,7 @@ deployments:
         inputType: InputTopic
         description: This is the input topic
         required: true
-        value: forecast-alerts
+        value: alerts
       - name: INFLUXDB_HOST
         inputType: Secret
         description: Host address for the InfluxDB instance.
