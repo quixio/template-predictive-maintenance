@@ -1,12 +1,12 @@
 # Down-sampling
 
-[This project](https://github.com/quixio/quix-samples/tree/main/python/transformations/DownSampling) shows you how to down-sample your data from 100hz to 10hz.
+[This application](https://github.com/quixio/template-predictive-maintenance/tree/develop/Down-sampling), based on
+[the Downsampling project](https://github.com/quixio/quix-samples/tree/main/python/transformations/DownSampling),
+down-samples the data from the input topic (1 second) and writes it to the output topic (1 minute).
 
 ## How to run
 
-Create a [Quix](https://portal.platform.quix.ai/self-sign-up?xlink=github) account or log-in and visit the Samples to use this project.
-
-Clicking `Edit code` on the Sample, forks the project to your own Git repo so you can customize it before deploying.
+Create a [Quix](https://portal.platform.quix.ai/self-sign-up?xlink=github) account or log-in and clone this template.
 
 ## Environment variables
 

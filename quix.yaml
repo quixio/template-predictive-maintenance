@@ -11,7 +11,7 @@ deployments:
     deploymentType: Service
     version: 48db829cf4efc37fe9f31608e15289e85df75ff6
     resources:
-      cpu: 3000
+      cpu: 2000
       memory: 500
       replicas: 1
     desiredStatus: Running
@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: df4865cc82360bdf4a6e53aba5849487e2e7d769
+    version: 284b4ad76dfbd4b7dd203e0321cf7c50a37f5e88
     resources:
       cpu: 1000
       memory: 1000
@@ -104,7 +104,7 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 6ef936667304de91a2a6e83d6a0b33f00fe52317
+    version: 1a2944a618a6973770296450d374f211206ea269
     resources:
       cpu: 200
       memory: 500
@@ -187,7 +187,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0
     deploymentType: Service
-    version: 19146f413b91523c1aa626c5da1594f01c23b169
+    version: 9fc18a8559209c4663f02fc01e847c1282f55705
     resources:
       cpu: 500
       memory: 500
@@ -232,7 +232,7 @@ deployments:
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
+    version: 2796e21539855732fc0330ff4440f77d2f3097ab
     resources:
       cpu: 200
       memory: 500
@@ -252,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: dea3dbe449baa8640407fe8a714ce16596ce2ec8
+    version: 2796e21539855732fc0330ff4440f77d2f3097ab
     resources:
       cpu: 1000
       memory: 1000
