@@ -11,9 +11,9 @@ deployments:
     deploymentType: Service
     version: 3a37105385e9b78ac843dd579e115cebea09e4fb
     resources:
-      cpu: 3000
-      memory: 500
-      replicas: 1
+      cpu: {{ data_generator_cpu}}
+      memory: {{ data_generator_memory}}
+      replicas: {{ data_generator_replicas}}
     desiredStatus: Running
     variables:
       - name: output
@@ -56,9 +56,9 @@ deployments:
     deploymentType: Service
     version: df4865cc82360bdf4a6e53aba5849487e2e7d769
     resources:
-      cpu: 1000
-      memory: 1000
-      replicas: 1
+      cpu: {{ forecast_service_cpu }}
+      memory: {{ forecast_service_memory }}
+      replicas: {{ forecast_service_replicas }}}
     desiredStatus: Running
     variables:
       - name: input
@@ -234,9 +234,9 @@ deployments:
     deploymentType: Service
     version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
     resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
+      cpu: {{ down_sampling_cpu }}
+      memory: {{ down_sampling_memory }}
+      replicas: {{ down_sampling_replicas }}}
     desiredStatus: Running
     variables:
       - name: input
@@ -254,9 +254,9 @@ deployments:
     deploymentType: Service
     version: dea3dbe449baa8640407fe8a714ce16596ce2ec8
     resources:
-      cpu: 1000
-      memory: 1000
-      replicas: 1
+      cpu: {{ alert_service_cpu }}
+      memory: {{ alert_service_memory }}
+      replicas: {{ alert_service_replicas }}}
     desiredStatus: Running
     variables:
       - name: alerts
@@ -280,28 +280,28 @@ topics:
   - name: forecast
     persisted: false
     configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
+      partitions: {{ forecast_partitions }}
+      replicationFactor: {{ forecast_replication_factor }}
+      retentionInMinutes: {{ forecast_retention_minutes }}
+      retentionInBytes: {{ forecast_retention_bytes }}
   - name: downsampled-3d-printer-data
     persisted: false
     configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
+      partitions: {{ downsampled_data_partitions }}
+      replicationFactor: {{ downsampled_data_replication_factor }}
+      retentionInMinutes: {{ downsampled_data_retention_minutes }}
+      retentionInBytes: {{ downsampled_data_retention_bytes }}
   - name: alerts
     persisted: false
     configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
+      partitions: {{ alerts_partitions }}
+      replicationFactor: {{ alerts_replication_factor }}
+      retentionInMinutes: {{ alerts_retention_minutes }}
+      retentionInBytes: {{ alerts_retention_bytes }}
   - name: 3d-printer-data
     persisted: false
     configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
+      partitions: {{ printer_data_partitions }}
+      replicationFactor: {{ printer_data_replication_factor }}
+      retentionInMinutes: {{ printer_data_retention_minutes }}
+      retentionInBytes: {{ printer_data_retention_bytes }}
