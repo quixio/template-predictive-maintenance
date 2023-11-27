@@ -23,7 +23,7 @@ variables:
     required: false
   - name: window_value
     inputType: FreeText
-    description: Window value
+    description: Window value (number of observations or time period)
     defaultValue: 1200
     required: true
   - name: window_type
