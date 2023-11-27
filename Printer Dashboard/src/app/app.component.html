@@ -137,7 +137,7 @@
           <div fxFlex fxLayout="row">
             <app-chart fxFlex="50"
               [parameterIds]="[parameterIds[0]]"
-              [labels]="['Progress (' + forHumans(duration) + ')']"
+              [labels]="['Progress (' + forHumans(duration, 2) + ')']"
               [parameterData]="(printerData$ | async)!"
               [eventData]="(eventData$ | async)!"
               [reset$]="streamsControl.valueChanges"
@@ -165,7 +165,7 @@
               <h2 class="mb-1">Bed temperature</h2>
               <app-chart fxFlex
                 [parameterIds]="[parameterIds[1]]"
-                [labels]="['Progress (' + forHumans(duration) + ')']"
+                [labels]="['Progress (' + forHumans(duration, 2) + ')']"
                 [parameterData]="(printerData$ | async)!"
                 [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
@@ -178,7 +178,7 @@
               <h2 class="mb-1">Hotend temperature</h2>
               <app-chart fxFlex
                 [parameterIds]="[parameterIds[2]]"
-                [labels]="['Progress (' + forHumans(duration) + ')']"
+                [labels]="['Progress (' + forHumans(duration, 2) + ')']"
                 [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
                 [duration]="duration" [range]="ranges['hotend_temperature']">

@@ -81,12 +81,9 @@ export class AppComponent implements OnInit {
     this.printerData$ = this.quixService.paramDataReceived$
       .pipe(filter((f) => f.topicName === this.quixService.printerDataTopic && f.streamId === this.streamsControl.value))
     this.forecastData$ = this.quixService.paramDataReceived$.pipe(
-      filter((f) => f.topicName === this.quixService.forecastTopic && f.streamId === this.streamsControl.value),
-      // pairwise(),
-      // tap(([prev, curr]) => curr.numericValues[`${this.forecastParameterId}_prev`] = prev.numericValues[this.forecastParameterId]),
-      // map(([prev, curr]) => curr)
-    );
-    this.eventData$ = this.quixService.eventDataReceived$;
+      filter((f) => f.topicName === this.quixService.forecastTopic && f.streamId === this.streamsControl.value  + '-down-sampled-forecast'));
+    this.eventData$ = this.quixService.eventDataReceived$
+      .pipe(filter((f) => f.topicName === this.quixService.printerDataTopic && f.streamId === this.streamsControl.value + '-alerts'));
 
     this.forecastReset$ = merge(this.streamsControl.valueChanges, this.forecastData$);
 
