@@ -1,4 +1,5 @@
 import asyncio
+import math
 
 import quixstreams as qx
 
@@ -64,19 +65,21 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         # Check if current timestamp is an anomaly timestamp
         if i in hotend_anomaly_timestamps:
             # Start a new anomaly
-            hotend_temperature -= anomaly_fluctuation
+            hotend_anomaly_start = i
             hotend_anomaly_end = i + random.randint(hot_end_anomaly_min_duration, hot_end_anomaly_max_duration)
             # Continue anomaly if within duration
-        elif i <= hotend_anomaly_end:
-            hotend_temperature -= anomaly_fluctuation
+
+        if i <= hotend_anomaly_end:
+            hotend_temperature -= anomaly_fluctuation * math.sin(math.pi * (hotend_anomaly_end - i) / (hotend_anomaly_end - hotend_anomaly_start) + math.pi)
 
         if i in bed_anomaly_timestamps:
             # Start a new anomaly
-            bed_temperature -= anomaly_fluctuation / 2
+            bed_anomaly_start = i
             bed_anomaly_end = i + random.randint(bed_anomaly_min_duration, bed_anomaly_max_duration)
             # Continue anomaly if within duration
-        elif i <= bed_anomaly_end:
-            bed_temperature -= anomaly_fluctuation / 2
+
+        if i <= bed_anomaly_end:
+            bed_temperature -= anomaly_fluctuation / 2 * math.sin(math.pi * (bed_anomaly_end - i) / (bed_anomaly_end - bed_anomaly_start) + math.pi)
 
         # Introduce a curve-like downward trend every 2 hours
         time_since_2_hours = i % (2 * 3600)
