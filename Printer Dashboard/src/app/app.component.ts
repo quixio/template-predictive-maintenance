@@ -24,7 +24,6 @@ export class AppComponent implements OnInit {
   ungatedToken: string;
   activeStreams: ActiveStream[] = [];
   activeStreamsStartTime: number[] = [];
-  activeStreams$: Observable<ActiveStream[]>;
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
   forecastReset$: Observable<any>;
@@ -34,7 +33,7 @@ export class AppComponent implements OnInit {
   duration: number = 5 * 60 * 1000;
   forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
   parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
-  eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert'];
+  eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert', 'printer-finished'];
   forecastParameterId = 'fluctuated_ambient_temperature';
   ranges: { [key: string]: { min: number, max: number } } = {
     'ambient_temperature': { min: 45, max: 55 },
@@ -52,16 +51,15 @@ export class AppComponent implements OnInit {
       this.workspaceId = this.quixService.workspaceId;
     });
 
-    this.activeStreams$ = this.quixService.activeStreamsChanged$.pipe(
+    const activeStreams$ = this.quixService.activeStreamsChanged$.pipe(
       map((streamSubscription: ActiveStreamSubscription) => {
         const { streams } = streamSubscription;
         if (!streams?.length) return [];
         return this.updateActiveSteams(streamSubscription)
-          .sort((a, b) => +a.metadata['start_time'] < +b.metadata['start_time'] ? -1 : 1)
       })
     );
 
-    this.activeStreams$.subscribe((activeStreams) => {
+    activeStreams$.subscribe((activeStreams) => {
       const streamId = this.streamsControl.value;
       const openedStreams = activeStreams.filter((f) => f.status === 'Receiving');
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
@@ -70,12 +68,9 @@ export class AppComponent implements OnInit {
       this.activeStreams = activeStreams;
     });
 
-    interval(1000).pipe(withLatestFrom(this.activeStreams$)).subscribe(([_, activeStreams]) => {
-      this.activeStreamsStartTime = activeStreams.map((m) => {
-        const failures: number[] = JSON.parse(m.metadata['failures']);
-        const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime())!
-        return failure / 1000000 - new Date().getTime()
-      });
+    interval(1000).pipe(withLatestFrom(activeStreams$)).subscribe(([_, activeStreams]) => {
+      this.activeStreams = activeStreams.sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
+      this.activeStreamsStartTime = activeStreams.map((m) => this.getActiveStreamFailureTime(m));
     });
 
     this.printerData$ = this.quixService.paramDataReceived$
@@ -104,7 +99,6 @@ export class AppComponent implements OnInit {
       // Reset ranges
       this.ranges = { ...this.ranges }
     });
-
   }
 
   subscribeToParameter(topicId: string, streamId: string, parameterIds: string[]): void {
@@ -144,12 +138,18 @@ export class AppComponent implements OnInit {
     }
   }
 
+  getActiveStreamFailureTime(stream: ActiveStream): number {
+    const failures: number[] = JSON.parse(stream.metadata['failures']);
+    const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime())!
+    return failure / 1000000 - new Date().getTime()
+  }
+
   /**
    * Converts the seconds into a readable format
    * @param timestamp noOfMilliseconds
    * @returns the time in a human readable string
    */
-  forHumans(timestamp: number, levelsCount?: number) {
+  forHumans(timestamp: number, levelsCount?: number): string {
     timestamp = Math.abs(timestamp);
 
     const levels: any = [
@@ -158,7 +158,7 @@ export class AppComponent implements OnInit {
       [Math.floor(((timestamp % 31536000000) % 86400000) / 3600000), 'hours'],
       [Math.floor((((timestamp % 31536000000) % 86400000) % 3600000) / 60000), 'min'],
       [Math.floor(((((timestamp % 31536000000) % 86400000) % 3600000) % 60000) / 1000), 'sec'],
-      [Math.floor((((((timestamp % 31536000000) % 86400000) % 3600000) % 60000) % 1000) * 100) / 100, 'ms']
+      // [Math.floor((((((timestamp % 31536000000) % 86400000) % 3600000) % 60000) % 1000) * 100) / 100, 'ms']
     ];
     let returnText = '';
 
