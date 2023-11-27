@@ -142,7 +142,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
-    version: a0a1681ab14adf3923b87e374bf88e971df44d12
+    version: 9fc18a8559209c4663f02fc01e847c1282f55705
     resources:
       cpu: 200
       memory: 500
@@ -252,10 +252,10 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: cbfdfc015665dd52aa1e759aff34c3861aae17aa
+    version: dea3dbe449baa8640407fe8a714ce16596ce2ec8
     resources:
       cpu: 1000
-      memory: 500
+      memory: 1000
       replicas: 1
     desiredStatus: Running
     variables:
