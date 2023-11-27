@@ -15,6 +15,7 @@ Some of the technologies used by this template project are listed here.
 * [Docker](https://www.docker.com/)
 * [Kubernetes](https://kubernetes.io/)
 * [InfluxDB](https://www.influxdata.com/products/influxdb/)
+* [Grafana](https://grafana.com/grafana/)
 
 **Backend:** 
 
@@ -36,10 +37,13 @@ The main services in the pipeline are:
 1. *Data Generator*: Generates temperature data simulating one or more 3D printer.
 2. *3D Printer Down Sampling*: Down samples the data to 1 minute intervals.
 3. *Forecast Service*: Creates a forecast for the next 8 hours for each printer.
-4. *Alert Service*: Detects when temperature is not under normal parameters and sends alerts to the frontend.
+4. *Alert Service*: Detects when temperature is outside of normal parameters and sends alerts to the frontend.
 5. *Printers Dashboard*: Displays the data and alerts for each printer.
 6. *InfluxDB 3.0 Alerts*: Stores the alerts in InfluxDB 3.0.
 7. *InfluxDB 3.0 Raw Data*: Stores the data in InfluxDB 3.0.
+
+Besides the pipeline, we have a (Grafana Dashboard)[https://quix.io/demos/grafana/public-dashboards/1a7abce7ed194ec18425670e989136a4]
+that shows the data stored in InfluxDB 3.0.
 
 ## Prerequisites
 
@@ -56,7 +60,10 @@ While this project uses an external Git account, Quix can also provide a Quix-ho
 
 ## Tutorial
 
-Work through the [tutorial](https://quix.io/docs/platform/tutorials/).
+Check out our [tutorials](https://quix.io/docs/platform/tutorials/).
+A specific tutorial for this template is coming soon.
+
+
 
 ## Getting help
 
