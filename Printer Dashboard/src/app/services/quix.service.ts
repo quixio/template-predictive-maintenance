@@ -34,6 +34,7 @@ export class QuixService {
   public printerDataTopic: string = ''; // get topic name from the Topics page in the Quix portal
   public forecastTopic: string = ''; // get topic name from the Topics page in the Quix portal
   public forecastAlertsTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  
   /* optional */
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
 
