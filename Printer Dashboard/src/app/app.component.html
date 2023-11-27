@@ -135,18 +135,25 @@
         <div fxLayout="column" fxFlex class="overflow-hidden mb-3">
           <h2 class="mb-1">Ambient temperature</h2>
           <div fxFlex fxLayout="row">
-            <app-chart fxFlex="50" [parameterIds]="[parameterIds[0]]" [labels]="['Progress']"
-              [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
+            <app-chart fxFlex="50"
+              [parameterIds]="[parameterIds[0]]"
+              [labels]="['Progress (' + forHumans(duration) + ')']"
+              [parameterData]="(printerData$ | async)!"
+              [eventData]="(eventData$ | async)!"
               [reset$]="streamsControl.valueChanges"
               [range]="ranges['ambient_temperature']" [duration]="duration"
               (limitChange)="forecastLimit = $event">
             </app-chart>
-            <app-chart fxFlex="50" [parameterIds]="[forecastParameterId]"
-              [labels]="['Forecast']"
-              hiddenAxe="y" [colors]="['#ff0000']"
+            <app-chart fxFlex="50" *ngIf="(forecastDuration$ | async) as forecastDuration"
+              hiddenAxe="y"
+              [parameterIds]="[forecastParameterId]"
+              [labels]="['Forecast (' + forHumans(forecastDuration) + ')']"
+              [colors]="['#ff0000']"
               [parameterData]="(forecastData$ | async)!" [eventData]="(eventData$ | async)!"
               [reset$]="forecastReset$"
-              [duration]="(forecastDuration$ | async)!" [range]="ranges['ambient_temperature']" [limit]="forecastLimit">
+              [duration]="forecastDuration"
+              [range]="ranges['ambient_temperature']"
+              [limit]="forecastLimit">
             </app-chart>
           </div>
         </div>
@@ -156,8 +163,11 @@
           <div fxLayout="column" fxFlex="50" class="chart-section">
             <div fxLayout="column" fxFlex class="overflow-hidden mb-3">
               <h2 class="mb-1">Bed temperature</h2>
-              <app-chart fxFlex [parameterIds]="[parameterIds[1]]" [labels]="['Progress']"
-                [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
+              <app-chart fxFlex
+                [parameterIds]="[parameterIds[1]]"
+                [labels]="['Progress (' + forHumans(duration) + ')']"
+                [parameterData]="(printerData$ | async)!"
+                [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
                 [duration]="duration" [range]="ranges['bed_temperature']">
               </app-chart>
@@ -166,7 +176,9 @@
           <div fxLayout="column" fxFlex="50" class="chart-section">
             <div fxLayout="column" fxFlex class="overflow-hidden mb-3">
               <h2 class="mb-1">Hotend temperature</h2>
-              <app-chart fxFlex [parameterIds]="[parameterIds[2]]" [labels]="['Progress']"
+              <app-chart fxFlex
+                [parameterIds]="[parameterIds[2]]"
+                [labels]="['Progress (' + forHumans(duration) + ')']"
                 [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
                 [duration]="duration" [range]="ranges['hotend_temperature']">
