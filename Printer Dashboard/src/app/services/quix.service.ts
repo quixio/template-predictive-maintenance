@@ -28,19 +28,13 @@ export class QuixService {
 
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
   /*WORKING LOCALLY? UPDATE THESE!*/
-  // private workingLocally = false; // set to true if working locally
-  // private token: string = ''; // Create a token in the Tokens menu and paste it here
-  // public workspaceId: string = ''; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
-  // public printerDataTopic: string = ''; // get topic name from the Topics page in the Quix portal
-  // public forecastTopic: string = ''; // get topic name from the Topics page in the Quix portal
-  // public forecastAlertsTopic: string = ''; // get topic name from the Topics page in the Quix portal
-
-  private workingLocally = true; // set to true if working locally
-  private token: string = 'pat-715aa7855be34da9a916e53d3825c5bd'
-  public workspaceId: string = 'demo-predictivemaintenance-dev'; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
-  public printerDataTopic: string = '3d-printer-data'; // get topic name from the Topics page in the Quix portal
-  public forecastTopic: string = 'forecast'; // get topic name from the Topics page in the Quix portal
-  public forecastAlertsTopic: string = 'alerts'; // get topic name from the Topics page in the Quix portal
+  private workingLocally = false; // set to true if working locally
+  private token: string = ''; // Create a token in the Tokens menu and paste it here
+  public workspaceId: string = ''; // Look in the URL for the Quix Portal your workspace ID is after 'workspace='
+  public printerDataTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  public forecastTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  public forecastAlertsTopic: string = ''; // get topic name from the Topics page in the Quix portal
+  
   /* optional */
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
 
