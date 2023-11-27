@@ -1,0 +1,16 @@
+name: Down-sampling
+language: python
+variables:
+  - name: input
+    inputType: InputTopic
+    description: This is the input topic to read data from
+    defaultValue: 3d-printer-data
+    required: true
+  - name: output
+    inputType: OutputTopic
+    description: This is the output topic to write data to
+    defaultValue: downsampled-3d-printer-data
+    required: true
+dockerfile: build/dockerfile
+runEntryPoint: main.py
+defaultFile: main.py

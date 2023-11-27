@@ -1,0 +1,21 @@
+name: Alert Service
+language: python
+variables:
+  - name: alerts
+    inputType: OutputTopic
+    description: Alerts topic
+    defaultValue: alerts
+    required: true
+  - name: printer_data
+    inputType: InputTopic
+    description: 3D printer data
+    defaultValue: 3d-printer-data
+    required: true
+  - name: forecast_data
+    inputType: InputTopic
+    description: Forecast Data
+    defaultValue: forecast
+    required: true
+dockerfile: build/dockerfile
+runEntryPoint: main.py
+defaultFile: main.py
