@@ -30,7 +30,12 @@ export class ChartComponent implements OnInit {
       x: {
         type: 'realtime',
         realtime: {
-          refresh: 500
+          refresh: 500,
+          onRefresh: () => {
+            // Workaround to not lose pointStyle from events
+            this.alertEventDataset.pointStyle = ['circle', this.alertImage];
+            this.noAlertEventDataset.pointStyle = ['circle', this.noAlertImage];
+          }
         },
         time: {
           displayFormats: {
@@ -197,10 +202,6 @@ export class ChartComponent implements OnInit {
       if (this._max > scale.max) scale.max = Math.floor(this._max + this._offset);
       this.limitChange.emit({ min: scale.min, max: scale.max });
     }
-
-    // Workaround to not lose pointStyle from events
-    this.alertEventDataset.pointStyle = ['circle', this.alertImage];
-    this.noAlertEventDataset.pointStyle = ['circle', this.noAlertImage];
 
     this.chart?.update();
   }
