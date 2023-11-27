@@ -70,7 +70,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             # Continue anomaly if within duration
 
         if i <= hotend_anomaly_end:
-            hotend_temperature -= anomaly_fluctuation * math.sin(math.pi * (hotend_anomaly_end - i) / (hotend_anomaly_end - hotend_anomaly_start) + math.pi)
+            hotend_temperature -= anomaly_fluctuation * math.sin(math.pi * (hotend_anomaly_end - i) / (hotend_anomaly_end - hotend_anomaly_start))
 
         if i in bed_anomaly_timestamps:
             # Start a new anomaly
@@ -79,7 +79,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             # Continue anomaly if within duration
 
         if i <= bed_anomaly_end:
-            bed_temperature -= anomaly_fluctuation / 2 * math.sin(math.pi * (bed_anomaly_end - i) / (bed_anomaly_end - bed_anomaly_start) + math.pi)
+            bed_temperature -= anomaly_fluctuation / 2 * math.sin(math.pi * (bed_anomaly_end - i) / (bed_anomaly_end - bed_anomaly_start))
 
         # Introduce a curve-like downward trend every 2 hours
         time_since_2_hours = i % (2 * 3600)
