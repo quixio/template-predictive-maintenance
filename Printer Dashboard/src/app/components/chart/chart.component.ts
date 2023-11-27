@@ -206,7 +206,6 @@ export class ChartComponent implements OnInit {
   }
   @Input() set eventData(data: EventData) {
     if (!data) return;
-
     // Add points to the chart
     const value: Alert = JSON.parse(data.value);
     if (value.parameter_name === this._parameterIds[0]) {
@@ -238,7 +237,10 @@ export class ChartComponent implements OnInit {
     this.alertImage.src = 'assets/alert.svg';
     this.noAlertImage.src = 'assets/no-alert.svg'
 
-    this.reset$?.subscribe(() => this.datasets.forEach((dataset) => dataset.data = []));
+    this.reset$?.subscribe(() => {
+      this.datasets.forEach((dataset) => dataset.data = []);
+      this.chart?.update();
+    });
 
     const ctx = this.canvas.nativeElement.getContext('2d');
     this.chart = new Chart(ctx!, this.configuration);

@@ -81,7 +81,10 @@
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>Printers</mat-label>
           <mat-select [formControl]="streamsControl">
-            <mat-option *ngFor="let stream of activeStreams$ | async; let i = index" [value]="stream.streamId">
+            <mat-option *ngFor="let stream of activeStreams$ | async; let i = index"
+              [value]="stream.streamId" [disabled]="stream.status !== 'Receiving'"
+              matTooltip="Closed stream" [matTooltipDisabled]="stream.status === 'Receiving'"
+              matTooltipPosition="above" matTooltipClass="mb-n5">
               {{ stream.name || stream.streamId }}
               <span class="text-muted" *ngIf="activeStreamsStartTime[i] as startTime">
                 (Time to failure: {{ forHumans(startTime, 2) }})
@@ -176,9 +179,7 @@
           <app-table
             [data]="(eventData$ | async)!"
             [eventIds]="eventIds"
-            [reset$]="streamsControl.valueChanges"
-            disableEventId="no-alert"
-            [disableParameterId]="forecastParameterId">
+            [reset$]="streamsControl.valueChanges">
           </app-table>
         </div>
       </div>
