@@ -37,10 +37,10 @@ def all_are_higher(param1: list, param2: list):
     return True
 
 
-THRESHOLDS = {'ambient_temperature': (os.environ["min_ambient_temperature"], os.environ["max_ambient_temperature"]),
-              'fluctuated_ambient_temperature': (os.environ["min_ambient_temperature"], os.environ["max_ambient_temperature"]),
-              'bed_temperature': (os.environ["min_bed_temperature"], os.environ["max_bed_temperature"]),
-              'hotend_temperature': (os.environ["min_hotend_temperature"], os.environ["max_hotend_temperature"])}
+THRESHOLDS = {'ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
+              'fluctuated_ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
+              'bed_temperature': (int(os.environ["min_bed_temperature"]), int(os.environ["max_bed_temperature"])),
+              'hotend_temperature': (int(os.environ["min_hotend_temperature"]), int(os.environ["max_hotend_temperature"]))}
 
 FRIENDLY_NAMES = {'ambient_temperature': "Ambient temperature",
                   'fluctuated_ambient_temperature': "Ambient temperature",
