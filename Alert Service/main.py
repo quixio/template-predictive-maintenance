@@ -173,7 +173,7 @@ def get_time_left(timestamp: float):
 def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd.DataFrame):
     parameter_name = "fluctuated_ambient_temperature"
     parameter_friendly_name = FRIENDLY_NAMES[parameter_name]
-    forecast_label = parameter_name
+    forecast_label = "forecast_" + parameter_name
 
     low_threshold = THRESHOLDS[parameter_name][0]
     high_threshold = THRESHOLDS[parameter_name][1]
@@ -250,6 +250,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
             stream_alerts_producer.events.publish(event)
             alerts_triggered[stream_consumer.stream_id]["forecast_" + parameter_name] = False
+
 
 def on_forecast_stream_received_handler(stream_consumer: qx.StreamConsumer):
     suffix_to_remove = "-down-sampled-forecast"
