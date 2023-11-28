@@ -36,6 +36,11 @@ variables:
     description: Higher threshold of bed temperature
     defaultValue: 115
     required: true
+  - name: min_hotend_temperature
+    inputType: FreeText
+    description: Lower threshold of hotend temperature
+    defaultValue: 245
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
