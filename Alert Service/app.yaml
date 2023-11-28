@@ -16,6 +16,11 @@ variables:
     description: Forecast Data
     defaultValue: forecast
     required: true
+  - name: min_ambient_temperature
+    inputType: FreeText
+    description: Lower threshold of ambient temperature
+    defaultValue: 45
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
