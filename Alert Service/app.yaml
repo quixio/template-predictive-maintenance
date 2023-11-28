@@ -21,6 +21,11 @@ variables:
     description: Lower threshold of ambient temperature
     defaultValue: 45
     required: true
+  - name: max_ambient_temperature
+    inputType: FreeText
+    description: Higher threshold of ambient temperature
+    defaultValue: 55
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
