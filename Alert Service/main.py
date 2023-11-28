@@ -138,7 +138,6 @@ def get_or_create_alerts_stream(stream_id: str, stream_name: str):
     stream_alerts_producer.events.add_definition(OVER_NOW, "Over upper threshold now")
     stream_alerts_producer.events.add_definition(PRINTER_FINISHED, "Printer finished printing")
 
-    print("Thresholds: " + json.dumps(THRESHOLDS))
     stream_alerts_producer.properties.metadata["thresholds"] = json.dumps(THRESHOLDS)
 
     return stream_alerts_producer
