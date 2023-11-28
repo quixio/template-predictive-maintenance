@@ -252,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 7786b9887748fa67f3185b76e9ea0132006534c1
+    version: 46fc86eb54c88751c11151b734ab0a9441b943b1
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
