@@ -26,6 +26,11 @@ variables:
     description: Higher threshold of ambient temperature
     defaultValue: 55
     required: true
+  - name: min_bed_temperature
+    inputType: FreeText
+    description: Lower threshold of bed temperature
+    defaultValue: 105
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
