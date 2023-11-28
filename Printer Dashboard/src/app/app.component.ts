@@ -22,8 +22,9 @@ export class AppComponent implements OnInit {
   workspaceId: string;
   deploymentId: string;
   ungatedToken: string;
-  activeStreams: ActiveStream[] = [];
-  activeStreamsStartTime: number[] = [];
+  printerStreams: ActiveStream[] = [];
+  alertsStreams: ActiveStream[] = [];
+  printerStreamsStartTime: number[] = [];
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
   forecastReset$: Observable<any>;
@@ -35,11 +36,7 @@ export class AppComponent implements OnInit {
   parameterIds: string[] = ['fluctuated_ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert', 'printer-finished'];
   forecastParameterId = 'forecast_fluctuated_ambient_temperature';
-  ranges: { [key: string]: { min: number, max: number } } = {
-    [this.parameterIds[0]]: { min: 45, max: 55 },
-    [this.parameterIds[1]]: { min: 105, max: 115 },
-    [this.parameterIds[2]]: { min: 245, max: 255 }
-  };
+  ranges: { [key: string]: { min: number, max: number } } = {};
 
   constructor(private quixService: QuixService, public media: MediaObserver) { }
 
@@ -48,29 +45,42 @@ export class AppComponent implements OnInit {
     this.quixService.readerConnStatusChanged$.subscribe((status) => {
       if (status !== ConnectionStatus.Connected) return;
       this.quixService.subscribeToActiveStreams(this.quixService.printerDataTopic);
+      this.quixService.subscribeToActiveStreams(this.quixService.forecastAlertsTopic);
       this.workspaceId = this.quixService.workspaceId;
     });
 
-    const activeStreams$ = this.quixService.activeStreamsChanged$.pipe(
+    const printerStreams$ = this.quixService.activeStreamsChanged$.pipe(
+      filter(({ streams }) => streams?.at(0)?.topicId === `${this.quixService.workspaceId}-${this.quixService.printerDataTopic}`),
       map((streamSubscription: ActiveStreamSubscription) => {
         const { streams } = streamSubscription;
         if (!streams?.length) return [];
-        return this.updateActiveSteams(streamSubscription)
+        return this.updateActiveSteams(streamSubscription, this.printerStreams)
       })
     );
 
-    activeStreams$.subscribe((activeStreams) => {
+    printerStreams$.subscribe((activeStreams) => {
       const streamId = this.streamsControl.value;
       const openedStreams = activeStreams.filter((f) => f.status === 'Receiving')
         .sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
-        this.streamsControl.setValue(openedStreams.at(0)?.streamId || null);
+        setTimeout(() => this.streamsControl.setValue(openedStreams.at(0)?.streamId || null));
       }
     });
 
-    interval(1000).pipe(withLatestFrom(activeStreams$)).subscribe(([_, activeStreams]) => {
-      this.activeStreams = activeStreams.sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
-      this.activeStreamsStartTime = activeStreams.map((m) => this.getActiveStreamFailureTime(m));
+    const alertStreams$ = this.quixService.activeStreamsChanged$.pipe(
+      filter(({ streams }) => streams?.at(0)?.topicId === `${this.quixService.workspaceId}-${this.quixService.forecastAlertsTopic}`),
+      map((streamSubscription: ActiveStreamSubscription) => {
+        const { streams } = streamSubscription;
+        if (!streams?.length) return [];
+        return this.updateActiveSteams(streamSubscription, this.alertsStreams)
+      })
+    );
+
+    alertStreams$.subscribe((activeStreams) => this.alertsStreams = activeStreams);
+
+    interval(1000).pipe(withLatestFrom(printerStreams$)).subscribe(([_, activeStreams]) => {
+      this.printerStreams = activeStreams.sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
+      this.printerStreamsStartTime = activeStreams.map((m) => this.getActiveStreamFailureTime(m));
     });
 
     this.printerData$ = this.quixService.paramDataReceived$
@@ -87,7 +97,7 @@ export class AppComponent implements OnInit {
       startWith(8 * 60 * 60 * 1000)
     );
 
-    this.streamsControl.valueChanges.subscribe((streamId) => {
+    this.streamsControl.valueChanges.pipe(withLatestFrom(alertStreams$)).subscribe(([streamId, alertStreams]) => {
       if (!streamId) return;
       const printerDataTopicId = this.quixService.workspaceId + '-' + this.quixService.printerDataTopic;
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
@@ -97,7 +107,9 @@ export class AppComponent implements OnInit {
       this.subscribeToEvent(forecastAlertsTopicId, streamId + '-alerts', this.eventIds);
 
       // Reset ranges
-      this.ranges = { ...this.ranges }
+      const stream = alertStreams.find((f) => f.streamId.includes(streamId))!;
+      const thresholds: { [key: string]: number[] } = JSON.parse(stream.metadata['thresholds'])
+      Object.entries(thresholds).forEach(([key, value]) => this.ranges[key] = { min: value[0], max: value[1] })
     });
   }
 
@@ -125,16 +137,16 @@ export class AppComponent implements OnInit {
    * @param action The action we are performing.
    * @param streams The data within the stream.
    */
-  updateActiveSteams(streamSubscription: ActiveStreamSubscription): ActiveStream[] {
+  updateActiveSteams(streamSubscription: ActiveStreamSubscription, activeStreams: ActiveStream[]): ActiveStream[] {
     const { streams, action } = streamSubscription;
-    const currentStreams = this.activeStreams.filter((stream) => !streams?.some((s) => s.streamId === stream.streamId));
+    const currentStreams = activeStreams.filter((stream) => !streams?.some((s) => s.streamId === stream.streamId));
     switch (action) {
       case ActiveStreamAction.AddUpdate:
         return [...currentStreams, ...(streams || [])];
       case ActiveStreamAction.Remove:
         return currentStreams;
       default:
-        return this.activeStreams;
+        return activeStreams;
     }
   }
 

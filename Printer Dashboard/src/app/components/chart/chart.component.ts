@@ -151,6 +151,7 @@ export class ChartComponent implements OnInit {
     });
   }
   @Input() set range(range: { min: number, max: number }) {
+    if (!range) return;
     (this.options as any).plugins.annotation.annotations['range'] = {
       type: 'box',
       yMin: range.min,
