@@ -15,7 +15,7 @@ from sklearn.preprocessing import PolynomialFeatures
 topic_input = os.environ["input"]
 topic_output = os.environ["output"]
 parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ else "fluctuated_ambient_temperature"
-forecast_label = str(parameter_name)
+forecast_label = "forecast_" + str(parameter_name)
 
 window_type_env = os.environ["window_type"] if "window_type" in os.environ else "1"
 window_type = 'Number of Observations' if window_type_env == 1 else "Time Period"
