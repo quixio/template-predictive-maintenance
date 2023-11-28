@@ -32,13 +32,13 @@ export class AppComponent implements OnInit {
   streamsMap = new Map<string, string>();
   duration: number = 5 * 60 * 1000;
   forecastLimit: { min: number, max: number } = { min: 40, max: 60 }
-  parameterIds: string[] = ['ambient_temperature', 'bed_temperature', 'hotend_temperature'];
+  parameterIds: string[] = ['fluctuated_ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert', 'printer-finished'];
-  forecastParameterId = 'fluctuated_ambient_temperature';
+  forecastParameterId = 'forecast_fluctuated_ambient_temperature';
   ranges: { [key: string]: { min: number, max: number } } = {
-    'ambient_temperature': { min: 45, max: 55 },
-    'bed_temperature': { min: 105, max: 115 },
-    'hotend_temperature': { min: 245, max: 255 }
+    [this.parameterIds[0]]: { min: 45, max: 55 },
+    [this.parameterIds[1]]: { min: 105, max: 115 },
+    [this.parameterIds[2]]: { min: 245, max: 255 }
   };
 
   constructor(private quixService: QuixService, public media: MediaObserver) { }
@@ -61,11 +61,11 @@ export class AppComponent implements OnInit {
 
     activeStreams$.subscribe((activeStreams) => {
       const streamId = this.streamsControl.value;
-      const openedStreams = activeStreams.filter((f) => f.status === 'Receiving');
+      const openedStreams = activeStreams.filter((f) => f.status === 'Receiving')
+        .sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
         this.streamsControl.setValue(openedStreams.at(0)?.streamId || null);
       }
-      this.activeStreams = activeStreams;
     });
 
     interval(1000).pipe(withLatestFrom(activeStreams$)).subscribe(([_, activeStreams]) => {
@@ -139,7 +139,7 @@ export class AppComponent implements OnInit {
   }
 
   getActiveStreamFailureTime(stream: ActiveStream): number {
-    const failures: number[] = JSON.parse(stream.metadata['failures']);
+    const failures: number[] = JSON.parse(stream.metadata['failures-replay-speed']);
     const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime())!
     return failure / 1000000 - new Date().getTime()
   }
