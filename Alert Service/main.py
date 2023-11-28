@@ -195,7 +195,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                 # the lower threshold for 3 consecutive seconds
                 alert_status = {
                     "status": UNDER_FORECAST,
-                    "parameter_name": parameter_name,
+                    "parameter_name": forecast_label,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
                     "message": f"'{parameter_friendly_name}' is forecasted to fall below {low_threshold}ºC in {get_time_left(fcast['timestamp'].iloc[i])}."
@@ -207,7 +207,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                 # the lower threshold for 3 consecutive seconds
                 alert_status = {
                     "status": OVER_FORECAST,
-                    "parameter_name": parameter_name,
+                    "parameter_name": forecast_label,
                     "alert_temperature": fcast[forecast_label].iloc[i],
                     "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[i])) * 1e9,
                     "message": f"'{parameter_friendly_name}' is forecasted to go over {high_threshold}ºC in {get_time_left(fcast['timestamp'].iloc[i])}."
