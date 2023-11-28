@@ -41,6 +41,11 @@ variables:
     description: Lower threshold of hotend temperature
     defaultValue: 245
     required: true
+  - name: max_hotend_temperature
+    inputType: FreeText
+    description: Higher threshold of hotend temperature
+    defaultValue: 255
+    required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
