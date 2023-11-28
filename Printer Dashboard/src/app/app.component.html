@@ -145,7 +145,8 @@
               [parameterData]="(printerData$ | async)!"
               [eventData]="(eventData$ | async)!"
               [reset$]="streamsControl.valueChanges"
-              [range]="ranges['ambient_temperature']" [duration]="duration"
+              [duration]="duration"
+              [range]="ranges[parameterIds[0]]"
               (limitChange)="forecastLimit = $event">
             </app-chart>
             <app-chart fxFlex="50" *ngIf="(forecastDuration$ | async) as forecastDuration"
@@ -153,10 +154,11 @@
               [parameterIds]="[forecastParameterId]"
               [labels]="['Forecast (' + forHumans(forecastDuration) + ')']"
               [colors]="['#ff0000']"
-              [parameterData]="(forecastData$ | async)!" [eventData]="(eventData$ | async)!"
+              [parameterData]="(forecastData$ | async)!"
+              [eventData]="(eventData$ | async)!"
               [reset$]="forecastReset$"
               [duration]="forecastDuration"
-              [range]="ranges['ambient_temperature']"
+              [range]="ranges[parameterIds[0]]"
               [limit]="forecastLimit">
             </app-chart>
           </div>
@@ -173,7 +175,8 @@
                 [parameterData]="(printerData$ | async)!"
                 [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
-                [duration]="duration" [range]="ranges['bed_temperature']">
+                [duration]="duration"
+                [range]="ranges[parameterIds[1]]">
               </app-chart>
             </div>
           </div>
@@ -185,7 +188,8 @@
                 [labels]="['Progress (' + forHumans(duration, 2) + ')']"
                 [parameterData]="(printerData$ | async)!" [eventData]="(eventData$ | async)!"
                 [reset$]="streamsControl.valueChanges"
-                [duration]="duration" [range]="ranges['hotend_temperature']">
+                [duration]="duration"
+                [range]="ranges[parameterIds[2]]">
               </app-chart>
             </div>
           </div>
