@@ -9,11 +9,11 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 3a37105385e9b78ac843dd579e115cebea09e4fb
+    version: 303049acc44a7ad005018acf3cd2c1c561243658
     resources:
-      cpu: 3000
-      memory: 500
-      replicas: 1
+      cpu: {{ data_generator_cpu}}
+      memory: {{ data_generator_memory}}
+      replicas: {{ data_generator_replicas}}
     desiredStatus: Running
     variables:
       - name: output
@@ -54,11 +54,11 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: df4865cc82360bdf4a6e53aba5849487e2e7d769
+    version: 46fc86eb54c88751c11151b734ab0a9441b943b1
     resources:
-      cpu: 1000
-      memory: 1000
-      replicas: 1
+      cpu: {{ forecast_service_cpu }}
+      memory: {{ forecast_service_memory }}
+      replicas: {{ forecast_service_replicas }}
     desiredStatus: Running
     variables:
       - name: input
@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 45
+        value: 12
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
@@ -153,7 +153,7 @@ deployments:
         inputType: InputTopic
         description: This is the input topic
         required: true
-        value: forecast-alerts
+        value: alerts
       - name: INFLUXDB_HOST
         inputType: Secret
         description: Host address for the InfluxDB instance.
@@ -187,7 +187,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0
     deploymentType: Service
-    version: 19146f413b91523c1aa626c5da1594f01c23b169
+    version: 9fc18a8559209c4663f02fc01e847c1282f55705
     resources:
       cpu: 500
       memory: 500
@@ -232,11 +232,11 @@ deployments:
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: d9d2049f0c63324db45b1cfc6034ede64c2aa936
+    version: 2796e21539855732fc0330ff4440f77d2f3097ab
     resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
+      cpu: {{ down_sampling_cpu }}
+      memory: {{ down_sampling_memory }}
+      replicas: {{ down_sampling_replicas }}
     desiredStatus: Running
     variables:
       - name: input
@@ -252,11 +252,11 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: dea3dbe449baa8640407fe8a714ce16596ce2ec8
+    version: a93510f067035ddbcdb89d6a72eb2bc3593f1b29
     resources:
-      cpu: 1000
-      memory: 1000
-      replicas: 1
+      cpu: {{ alert_service_cpu }}
+      memory: {{ alert_service_memory }}
+      replicas: {{ alert_service_replicas }}
     desiredStatus: Running
     variables:
       - name: alerts
@@ -280,35 +280,28 @@ topics:
   - name: forecast
     persisted: false
     configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
-  - name: forecast-alerts
-    persisted: false
-    configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
+      partitions: {{ forecast_partitions }}
+      replicationFactor: {{ forecast_replication_factor }}
+      retentionInMinutes: {{ forecast_retention_minutes }}
+      retentionInBytes: {{ forecast_retention_bytes }}
   - name: downsampled-3d-printer-data
     persisted: false
     configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
+      partitions: {{ downsampled_data_partitions }}
+      replicationFactor: {{ downsampled_data_replication_factor }}
+      retentionInMinutes: {{ downsampled_data_retention_minutes }}
+      retentionInBytes: {{ downsampled_data_retention_bytes }}
   - name: alerts
     persisted: false
     configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
+      partitions: {{ alerts_partitions }}
+      replicationFactor: {{ alerts_replication_factor }}
+      retentionInMinutes: {{ alerts_retention_minutes }}
+      retentionInBytes: {{ alerts_retention_bytes }}
   - name: 3d-printer-data
     persisted: false
     configuration:
-      partitions: 2
-      replicationFactor: 2
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
+      partitions: {{ printer_data_partitions }}
+      replicationFactor: {{ printer_data_replication_factor }}
+      retentionInMinutes: {{ printer_data_retention_minutes }}
+      retentionInBytes: {{ printer_data_retention_bytes }}
