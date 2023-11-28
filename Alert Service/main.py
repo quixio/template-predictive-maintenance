@@ -37,10 +37,10 @@ def all_are_higher(param1: list, param2: list):
     return True
 
 
-THRESHOLDS = {'ambient_temperature': (45, 55),
-              'fluctuated_ambient_temperature': (45, 55),
-              'bed_temperature': (105, 115),
-              'hotend_temperature': (245, 255)}
+THRESHOLDS = {'ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
+              'fluctuated_ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
+              'bed_temperature': (int(os.environ["min_bed_temperature"]), int(os.environ["max_bed_temperature"])),
+              'hotend_temperature': (int(os.environ["min_hotend_temperature"]), int(os.environ["max_hotend_temperature"]))}
 
 FRIENDLY_NAMES = {'ambient_temperature': "Ambient temperature",
                   'fluctuated_ambient_temperature': "Ambient temperature",
@@ -137,6 +137,8 @@ def get_or_create_alerts_stream(stream_id: str, stream_name: str):
     stream_alerts_producer.events.add_definition(OVER_FORECAST, "Over upper threshold in forecast")
     stream_alerts_producer.events.add_definition(OVER_NOW, "Over upper threshold now")
     stream_alerts_producer.events.add_definition(PRINTER_FINISHED, "Printer finished printing")
+
+    stream_alerts_producer.properties.metadata["thresholds"] = json.dumps(THRESHOLDS)
 
     return stream_alerts_producer
 

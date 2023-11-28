@@ -252,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: a93510f067035ddbcdb89d6a72eb2bc3593f1b29
+    version: 0357920cfe633a43803027a6f370bf6102ce89c9
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
@@ -274,6 +274,36 @@ deployments:
         description: Forecast Data
         required: true
         value: forecast
+      - name: min_ambient_temperature
+        inputType: FreeText
+        description: Lower threshold of ambient temperature
+        required: true
+        value: 45
+      - name: max_ambient_temperature
+        inputType: FreeText
+        description: Higher threshold of ambient temperature
+        required: true
+        value: 55
+      - name: min_bed_temperature
+        inputType: FreeText
+        description: Lower threshold of bed temperature
+        required: true
+        value: 105
+      - name: max_bed_temperature
+        inputType: FreeText
+        description: Higher threshold of bed temperature
+        required: true
+        value: 115
+      - name: min_hotend_temperature
+        inputType: FreeText
+        description: Lower threshold of hotend temperature
+        required: true
+        value: 245
+      - name: max_hotend_temperature
+        inputType: FreeText
+        description: Higher threshold of hotend temperature
+        required: true
+        value: 255
 
 # This section describes the Topics of the data pipeline
 topics:
