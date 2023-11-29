@@ -46,7 +46,8 @@ export class ChartComponent implements OnInit {
       y: {
         type: 'linear',
         ticks: {
-          stepSize: 5
+          stepSize: 5,
+          autoSkip: false
         }
       }
     },

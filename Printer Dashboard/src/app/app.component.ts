@@ -36,7 +36,11 @@ export class AppComponent implements OnInit {
   parameterIds: string[] = ['fluctuated_ambient_temperature', 'bed_temperature', 'hotend_temperature'];
   eventIds: string[] = ['over-forecast', 'under-forecast', 'under-now', 'no-alert', 'printer-finished'];
   forecastParameterId = 'forecast_fluctuated_ambient_temperature';
-  ranges: { [key: string]: { min: number, max: number } } = {};
+  ranges: { [key: string]: { min: number, max: number } } = {
+    [this.parameterIds[0]]: { min: 45, max: 55 },
+    [this.parameterIds[1]]: { min: 105, max: 115 },
+    [this.parameterIds[2]]: { min: 245, max: 255 }
+  };
 
   constructor(private quixService: QuixService, public media: MediaObserver) { }
 
@@ -62,8 +66,9 @@ export class AppComponent implements OnInit {
       const streamId = this.streamsControl.value;
       const openedStreams = activeStreams.filter((f) => f.status === 'Receiving')
         .sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
+
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
-        setTimeout(() => this.streamsControl.setValue(openedStreams.at(0)?.streamId || null));
+        setTimeout(() => this.streamsControl.setValue(openedStreams.at(0)?.streamId || null), 200);
       }
     });
 
