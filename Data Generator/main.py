@@ -113,6 +113,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
         stream.timeseries.buffer.publish(df)
         logging.debug(f"{printer}: Published:\n{df}")
+        logging.debug(f"{printer}: next failures: f{printer_start[printer]}")
+        logging.debug(f"{printer}: next failures {replay_speed}x: f{printer_start_replay_speed[printer]}")
 
         next_timestamp = timestamp + timedelta(seconds=1)
         time_difference = next_timestamp - timestamp
@@ -122,8 +124,12 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         timestamp = next_timestamp
 
 
+printer_start = {}
+printer_start_replay_speed = {}
+
 async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
     await asyncio.sleep(initial_delay)
+    iteration = 0
     while True:
         stream = topic_producer.create_stream()
         stream.properties.name = printer
@@ -139,6 +145,12 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         # Temperature will drop below threshold in second 5210 after 0, 2, 4 and 6 hours
         stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + 5210 + x * 7200) * 1000000000 for x in range(4)])
         stream.properties.metadata["failures-replay-speed"] = str([int(datetime.now().timestamp() + (5210 + x * 7200) / replay_speed) * 1000000000 for x in range(4)])
+
+        printer_start[printer] = str([int(datetime.now().timestamp() + 5210 + x * 7200) * 1000000000 for x in range(4)])
+        printer_start_replay_speed[printer] = str([int(datetime.now().timestamp() + (5210 + x * 7200) / replay_speed) * 1000000000 for x in range(4)])
+
+        stream.properties.metadata["iteration"] = iteration
+        iteration += 1
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
