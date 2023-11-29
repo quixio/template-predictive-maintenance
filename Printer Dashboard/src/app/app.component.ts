@@ -112,9 +112,9 @@ export class AppComponent implements OnInit {
       this.subscribeToEvent(forecastAlertsTopicId, streamId + '-alerts', this.eventIds);
 
       // Reset ranges
-      const stream = alertStreams.find((f) => f.streamId.includes(streamId))!;
-      const thresholds: { [key: string]: number[] } = JSON.parse(stream.metadata['thresholds'])
-      Object.entries(thresholds).forEach(([key, value]) => this.ranges[key] = { min: value[0], max: value[1] })
+      const alertStream = alertStreams.find((f) => f.streamId.includes(streamId))!;
+      const thresholds: { [key: string]: number[] } = JSON.parse(alertStream.metadata['thresholds']);
+      Object.entries(thresholds).forEach(([key, value]) => this.ranges[key] = { min: value[0], max: value[1] });
     });
   }
 
@@ -156,9 +156,9 @@ export class AppComponent implements OnInit {
   }
 
   getActiveStreamFailureTime(stream: ActiveStream): number {
-    const failures: number[] = JSON.parse(stream.metadata['failures-replay-speed']);
-    const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime())!
-    return failure / 1000000 - new Date().getTime()
+    const failures: string[] = JSON.parse(stream.metadata['failures_replay_speed_str'].replaceAll("'", '"'));
+    const failure = failures.find((date) => new Date(date).getTime() > new Date().getTime())!
+    return new Date(failure).getTime() - new Date().getTime()
   }
 
   /**
