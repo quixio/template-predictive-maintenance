@@ -22,8 +22,10 @@ export class AppComponent implements OnInit {
   workspaceId: string;
   deploymentId: string;
   ungatedToken: string;
-  activeStreams: ActiveStream[] = [];
-  activeStreamsStartTime: number[] = [];
+  printerStreams: ActiveStream[] = [];
+  alertsStreams: ActiveStream[] = [];
+  printerStreamsFailureTime: number[] = [];
+  printerStreamsEndTime: number[] = [];
   printerData$: Observable<ParameterData>;
   forecastData$: Observable<ParameterData>;
   forecastReset$: Observable<any>;
@@ -48,29 +50,45 @@ export class AppComponent implements OnInit {
     this.quixService.readerConnStatusChanged$.subscribe((status) => {
       if (status !== ConnectionStatus.Connected) return;
       this.quixService.subscribeToActiveStreams(this.quixService.printerDataTopic);
+      this.quixService.subscribeToActiveStreams(this.quixService.forecastAlertsTopic);
       this.workspaceId = this.quixService.workspaceId;
     });
 
-    const activeStreams$ = this.quixService.activeStreamsChanged$.pipe(
+    const printerStreams$ = this.quixService.activeStreamsChanged$.pipe(
+      filter(({ streams }) => streams?.at(0)?.topicId === `${this.quixService.workspaceId}-${this.quixService.printerDataTopic}`),
       map((streamSubscription: ActiveStreamSubscription) => {
         const { streams } = streamSubscription;
         if (!streams?.length) return [];
-        return this.updateActiveSteams(streamSubscription)
+        return this.updateActiveSteams(streamSubscription, this.printerStreams)
       })
     );
-
-    activeStreams$.subscribe((activeStreams) => {
+    printerStreams$.subscribe((activeStreams) => {
       const streamId = this.streamsControl.value;
-      const openedStreams = activeStreams.filter((f) => f.status === 'Receiving')
-        .sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
-        this.streamsControl.setValue(openedStreams.at(0)?.streamId || null);
+        const openedStreams = activeStreams
+          .filter((f) => f.status === 'Receiving')
+          .sort((a, b) => (this.getActiveStreamEndTime(a) || Infinity) < (this.getActiveStreamEndTime(b) || Infinity) ? -1 : 1)
+          .sort((a, b) => (this.getActiveStreamFailureTime(a) || Infinity) < (this.getActiveStreamFailureTime(b) || Infinity) ? -1 : 1);
+        setTimeout(() => this.streamsControl.setValue(openedStreams.at(0)?.streamId || null), 200);
       }
     });
 
-    interval(1000).pipe(withLatestFrom(activeStreams$)).subscribe(([_, activeStreams]) => {
-      this.activeStreams = activeStreams.sort((a, b) => this.getActiveStreamFailureTime(a) < this.getActiveStreamFailureTime(b) ? -1 : 1);
-      this.activeStreamsStartTime = activeStreams.map((m) => this.getActiveStreamFailureTime(m));
+    const alertStreams$ = this.quixService.activeStreamsChanged$.pipe(
+      filter(({ streams }) => streams?.at(0)?.topicId === `${this.quixService.workspaceId}-${this.quixService.forecastAlertsTopic}`),
+      map((streamSubscription: ActiveStreamSubscription) => {
+        const { streams } = streamSubscription;
+        if (!streams?.length) return [];
+        return this.updateActiveSteams(streamSubscription, this.alertsStreams)
+      })
+    );
+    alertStreams$.subscribe((activeStreams) => this.alertsStreams = activeStreams);
+
+    interval(1000).pipe(withLatestFrom(printerStreams$)).subscribe(([_, activeStreams]) => {
+      this.printerStreams = activeStreams
+        .sort((a, b) => (this.getActiveStreamEndTime(a) || Infinity) < (this.getActiveStreamEndTime(b) || Infinity) ? -1 : 1)
+        .sort((a, b) => (this.getActiveStreamFailureTime(a) || Infinity) < (this.getActiveStreamFailureTime(b) || Infinity) ? -1 : 1);
+      this.printerStreamsFailureTime = activeStreams.map((m) => this.getActiveStreamFailureTime(m)!);
+      this.printerStreamsEndTime = activeStreams.map((m) => this.getActiveStreamEndTime(m)!);
     });
 
     this.printerData$ = this.quixService.paramDataReceived$
@@ -87,7 +105,7 @@ export class AppComponent implements OnInit {
       startWith(8 * 60 * 60 * 1000)
     );
 
-    this.streamsControl.valueChanges.subscribe((streamId) => {
+    this.streamsControl.valueChanges.pipe(withLatestFrom(alertStreams$, printerStreams$)).subscribe(([streamId, alertStreams, printerStreams]) => {
       if (!streamId) return;
       const printerDataTopicId = this.quixService.workspaceId + '-' + this.quixService.printerDataTopic;
       const forecastTopicId = this.quixService.workspaceId + '-' + this.quixService.forecastTopic;
@@ -97,8 +115,35 @@ export class AppComponent implements OnInit {
       this.subscribeToEvent(forecastAlertsTopicId, streamId + '-alerts', this.eventIds);
 
       // Reset ranges
-      this.ranges = { ...this.ranges }
+      const alertStream = alertStreams.find((f) => f.streamId.includes(streamId))!;
+      const thresholds: { [key: string]: number[] } = JSON.parse(alertStream.metadata['thresholds'])
+      Object.entries(thresholds).forEach(([key, value]) => this.ranges[key] = { min: value[0], max: value[1] })
+
+      // const printerStream = printerStreams.find((f) => f.streamId.includes(streamId))!;
+
+      // let start = JSON.parse(printerStream.metadata['start_time']);
+      // console.log('start_time: ', start)
+      // console.log('start_time (date): ', new Date(start / 1000000))
+
+      // let end = JSON.parse(printerStream.metadata['end_time']);
+      // console.log('end_time: ', end)
+      // console.log('end_time (date): ', new Date(end / 1000000))
+
+      // let failures = JSON.parse(printerStream.metadata['failures_replay_speed'])
+      // console.log('failures_replay_speed: ', failures)
+      // console.log('failures_replay_speed (dates): ', failures.map((m: number) => new Date(m / 1000000)))
     });
+  }
+
+  getActiveStreamFailureTime(stream: ActiveStream): number | undefined {
+    const failures: number[] = JSON.parse(stream.metadata['failures_replay_speed']);
+    const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime());
+    return failure ? failure / 1000000 - new Date().getTime() : undefined;
+  }
+
+  getActiveStreamEndTime(stream: ActiveStream): number | undefined {
+    const endTime: number = JSON.parse(stream.metadata['end_time']);
+    return endTime > new Date().getTime() ? endTime / 1000000 - new Date().getTime() : undefined;
   }
 
   subscribeToParameter(topicId: string, streamId: string, parameterIds: string[]): void {
@@ -125,23 +170,17 @@ export class AppComponent implements OnInit {
    * @param action The action we are performing.
    * @param streams The data within the stream.
    */
-  updateActiveSteams(streamSubscription: ActiveStreamSubscription): ActiveStream[] {
+  updateActiveSteams(streamSubscription: ActiveStreamSubscription, activeStreams: ActiveStream[]): ActiveStream[] {
     const { streams, action } = streamSubscription;
-    const currentStreams = this.activeStreams.filter((stream) => !streams?.some((s) => s.streamId === stream.streamId));
+    const currentStreams = activeStreams.filter((stream) => !streams?.some((s) => s.streamId === stream.streamId));
     switch (action) {
       case ActiveStreamAction.AddUpdate:
         return [...currentStreams, ...(streams || [])];
       case ActiveStreamAction.Remove:
         return currentStreams;
       default:
-        return this.activeStreams;
+        return activeStreams;
     }
-  }
-
-  getActiveStreamFailureTime(stream: ActiveStream): number {
-    const failures: number[] = JSON.parse(stream.metadata['failures-replay-speed']);
-    const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime())!
-    return failure / 1000000 - new Date().getTime()
   }
 
   /**

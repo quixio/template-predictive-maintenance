@@ -46,7 +46,8 @@ export class ChartComponent implements OnInit {
       y: {
         type: 'linear',
         ticks: {
-          stepSize: 5
+          stepSize: 5,
+          autoSkip: false
         }
       }
     },
@@ -151,6 +152,7 @@ export class ChartComponent implements OnInit {
     });
   }
   @Input() set range(range: { min: number, max: number }) {
+    if (!range) return;
     (this.options as any).plugins.annotation.annotations['range'] = {
       type: 'box',
       yMin: range.min,
@@ -240,6 +242,8 @@ export class ChartComponent implements OnInit {
 
     this.reset$?.subscribe(() => {
       this.datasets.forEach((dataset) => dataset.data = []);
+      this._min = Infinity;
+      this._max = -Infinity;
       this.chart?.update();
     });
 
