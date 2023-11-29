@@ -242,6 +242,8 @@ export class ChartComponent implements OnInit {
 
     this.reset$?.subscribe(() => {
       this.datasets.forEach((dataset) => dataset.data = []);
+      this._min = Infinity;
+      this._max = -Infinity;
       this.chart?.update();
     });
 
