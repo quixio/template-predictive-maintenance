@@ -62,7 +62,6 @@ export class AppComponent implements OnInit {
         return this.updateActiveSteams(streamSubscription, this.printerStreams)
       })
     );
-
     printerStreams$.subscribe((activeStreams) => {
       const streamId = this.streamsControl.value;
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
@@ -82,7 +81,6 @@ export class AppComponent implements OnInit {
         return this.updateActiveSteams(streamSubscription, this.alertsStreams)
       })
     );
-
     alertStreams$.subscribe((activeStreams) => this.alertsStreams = activeStreams);
 
     interval(1000).pipe(withLatestFrom(printerStreams$)).subscribe(([_, activeStreams]) => {
@@ -138,16 +136,14 @@ export class AppComponent implements OnInit {
   }
 
   getActiveStreamFailureTime(stream: ActiveStream): number | undefined {
-    const now = new Date();
     const failures: number[] = JSON.parse(stream.metadata['failures_replay_speed']);
-    const failure = failures.find((timestamp) => timestamp / 1000000 > now.getTime());
-    return failure ? failure / 1000000 - now.getTime() : undefined;
+    const failure = failures.find((timestamp) => timestamp / 1000000 > new Date().getTime());
+    return failure ? failure / 1000000 - new Date().getTime() : undefined;
   }
 
   getActiveStreamEndTime(stream: ActiveStream): number | undefined {
-    const now = new Date();
-    const startTime: number = JSON.parse(stream.metadata['end_time']);
-    return startTime ? startTime / 1000000 - now.getTime() : undefined;
+    const endTime: number = JSON.parse(stream.metadata['end_time']);
+    return endTime > new Date().getTime() ? endTime / 1000000 - new Date().getTime() : undefined;
   }
 
   subscribeToParameter(topicId: string, streamId: string, parameterIds: string[]): void {
