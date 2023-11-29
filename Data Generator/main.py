@@ -12,7 +12,7 @@ import logging
 import sys
 
 # Configure logging
-logging.basicConfig(stream=sys.stdout, level=logging.INFO)
+logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # Display all columns
 pd.set_option('display.max_columns', None)
