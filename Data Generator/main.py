@@ -138,6 +138,7 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
 
         # Add metadata about printer
         stream.properties.metadata["start_time"] = str(int(datetime.utcnow().timestamp()) * 1000000000)
+        stream.properties.metadata["end_time"] = str(int(datetime.utcnow().timestamp() + int(os.environ['datalength']) / replay_speed) * 1000000000)
 
         # Temperature will drop below threshold in second 5210 after 0, 2, 4 and 6 hours
         failure_timestamps = [int(datetime.utcnow().timestamp() + 5210 + x * 7200) * 1000000000 for x in range(4)]
@@ -146,14 +147,6 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
 
         stream.properties.metadata["failures"] = str(failure_timestamps)
         stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
-
-        stream.properties.metadata["failures_str"] = str(
-            [str(datetime.utcfromtimestamp(x / 1000000000).astimezone(tz=timezone.utc).isoformat()) for x in failure_timestamps])
-        stream.properties.metadata["failures_replay_speed_str"] = str(
-            [str(datetime.utcfromtimestamp(x / 1000000000).astimezone(tz=timezone.utc).isoformat()) for x in failure_replay_speed_timestamps])
-
-        print(str([str(datetime.utcfromtimestamp(x / 1000000000).astimezone(tz=timezone.utc).isoformat()) for x in failure_timestamps]))
-        print(str([str(datetime.utcfromtimestamp(x / 1000000000).astimezone(tz=timezone.utc).isoformat()) for x in failure_replay_speed_timestamps]))
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
