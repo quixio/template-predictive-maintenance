@@ -148,12 +148,12 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
 
         stream.properties.metadata["failures_str"] = str(
-            [str(datetime.utcfromtimestamp(x / 1000000000)) for x in failure_timestamps])
+            [str(datetime.utcfromtimestamp(x / 1000000000).isoformat()) for x in failure_timestamps])
         stream.properties.metadata["failures_replay_speed_str"] = str(
-            [str(datetime.utcfromtimestamp(x / 1000000000)) for x in failure_replay_speed_timestamps])
+            [str(datetime.utcfromtimestamp(x / 1000000000).isoformat()) for x in failure_replay_speed_timestamps])
 
-        print(str([str(datetime.utcfromtimestamp(x / 1000000000)) for x in failure_timestamps]))
-        print(str([str(datetime.utcfromtimestamp(x / 1000000000)) for x in failure_replay_speed_timestamps]))
+        print(str([str(datetime.utcfromtimestamp(x / 1000000000).isoformat()) for x in failure_timestamps]))
+        print(str([str(datetime.utcfromtimestamp(x / 1000000000).isoformat()) for x in failure_replay_speed_timestamps]))
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
