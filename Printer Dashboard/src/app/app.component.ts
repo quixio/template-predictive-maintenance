@@ -67,7 +67,7 @@ export class AppComponent implements OnInit {
       if (!streamId || !activeStreams.some((s) => s.streamId === streamId)) {
         const openedStreams = activeStreams
           .filter((f) => f.status === 'Receiving')
-          .sort((a, b) => (this.getActiveStreamEndTime(a) || Infinity) < (this.getActiveStreamEndTime(b) || Infinity) ? -1 : 1)
+          .sort((a, b) => (this.getActiveStreamStartTime(a) || Infinity) < (this.getActiveStreamStartTime(b) || Infinity) ? -1 : 1)
           .sort((a, b) => (this.getActiveStreamFailureTime(a) || Infinity) < (this.getActiveStreamFailureTime(b) || Infinity) ? -1 : 1);
         setTimeout(() => this.streamsControl.setValue(openedStreams.at(0)?.streamId || null), 200);
       }
@@ -85,8 +85,9 @@ export class AppComponent implements OnInit {
 
     interval(1000).pipe(withLatestFrom(printerStreams$)).subscribe(([_, activeStreams]) => {
       this.printerStreams = activeStreams
-        .sort((a, b) => (this.getActiveStreamEndTime(a) || Infinity) < (this.getActiveStreamEndTime(b) || Infinity) ? -1 : 1)
-        .sort((a, b) => (this.getActiveStreamFailureTime(a) || Infinity) < (this.getActiveStreamFailureTime(b) || Infinity) ? -1 : 1);
+        .sort((a, b) => (this.getActiveStreamStartTime(a) || Infinity) < (this.getActiveStreamStartTime(b) || Infinity) ? -1 : 1)
+        .sort((a, b) => (this.getActiveStreamFailureTime(a) || Infinity) < (this.getActiveStreamFailureTime(b) || Infinity) ? -1 : 1)
+        .sort((a, b) => a.status === 'Receiving' && b.status !== 'Receiving' ? -1 : 1)
       this.printerStreamsFailureTime = activeStreams.map((m) => this.getActiveStreamFailureTime(m)!);
       this.printerStreamsEndTime = activeStreams.map((m) => this.getActiveStreamEndTime(m)!);
     });
@@ -141,9 +142,14 @@ export class AppComponent implements OnInit {
     return failure ? failure / 1000000 - new Date().getTime() : undefined;
   }
 
+  getActiveStreamStartTime(stream: ActiveStream): number | undefined {
+    const startTime: number = JSON.parse(stream.metadata['start_time']);
+    return startTime / 1000000 - new Date().getTime();
+  }
+
   getActiveStreamEndTime(stream: ActiveStream): number | undefined {
     const endTime: number = JSON.parse(stream.metadata['end_time']);
-    return endTime > new Date().getTime() ? endTime / 1000000 - new Date().getTime() : undefined;
+    return endTime / 1000000 > new Date().getTime() ? endTime / 1000000 - new Date().getTime() : undefined;
   }
 
   subscribeToParameter(topicId: string, streamId: string, parameterIds: string[]): void {

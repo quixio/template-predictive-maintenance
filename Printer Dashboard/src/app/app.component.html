@@ -90,12 +90,14 @@
               matTooltip="Closed stream" [matTooltipDisabled]="stream.status === 'Receiving'"
               matTooltipPosition="above" matTooltipClass="mb-n5">
               {{ stream.name || stream.streamId }}
-              <span class="text-muted" *ngIf="printerStreamsFailureTime[i]">
-                (Time to failure: {{ forHumans(printerStreamsFailureTime[i], 2) || 0 }})
-              </span>
-              <span class="text-muted" *ngIf="!printerStreamsFailureTime[i]">
-                (Time to close: {{ forHumans(printerStreamsEndTime[i], 2) || 0 }})
-              </span>
+              <ng-container *ngIf="stream.status === 'Receiving'">
+                <span class="text-muted" *ngIf="printerStreamsFailureTime[i]">
+                  (Time to failure: {{ forHumans(printerStreamsFailureTime[i], 2) || 0 }})
+                </span>
+                <span class="text-muted" *ngIf="!printerStreamsFailureTime[i]">
+                  (Time to close: {{ forHumans(printerStreamsEndTime[i], 2) || 0 }})
+                </span>
+              </ng-container>
             </mat-option>
           </mat-select>
         </mat-form-field>
