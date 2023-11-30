@@ -189,12 +189,6 @@ async def main():
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
-    # Measure time to generate data
-    start_time = datetime.now()
-    printer_data = generate_data()
-    end_time = datetime.now()
-    print(f"Data generation took {end_time - start_time} seconds.")
-
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
         number_of_printers = 1
@@ -207,8 +201,8 @@ async def main():
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
-        # Start sending data, each printer will start 5 minutes after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), i * 20)))
+        # Start sending data, each printer will start 1 minute after the previous one
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, generate_data(), i * 60)))
 
     await asyncio.gather(*tasks)
 
