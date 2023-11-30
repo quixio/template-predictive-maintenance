@@ -4,7 +4,7 @@ import pandas as pd
 import influxdb_client_3 as InfluxDBClient3
 import ast
 import datetime
-
+ 
 
 client = qx.QuixStreamingClient()
 
@@ -24,24 +24,22 @@ client = InfluxDBClient3.InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
                          database=os.environ["INFLUXDB_DATABASE"])
 
 
-def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
-    
-    def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
-        try:
-            # Reformat the dataframe to match the InfluxDB format
-            df = df.rename(columns={'timestamp': 'time'})
-            df = df.set_index('time')
-            df["stream_id"] = stream_consumer.stream_id
+def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
+    try:
+        # Reformat the dataframe to match the InfluxDB format
+        df = df.rename(columns={'timestamp': 'time'})
+        df = df.set_index('time')
+        df["stream_id"] = stream_consumer.stream_id
 
-            client.write(df, data_frame_measurement_name=measurement_name, data_frame_tag_columns=tag_columns) 
+        client.write(df, data_frame_measurement_name=measurement_name, data_frame_tag_columns=tag_columns) 
 
-            print(f"{str(datetime.datetime.utcnow())}: Persisted {df.shape[0]} rows.")
-        except Exception as e:
-            print("{str(datetime.datetime.utcnow())}: Write failed")
-            print(e)
+        print(f"{str(datetime.datetime.utcnow())}: Persisted {df.shape[0]} rows.")
+    except Exception as e:
+        print("{str(datetime.datetime.utcnow())}: Write failed")
+        print(e)
+
 
 def on_event_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
-
     df = pd.DataFrame({'time': [data.timestamp],
                     'id': [data.id],
                     'value': [data.value]})
@@ -55,21 +53,21 @@ def on_event_received_handler(stream_consumer: qx.StreamConsumer, data: qx.Event
 
     try:
         client.write(df, data_frame_measurement_name=measurement_name, data_frame_tag_columns=tag_columns) 
-
         print(f"{str(datetime.datetime.utcnow())}: Persisted {df.shape[0]} rows.")
     except Exception as e:
         print("{str(datetime.datetime.utcnow())}: Write failed")
         print(e)
 
-    #client.write
 
-
+def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
+    
     # Buffer to batch rows every 250ms to reduce CPU overhead.
     buffer = stream_consumer.timeseries.create_buffer()
     buffer.time_span_in_milliseconds = 250
-    
+
     buffer.on_dataframe_released = on_dataframe_received_handler
     stream_consumer.events.on_data_received = on_event_received_handler
+
 
 
 # subscribe to new streams being received
