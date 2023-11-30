@@ -167,6 +167,12 @@ async def main():
     # Quix injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument.
     client = qx.QuixStreamingClient()
+    storage = qx.LocalFileStorage()
+    storage.clear()
+    start_time = datetime.now().timestamp()
+
+    # Wait random time between 0 and 10 seconds before starting to avoid collisions
+    await asyncio.sleep(random.randint(0, 10))
 
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
@@ -180,11 +186,22 @@ async def main():
     tasks = []
 
     for i in range(number_of_printers):
+        printer_number = storage.get("printer")
+        if printer_number is None:
+            printer_number = 1
+
+        storage.set("printer", printer_number + 1)
+
         # Set stream ID or leave parameters empty to get stream ID generated.
-        name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
+        name = f"Printer {printer_number}"  # We don't want a Printer 0, so start at 1
 
         # Start sending data, each printer will start 1 minute after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, i * 60)))
+        wait_time = datetime.now().timestamp() - start_time
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, wait_time + printer_number * 60 )))
+
+        # Wait random time between 0 and 10 seconds to avoid new collisions
+        await asyncio.sleep(random.randint(0, 10))
+
 
     await asyncio.gather(*tasks)
 
