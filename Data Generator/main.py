@@ -169,6 +169,14 @@ async def main():
     client = qx.QuixStreamingClient()
 
     print("Getting storage")
+    app_state_manager = qx.App.get_state_manager()
+    topic_state_manager = app_state_manager.get_topic_state_manager(os.environ["output"])
+    stream_state_manager = topic_state_manager.get_stream_state_manager("state_stream")
+    stream_state_manager.get_scalar_state
+
+    topic_state_manager = app_state_manager.delete_topic_state(os.environ["output"])
+    topic_state_manager.
+
     storage = qx.LocalFileStorage()
 
     print("Clearing storage")
@@ -183,6 +191,7 @@ async def main():
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
+
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
         number_of_printers = 1
@@ -193,13 +202,9 @@ async def main():
     printer_number = None
     
     for i in range(number_of_printers):
-        if storage.contains_key("printer"):
-            printer_number = storage.get("printer")
-    
-        if printer_number is None:
-            printer_number = 1
-
-        storage.set("printer", printer_number + 1)
+        stream_state = stream_state_manager.get_scalar_state("printer", lambda: 1)
+        printer_number = stream_state.value
+        stream_state.value(printer_number + 1)
 
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {printer_number}"  # We don't want a Printer 0, so start at 1
