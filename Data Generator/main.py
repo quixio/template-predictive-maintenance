@@ -125,7 +125,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
 
 
 async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
-    await asyncio.sleep(initial_delay)
+    #await asyncio.sleep(initial_delay)
     while True:
         stream = topic_producer.create_stream()
         stream.properties.name = printer
