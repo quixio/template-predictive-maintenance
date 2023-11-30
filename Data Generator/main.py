@@ -186,7 +186,9 @@ async def main():
     tasks = []
 
     for i in range(number_of_printers):
-        printer_number = storage.get("printer")
+        if storage.contains_key("printer"):
+            printer_number = storage.get("printer")
+    
         if printer_number is None:
             printer_number = 1
 
