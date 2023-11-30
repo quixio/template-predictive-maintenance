@@ -16,6 +16,11 @@ variables:
     description: User key for the Pushover mobile app
     defaultValue: ''
     required: false
+  - name: api_token
+    inputType: Secret
+    description: Pushover API token for application
+    defaultValue: api_token
+    required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
 defaultFile: quix_functions.py
