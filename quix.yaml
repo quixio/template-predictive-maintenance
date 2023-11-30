@@ -324,6 +324,36 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: ambient-alerts
+  - name: Pushover
+    application: Pushover
+    deploymentType: Service
+    version: pushover-alerts-v1
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: Name of the input topic to listen to.
+        required: true
+        value: ambient-alerts
+      - name: base_url
+        inputType: FreeText
+        description: The webhook url to send notifications to
+        required: true
+        value: https://api.pushover.net/1/messages.json?
+      - name: user_key
+        inputType: Secret
+        description: User key for the Pushover mobile app
+        required: false
+        secretKey: user_key
+      - name: api_token
+        inputType: Secret
+        description: Pushover API token for application
+        required: false
+        secretKey: api_token
 
 # This section describes the Topics of the data pipeline
 topics:
