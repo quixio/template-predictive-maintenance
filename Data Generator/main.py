@@ -28,7 +28,10 @@ def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
 
 
-async def generate_data(printer: str, stream: qx.StreamProducer):
+#async def generate_data(printer: str, stream: qx.StreamProducer):
+#    pass
+def generate_data():
+    data = []
     target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
     hotend_t = int(os.environ['hotend_t'])  # 250  # MAKE ENV VAR: target temperature for the hotend
     bed_t = int(os.environ['bed_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
@@ -107,16 +110,33 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         fluctuated_ambient_temperatures.append(fluctuated_ambient_temperature)
 
         df = pd.DataFrame(
-            [[timestamp, timestamp, hotend_temperature, bed_temperature, ambient_temperature,
-              fluctuated_ambient_temperature, printer]],
-            columns=['timestamp', 'original_timestamp', 'hotend_temperature', 'bed_temperature', 'ambient_temperature',
+            [[hotend_temperature, bed_temperature, ambient_temperature,
+              fluctuated_ambient_temperature]],
+            columns=['hotend_temperature', 'bed_temperature', 'ambient_temperature',
                      'fluctuated_ambient_temperature', 'TAG__printer'])
 
-        stream.timeseries.buffer.publish(df)
-        logging.debug(f"{printer}: Published:\n{df}")
+        data.append(df)
 
         next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
         elapsed_seconds += 1
+        timestamp = next_timestamp
+
+    return data
+
+
+async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
+    start_timestamp = datetime.now()
+    elapsed_seconds = 0
+
+    for frame in data:
+        next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
+        elapsed_seconds += 1
+
+        frame["timestamp"] = pd.to_datetime(next_timestamp)
+        frame["original_timestamp"] = pd.to_datetime(next_timestamp)
+        frame["TAG__printer"] = printer
+
+        stream.timeseries.buffer.publish(frame)
 
         # Dataframe should be sent at initial_timestamp + elapsed_seconds / replay_speed
         target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
@@ -126,10 +146,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         # delay_seconds = time_difference.total_seconds() / replay_speed
         logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
         await asyncio.sleep(delay_seconds)
-        timestamp = next_timestamp
 
 
-async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
+async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, printer_data: list, initial_delay: int):
     await asyncio.sleep(initial_delay)
     while True:
         stream = topic_producer.create_stream()
@@ -154,7 +173,7 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
-        await generate_data(printer, stream)
+        await publish_data(printer, stream, printer_data)
 
         print(f"{printer}: Closing stream")
         stream.close()
@@ -170,29 +189,8 @@ async def main():
 
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
-    topic_producer.create_stream("state_stream")
 
-
-    print("Getting storage")
-    app_state_manager = qx.App.get_state_manager()
-    topic_state_manager = app_state_manager.get_topic_state_manager(os.environ["output"])
-    stream_state_manager = topic_state_manager.get_stream_state_manager("state_stream")
-
-    
-    #print("Clearing storage")
-    #storage = qx.LocalFileStorage()
-    #storage.clear()
-
-    start_time = datetime.now().timestamp()
-
-    # Wait random time between 0 and 10 seconds before starting to avoid collisions
-    print("Waiting random time...")
-    await asyncio.sleep(random.randint(0, 10))
-
-    # Wait random time between 0 and 10 seconds before starting
-    await asyncio.sleep(random.randint(0, 10))
-
-
+    printer_data = generate_data()
 
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
@@ -201,30 +199,13 @@ async def main():
         number_of_printers = int(os.environ['number_of_printers'])
 
     tasks = []
-    printer_number = None
-    
+
     for i in range(number_of_printers):
-        stream_state = stream_state_manager.get_scalar_state("printer", lambda: 1)
-        printer_number = stream_state.value
-        stream_state.value = printer_number + 1
-
-        #if not storage.contains_key("printer"):
-        #    storage.set("printer", 1)
-        #
-        #printer_number = storage.get("printer")
-        #storage.set("printer", printer_number + 1)
-
         # Set stream ID or leave parameters empty to get stream ID generated.
-        name = f"Printer {printer_number}"  # We don't want a Printer 0, so start at 1
-        print("Creating", name)
+        name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
-        # Start sending data, each printer will start 1 minute after the previous one
-        wait_time = datetime.now().timestamp() - start_time
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, wait_time + printer_number * 60)))
-
-        # Wait random time between 0 and 10 seconds to avoid new collisions
-        await asyncio.sleep(random.randint(0, 10))
-
+        # Start sending data, each printer will start 5 minutes after the previous one
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), i * 20)))
 
     await asyncio.gather(*tasks)
 
