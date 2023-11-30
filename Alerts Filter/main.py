@@ -18,6 +18,8 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 def on_event_data_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
     if data.id == 'over-forecast': # or data.id == 'under-forecast':
         print(data)
+        stream_producer = topic_producer.get_or_create_stream(stream_id = stream_consumer.stream_id)
+        stream_producer.events.publish(data)
 
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # subscribe to new DataFrames being received
