@@ -167,11 +167,17 @@ async def main():
     # Quix injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument.
     client = qx.QuixStreamingClient()
+
+    print("Getting storage")
     storage = qx.LocalFileStorage()
+
+    print("Clearing storage")
     storage.clear()
+
     start_time = datetime.now().timestamp()
 
     # Wait random time between 0 and 10 seconds before starting to avoid collisions
+    print("Waiting random time...")
     await asyncio.sleep(random.randint(0, 10))
 
     # Open the output topic where to write data out
@@ -197,6 +203,7 @@ async def main():
 
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {printer_number}"  # We don't want a Printer 0, so start at 1
+        print("Creating", name)
 
         # Start sending data, each printer will start 1 minute after the previous one
         wait_time = datetime.now().timestamp() - start_time
