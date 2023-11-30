@@ -14,6 +14,9 @@ deployments:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
       replicas: {{ data_generator_replicas}}
+    state:
+      enabled: true
+      size: 1
     desiredStatus: Running
     variables:
       - name: output
