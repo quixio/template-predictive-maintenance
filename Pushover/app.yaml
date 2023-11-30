@@ -12,9 +12,9 @@ variables:
     defaultValue: https://api.pushover.net/1/messages.json?
     required: true
   - name: user_key
-    inputType: FreeText
+    inputType: Secret
     description: User key for the Pushover mobile app
-    defaultValue: ''
+    defaultValue: user_key
     required: false
   - name: api_token
     inputType: Secret
