@@ -10,8 +10,6 @@ topic_producer = client.get_topic_producer(os.environ["output"])
 
 
 def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
-
-    print('------------> ', df)
     stream_producer = topic_producer.get_or_create_stream(stream_id = stream_consumer.stream_id)
     stream_producer.timeseries.buffer.publish(df)
 
@@ -20,8 +18,7 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 def on_event_data_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
     # print('===============================>>>>>>>>>>>>>', data)
     # handle your event data here
-    if data['status'] == 'over-forecast':
-        print('============')
+    print(data)
 
 
 
