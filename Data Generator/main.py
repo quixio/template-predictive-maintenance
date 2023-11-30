@@ -168,6 +168,11 @@ async def main():
     # Alternatively, you can always pass an SDK token manually as an argument.
     client = qx.QuixStreamingClient()
 
+    # Open the output topic where to write data out
+    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
+    topic_producer.create_stream("state_stream")
+
+
     print("Getting storage")
     app_state_manager = qx.App.get_state_manager()
     topic_state_manager = app_state_manager.get_topic_state_manager(os.environ["output"])
@@ -184,8 +189,9 @@ async def main():
     print("Waiting random time...")
     await asyncio.sleep(random.randint(0, 10))
 
-    # Open the output topic where to write data out
-    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
+    # Wait random time between 0 and 10 seconds before starting
+    await asyncio.sleep(random.randint(0, 10))
+
 
 
     # Create a stream for each printer
@@ -214,7 +220,7 @@ async def main():
 
         # Start sending data, each printer will start 1 minute after the previous one
         wait_time = datetime.now().timestamp() - start_time
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, wait_time + printer_number * 60 )))
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, wait_time + printer_number * 60)))
 
         # Wait random time between 0 and 10 seconds to avoid new collisions
         await asyncio.sleep(random.randint(0, 10))
