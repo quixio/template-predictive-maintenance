@@ -169,9 +169,9 @@ async def main():
     client = qx.QuixStreamingClient()
 
     print("Getting storage")
-    app_state_manager = qx.App.get_state_manager()
-    topic_state_manager = app_state_manager.get_topic_state_manager(os.environ["output"])
-    stream_state_manager = topic_state_manager.get_stream_state_manager("state_stream")
+    #app_state_manager = qx.App.get_state_manager()
+    #topic_state_manager = app_state_manager.get_topic_state_manager(os.environ["output"])
+    #stream_state_manager = topic_state_manager.get_stream_state_manager("state_stream")
 
     storage = qx.LocalFileStorage()
 
@@ -198,9 +198,16 @@ async def main():
     printer_number = None
     
     for i in range(number_of_printers):
-        stream_state = stream_state_manager.get_scalar_state("printer", lambda: 1)
-        printer_number = stream_state.value
-        stream_state.value(printer_number + 1)
+        #stream_state = stream_state_manager.get_scalar_state("printer", lambda: 1)
+        #printer_number = stream_state.value
+        #stream_state.value(printer_number + 1)
+
+        printer_number = None
+        if not storage.contains_key("printer"):
+            storage.set("printer", 1)
+
+        printer_number = storage.get("printer")
+        storage.set("printer", printer_number + 1)
 
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {printer_number}"  # We don't want a Printer 0, so start at 1
