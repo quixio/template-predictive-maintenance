@@ -200,7 +200,7 @@ async def main():
     for i in range(number_of_printers):
         stream_state = stream_state_manager.get_scalar_state("printer", lambda: 1)
         printer_number = stream_state.value
-        stream_state.value(printer_number + 1)
+        stream_state.value = printer_number + 1
 
         #if not storage.contains_key("printer"):
         #    storage.set("printer", 1)
