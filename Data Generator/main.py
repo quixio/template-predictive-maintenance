@@ -172,10 +172,6 @@ async def main():
     app_state_manager = qx.App.get_state_manager()
     topic_state_manager = app_state_manager.get_topic_state_manager(os.environ["output"])
     stream_state_manager = topic_state_manager.get_stream_state_manager("state_stream")
-    stream_state_manager.get_scalar_state
-
-    topic_state_manager = app_state_manager.delete_topic_state(os.environ["output"])
-    topic_state_manager.
 
     storage = qx.LocalFileStorage()
 
