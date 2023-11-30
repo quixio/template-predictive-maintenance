@@ -11,11 +11,6 @@ variables:
     description: The webhook url to send notifications to
     defaultValue: https://api.pushover.net/1/messages.json?
     required: true
-  - name: api_token
-    inputType: HiddenText
-    description: Generate an API token on the Pushover website
-    defaultValue: ''
-    required: false
   - name: user_key
     inputType: FreeText
     description: User key for the Pushover mobile app
