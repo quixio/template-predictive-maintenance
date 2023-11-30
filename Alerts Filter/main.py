@@ -18,7 +18,7 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 def on_event_data_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
     # print('===============================>>>>>>>>>>>>>', data)
     # handle your event data here
-    print(data['status'])
+    print(data)
 
 
 
