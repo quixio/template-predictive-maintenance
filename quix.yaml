@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 60
+        value: 30
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
@@ -252,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 0357920cfe633a43803027a6f370bf6102ce89c9
+    version: a9995c91e00e88c47420cafb7db1148a5af82642
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
