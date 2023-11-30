@@ -237,7 +237,7 @@ deployments:
       cpu: {{ down_sampling_cpu }}
       memory: {{ down_sampling_memory }}
       replicas: {{ down_sampling_replicas }}
-    desiredStatus: Stopped
+    desiredStatus: Running
     variables:
       - name: input
         inputType: InputTopic
