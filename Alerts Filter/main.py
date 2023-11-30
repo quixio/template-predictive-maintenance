@@ -16,8 +16,8 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
 
 # Handle event data from samples that emit event data
 def on_event_data_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
-    if data.id == 'over-alert':
-        print(data)
+    #if data.id == 'over-alert':
+    print(data)
 
 
 
