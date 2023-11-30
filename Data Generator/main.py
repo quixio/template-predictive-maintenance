@@ -190,7 +190,11 @@ async def main():
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
+    # Measure time to generate data
+    start_time = datetime.now()
     printer_data = generate_data()
+    end_time = datetime.now()
+    print(f"Data generation took {end_time - start_time} seconds.")
 
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
