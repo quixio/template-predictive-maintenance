@@ -19,11 +19,6 @@ def on_event_data_received_handler(stream_consumer: qx.StreamConsumer, data: qx.
     if data.id == 'over-forecast' or data.id == 'under-forecast':
         print(data)
 
-    if data.id == 'over-now' or data.id == 'under-now':
-        print(data)
-
-
-
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     # subscribe to new DataFrames being received
     # if you aren't familiar with DataFrames there are other callbacks available
