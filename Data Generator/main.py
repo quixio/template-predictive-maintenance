@@ -58,7 +58,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
 
-    start_timestamp = datetime.now().replace(microsecond=0).timestamp()
+    start_timestamp = datetime.now().replace(microsecond=0)
     elapsed_seconds = 0
 
     for i in range(datalength):
@@ -119,14 +119,15 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         stream.timeseries.buffer.publish(df)
         logging.debug(f"{printer}: Published:\n{df}")
 
-        next_timestamp = timestamp + timedelta(seconds=1)
+        next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
+        elapsed_seconds += 1
 
-        a = (next_timestamp.timestamp() - start_timestamp) / replay_speed
+        # Dataframe should be sent at initial_timestamp + elapsed_seconds / replay_speed
+        target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
+        delay_seconds = target_time.timestamp() - datetime.now().timestamp()
+
         print("next", next_timestamp.timestamp())
-        print("a", a)
-        b = datetime.now().timestamp()
-        print("b", b)
-        delay_seconds = a
+        print("target", target_time)
         print("delay", delay_seconds)
 
 
