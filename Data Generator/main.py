@@ -58,6 +58,9 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
 
+    start_timestamp = datetime.now().replace(microsecond=0)
+    elapsed_seconds = 0
+
     for i in range(datalength):
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
@@ -116,9 +119,15 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         stream.timeseries.buffer.publish(df)
         logging.debug(f"{printer}: Published:\n{df}")
 
-        next_timestamp = timestamp + timedelta(seconds=1)
-        time_difference = next_timestamp - timestamp
-        delay_seconds = time_difference.total_seconds() / replay_speed
+        next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
+        elapsed_seconds += 1
+
+        # Dataframe should be sent at initial_timestamp + elapsed_seconds / replay_speed
+        target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
+        delay_seconds = target_time.timestamp() - datetime.now().timestamp()
+
+        # time_difference = next_timestamp - timestamp
+        # delay_seconds = time_difference.total_seconds() / replay_speed
         logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
         await asyncio.sleep(delay_seconds)
         timestamp = next_timestamp
