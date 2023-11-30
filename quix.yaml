@@ -45,7 +45,7 @@ deployments:
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 30
+        value: 20
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
