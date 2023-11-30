@@ -184,7 +184,8 @@ async def main():
         number_of_printers = int(os.environ['number_of_printers'])
 
     tasks = []
-
+    printer_number = None
+    
     for i in range(number_of_printers):
         if storage.contains_key("printer"):
             printer_number = storage.get("printer")
