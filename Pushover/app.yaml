@@ -1,0 +1,26 @@
+name: Pushover
+language: python
+variables:
+  - name: input
+    inputType: InputTopic
+    description: Name of the input topic to listen to.
+    defaultValue: ambient-alerts
+    required: true
+  - name: base_url
+    inputType: FreeText
+    description: The webhook url to send notifications to
+    defaultValue: https://api.pushover.net/1/messages.json?
+    required: true
+  - name: api_token
+    inputType: HiddenText
+    description: Generate an API token on the Pushover website
+    defaultValue: ''
+    required: false
+  - name: user_key
+    inputType: FreeText
+    description: User key for the Pushover mobile app
+    defaultValue: ''
+    required: false
+dockerfile: build/dockerfile
+runEntryPoint: main.py
+defaultFile: quix_functions.py
