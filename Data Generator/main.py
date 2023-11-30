@@ -128,7 +128,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         print("a", a)
         b = datetime.now().timestamp()
         print("b", b)
-        delay_seconds = b - a
+        delay_seconds = a
         print("delay", delay_seconds)
 
 
