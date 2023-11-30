@@ -183,6 +183,7 @@ def main():
     for i in range(number_of_printers):
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
+        print("Creating printer", name)
 
         p = Process(target=generate_data_and_close_stream, args=(topic_producer, name, i * 20,))
         p.start()
