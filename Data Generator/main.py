@@ -58,12 +58,10 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
     fluctuation_end = timestamp
     fluctuation_amplitude = 0
 
-    start_timestamp = datetime.now().timestamp()
+    start_timestamp = datetime.now().replace(microsecond=0).timestamp()
     elapsed_seconds = 0
 
     for i in range(datalength):
-        elapsed_seconds += 1
-
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
 
