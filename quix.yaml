@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 45e192de1a8b6f20ddbfdb1aa1e98ff05cc74895
+    version: 6c06e79008acb3526716b367688e16a681640cf5
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 20
+        value: 60
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"

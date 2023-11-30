@@ -1,15 +1,13 @@
 import asyncio
+import logging
 import math
-
-import quixstreams as qx
-
 import os
 import random
-from datetime import datetime, timedelta, timezone
+import sys
+from datetime import datetime, timedelta
 
 import pandas as pd
-import logging
-import sys
+import quixstreams as qx
 
 # Configure logging
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
@@ -86,12 +84,10 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             bed_temperature -= anomaly_fluctuation / 2 * math.sin(
                 math.pi * (bed_anomaly_end - i) / (bed_anomaly_end - bed_anomaly_start))
 
-        # Introduce a curve-like downward trend every 2 hours
-        time_since_2_hours = i % (2 * 3600)
-        two_hours = 2 * 3600
-        if time_since_2_hours > 3600:
+        # Introduce a curve-like downward trend in the final half of the data range
+        if i > datalength / 2:
             # Calculate the proportion of the way through the second half of the data
-            proportion = 2 * (time_since_2_hours - two_hours / 2) / two_hours
+            proportion = 2 * (i - datalength / 2) / datalength
             # Use a quadratic function to calculate the decrease
             ambient_t = target_ambient_t - (target_ambient_t / 2) * (proportion ** 2)
 
@@ -106,7 +102,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
                 next_fluctuation = timestamp + timedelta(seconds=random.randint(5, 300))
                 fluctuation_duration = timedelta(seconds=random.randint(1, 4))
                 fluctuation_end = next_fluctuation + fluctuation_duration
-                fluctuation_amplitude = random.uniform(-3, 3)
+                fluctuation_amplitude = random.uniform(-2, 2)
 
         fluctuated_ambient_temperatures.append(fluctuated_ambient_temperature)
 
@@ -149,10 +145,10 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.properties.metadata["start_time"] = str(int(datetime.utcnow().timestamp()) * 1000000000)
         stream.properties.metadata["end_time"] = str(int(datetime.utcnow().timestamp() + int(os.environ['datalength']) / replay_speed) * 1000000000)
 
-        # Temperature will drop below threshold in second 5210 after 0, 2, 4 and 6 hours
-        failure_timestamps = [int(datetime.utcnow().timestamp() + 5210 + x * 7200) * 1000000000 for x in range(4)]
+        # Temperature will drop below threshold in second 20839
+        failure_timestamps = [int(datetime.utcnow().timestamp() + 20839) * 1000000000]
         failure_replay_speed_timestamps = [
-            int(datetime.utcnow().timestamp() + (5210 + x * 7200) / replay_speed) * 1000000000 for x in range(4)]
+            int(datetime.utcnow().timestamp() + 20839 / replay_speed) * 1000000000]
 
         stream.properties.metadata["failures"] = str(failure_timestamps)
         stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
