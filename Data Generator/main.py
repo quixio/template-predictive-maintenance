@@ -132,7 +132,14 @@ def generate_data(printer: str, stream: qx.StreamProducer):
         timestamp = next_timestamp
 
 
-def generate_data_and_close_stream(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
+def generate_data_and_close_stream(printer: str, initial_delay: int):
+    # Quix injects credentials automatically to the client.
+    # Alternatively, you can always pass an SDK token manually as an argument.
+    client = qx.QuixStreamingClient()
+
+    # Open the output topic where to write data out
+    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
+
     time.sleep(initial_delay)
     while True:
         stream = topic_producer.create_stream()
@@ -167,12 +174,7 @@ def generate_data_and_close_stream(topic_producer: qx.TopicProducer, printer: st
 
 
 def main():
-    # Quix injects credentials automatically to the client.
-    # Alternatively, you can always pass an SDK token manually as an argument.
-    client = qx.QuixStreamingClient()
 
-    # Open the output topic where to write data out
-    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
@@ -187,7 +189,7 @@ def main():
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
         print("Creating printer", name)
 
-        p = Process(target=generate_data_and_close_stream, args=(topic_producer, name, i * 20,))
+        p = Process(target=generate_data_and_close_stream, args=(name, i * 20,))
         p.start()
         tasks.append(p)
 
