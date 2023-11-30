@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 8a09b32159d7b9c31f042abeb632c65453f8c13a
+    version: 60ff29c2173e2cb13d7a5d1a8b1325aa292bec21
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
