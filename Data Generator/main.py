@@ -126,11 +126,6 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
         delay_seconds = target_time.timestamp() - datetime.now().timestamp()
 
-        print("next", next_timestamp.timestamp())
-        print("target", target_time)
-        print("delay", delay_seconds)
-
-
         # time_difference = next_timestamp - timestamp
         # delay_seconds = time_difference.total_seconds() / replay_speed
         logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
