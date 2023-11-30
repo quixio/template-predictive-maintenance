@@ -124,7 +124,7 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         next_timestamp = timestamp + timedelta(seconds=1)
 
         a = (next_timestamp.timestamp() - start_timestamp) / replay_speed
-        print("next", next_timestamp.timestamp)
+        print("next", next_timestamp.timestamp())
         print("a", a)
         b = datetime.now().timestamp()
         print("b", b)
