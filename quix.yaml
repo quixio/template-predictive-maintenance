@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 20
+        value: 120
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
