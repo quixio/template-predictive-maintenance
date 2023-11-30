@@ -5,7 +5,7 @@ import quixstreams as qx
 
 import os
 import random
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pandas as pd
 import logging
@@ -70,7 +70,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             # Continue anomaly if within duration
 
         if i <= hotend_anomaly_end:
-            hotend_temperature -= anomaly_fluctuation * math.sin(math.pi * (hotend_anomaly_end - i) / (hotend_anomaly_end - hotend_anomaly_start))
+            hotend_temperature -= anomaly_fluctuation * math.sin(
+                math.pi * (hotend_anomaly_end - i) / (hotend_anomaly_end - hotend_anomaly_start))
 
         if i in bed_anomaly_timestamps:
             # Start a new anomaly
@@ -79,7 +80,8 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
             # Continue anomaly if within duration
 
         if i <= bed_anomaly_end:
-            bed_temperature -= anomaly_fluctuation / 2 * math.sin(math.pi * (bed_anomaly_end - i) / (bed_anomaly_end - bed_anomaly_start))
+            bed_temperature -= anomaly_fluctuation / 2 * math.sin(
+                math.pi * (bed_anomaly_end - i) / (bed_anomaly_end - bed_anomaly_start))
 
         # Introduce a curve-like downward trend every 2 hours
         time_since_2_hours = i % (2 * 3600)
@@ -133,12 +135,18 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.timeseries.add_definition("bed_temperature", "Bed temperature")
         stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
         stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
-        stream.events.add_definition("printer-finished", "Printer finished printing")
-        stream.properties.metadata["start_time"] = str(int(datetime.now().timestamp()) * 1000000000)
+
+        # Add metadata about printer
+        stream.properties.metadata["start_time"] = str(int(datetime.utcnow().timestamp()) * 1000000000)
+        stream.properties.metadata["end_time"] = str(int(datetime.utcnow().timestamp() + int(os.environ['datalength']) / replay_speed) * 1000000000)
 
         # Temperature will drop below threshold in second 5210 after 0, 2, 4 and 6 hours
-        stream.properties.metadata["failures"] = str([int(datetime.now().timestamp() + 5210 + x * 7200) * 1000000000 for x in range(4)])
-        stream.properties.metadata["failures-replay-speed"] = str([int(datetime.now().timestamp() + (5210 + x * 7200) / replay_speed) * 1000000000 for x in range(4)])
+        failure_timestamps = [int(datetime.utcnow().timestamp() + 5210 + x * 7200) * 1000000000 for x in range(4)]
+        failure_replay_speed_timestamps = [
+            int(datetime.utcnow().timestamp() + (5210 + x * 7200) / replay_speed) * 1000000000 for x in range(4)]
+
+        stream.properties.metadata["failures"] = str(failure_timestamps)
+        stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
         await generate_data(printer, stream)
@@ -171,7 +179,7 @@ async def main():
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
         # Start sending data, each printer will start 5 minutes after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, i * 300)))
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, i * 20)))
 
     await asyncio.gather(*tasks)
 
