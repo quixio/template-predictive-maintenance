@@ -39,6 +39,26 @@ def on_dataframe_received_handler(stream_consumer: qx.StreamConsumer, df: pd.Dat
         print(e)
 
 
+def on_event_received_handler(stream_consumer: qx.StreamConsumer, data: qx.EventData):
+    df = pd.DataFrame({'time': [data.timestamp],
+                    'id': [data.id],
+                    'value': [data.value]})
+
+    # Convert timestamp to datetime and set it as the index
+    df['time'] = pd.to_datetime(df['time'])
+    df.set_index('time', inplace=True)
+    df["stream_id"] = stream_consumer.stream_id
+
+    print(df)
+
+    try:
+        client.write(df, data_frame_measurement_name=measurement_name, data_frame_tag_columns=tag_columns) 
+        print(f"{str(datetime.datetime.utcnow())}: Persisted {df.shape[0]} rows.")
+    except Exception as e:
+        print("{str(datetime.datetime.utcnow())}: Write failed")
+        print(e)
+
+
 def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     
     # Buffer to batch rows every 250ms to reduce CPU overhead.
@@ -46,6 +66,8 @@ def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
     buffer.time_span_in_milliseconds = 250
 
     buffer.on_dataframe_released = on_dataframe_received_handler
+    stream_consumer.events.on_data_received = on_event_received_handler
+
 
 
 # subscribe to new streams being received
