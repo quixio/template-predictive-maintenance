@@ -113,7 +113,7 @@ def generate_data():
             [[hotend_temperature, bed_temperature, ambient_temperature,
               fluctuated_ambient_temperature]],
             columns=['hotend_temperature', 'bed_temperature', 'ambient_temperature',
-                     'fluctuated_ambient_temperature', 'TAG__printer'])
+                     'fluctuated_ambient_temperature'])
 
         data.append(df)
 
