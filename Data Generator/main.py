@@ -1,10 +1,11 @@
-import asyncio
 import logging
 import math
 import os
 import random
 import sys
+import time
 from datetime import datetime, timedelta
+from multiprocessing import Process
 
 import pandas as pd
 import quixstreams as qx
@@ -28,7 +29,7 @@ def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
 
 
-async def generate_data(printer: str, stream: qx.StreamProducer):
+def generate_data(printer: str, stream: qx.StreamProducer):
     target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
     hotend_t = int(os.environ['hotend_t'])  # 250  # MAKE ENV VAR: target temperature for the hotend
     bed_t = int(os.environ['bed_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
@@ -125,12 +126,12 @@ async def generate_data(printer: str, stream: qx.StreamProducer):
         # time_difference = next_timestamp - timestamp
         # delay_seconds = time_difference.total_seconds() / replay_speed
         logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
-        await asyncio.sleep(delay_seconds)
+        time.sleep(delay_seconds)
         timestamp = next_timestamp
 
 
-async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
-    await asyncio.sleep(initial_delay)
+def generate_data_and_close_stream(topic_producer: qx.TopicProducer, printer: str, initial_delay: int):
+    time.sleep(initial_delay)
     while True:
         stream = topic_producer.create_stream()
         stream.properties.name = printer
@@ -154,16 +155,16 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
 
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
-        await generate_data(printer, stream)
+        generate_data(printer, stream)
 
         print(f"{printer}: Closing stream")
         stream.close()
 
         # Wait 5 minutes before starting again
-        await asyncio.sleep(5 * 60)
+        time.sleep(5 * 60)
 
 
-async def main():
+def main():
     # Quix injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument.
     client = qx.QuixStreamingClient()
@@ -183,11 +184,13 @@ async def main():
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
-        # Start sending data, each printer will start 5 minutes after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, i * 20)))
+        p = Process(target=generate_data_and_close_stream, args=(topic_producer, name, i * 20,))
+        p.start()
+        tasks.append(p)
 
-    await asyncio.gather(*tasks)
+    for task in tasks:
+        task.join()
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    main()

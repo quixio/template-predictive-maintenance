@@ -218,7 +218,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         else:
             alert_status = {
                 "status": NO_ALERT,
-                "parameter_name": parameter_name,
+                "parameter_name": forecast_label,
                 "message": f"The value of '{parameter_friendly_name}' is not expected to hit the threshold of "
                            f"{low_threshold}ºC within the forecast range.",
                 "alert_timestamp": datetime.timestamp(pd.to_datetime(fcast['timestamp'].iloc[0])) * 1e9,
@@ -237,10 +237,10 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         # Tag the data with the printer name for joining operations later
         event.add_tag("TAG__printer", stream_consumer.properties.name)
         stream_alerts_producer.events.publish(event)
-        alerts_triggered[stream_consumer.stream_id]["forecast_" + parameter_name] = True
+        alerts_triggered[stream_consumer.stream_id][forecast_label] = True
 
     elif alert_status["status"] == NO_ALERT:
-        alert_already_triggered = alerts_triggered[stream_consumer.stream_id].get("forecast_" + parameter_name, False)
+        alert_already_triggered = alerts_triggered[stream_consumer.stream_id].get(forecast_label, False)
 
         if not alert_already_triggered:
             print(f"{stream_consumer.properties.name}: Not setting to no alert because alert was not triggered: {alert_status['message']}")
@@ -251,7 +251,7 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
                                                                  stream_consumer.properties.name)
             event = qx.EventData(alert_status["status"], pd.Timestamp.utcnow(), json.dumps(alert_status))
             stream_alerts_producer.events.publish(event)
-            alerts_triggered[stream_consumer.stream_id]["forecast_" + parameter_name] = False
+            alerts_triggered[stream_consumer.stream_id][forecast_label] = False
 
 
 def on_forecast_stream_received_handler(stream_consumer: qx.StreamConsumer):
