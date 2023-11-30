@@ -307,7 +307,7 @@ deployments:
   - name: Alerts Filter
     application: Alerts Filter
     deploymentType: Service
-    version: alerts-filter-v2
+    version: alerts-filter-v4
     resources:
       cpu: 200
       memory: 500
