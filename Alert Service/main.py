@@ -37,10 +37,12 @@ def all_are_higher(param1: list, param2: list):
     return True
 
 
-THRESHOLDS = {'ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
-              'fluctuated_ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
-              'bed_temperature': (int(os.environ["min_bed_temperature"]), int(os.environ["max_bed_temperature"])),
-              'hotend_temperature': (int(os.environ["min_hotend_temperature"]), int(os.environ["max_hotend_temperature"]))}
+THRESHOLDS = {
+    'ambient_temperature': (int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
+    'fluctuated_ambient_temperature': (
+    int(os.environ["min_ambient_temperature"]), int(os.environ["max_ambient_temperature"])),
+    'bed_temperature': (int(os.environ["min_bed_temperature"]), int(os.environ["max_bed_temperature"])),
+    'hotend_temperature': (int(os.environ["min_hotend_temperature"]), int(os.environ["max_hotend_temperature"]))}
 
 FRIENDLY_NAMES = {'ambient_temperature': "Ambient temperature",
                   'fluctuated_ambient_temperature': "Ambient temperature",
@@ -98,6 +100,7 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
                 "message": f"'{friendly_name}' is over the threshold ({THRESHOLDS[parameter][1]}ºC)"
             }
 
+        # We have an alert and it wasn't triggered yet
         if alert is not None and not is_alert_triggered(stream_consumer.stream_id, parameter):
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
@@ -106,7 +109,10 @@ def on_printer_dataframe_received(stream_consumer: qx.StreamConsumer, df: pd.Dat
             set_alerts_triggered(stream_consumer.stream_id, parameter, True)
             print(f"{stream_consumer.properties.name}: Triggering alert: {alert['message']}")
 
-        if alert is None and is_alert_triggered(stream_consumer.stream_id, parameter):
+        # If alert was triggered, wait until the temperature reaches normal values plus a margin
+        # to avoid quickly triggering on/off alerts
+        if alert is None and is_alert_triggered(stream_consumer.stream_id, parameter) \
+                and THRESHOLDS[parameter][0] + 0.75 < df[parameter].iloc[-1] < THRESHOLDS[parameter][1] - 0.75:
             stream_alerts_producer = get_or_create_alerts_stream(stream_consumer.stream_id,
                                                                  stream_consumer.properties.name)
             alert = {
@@ -243,7 +249,8 @@ def on_forecast_dataframe_received(stream_consumer: qx.StreamConsumer, fcast: pd
         alert_already_triggered = alerts_triggered[stream_consumer.stream_id].get("forecast_" + parameter_name, False)
 
         if not alert_already_triggered:
-            print(f"{stream_consumer.properties.name}: Not setting to no alert because alert was not triggered: {alert_status['message']}")
+            print(
+                f"{stream_consumer.properties.name}: Not setting to no alert because alert was not triggered: {alert_status['message']}")
         else:
             # If it was triggered, and now it's not, send a "no-alert" event
             print(f"{stream_consumer.properties.name}: Setting to no alert: {alert_status['message']}")
