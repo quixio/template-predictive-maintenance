@@ -90,19 +90,21 @@
               matTooltip="Closed stream" [matTooltipDisabled]="stream.status === 'Receiving'"
               matTooltipPosition="above" matTooltipClass="mb-n5">
               {{ stream.name || stream.streamId }}
-              <span class="text-muted" *ngIf="printerStreamsFailureTime[i]">
-                (Time to failure: {{ forHumans(printerStreamsFailureTime[i], 2) || 0 }})
-              </span>
-              <span class="text-muted" *ngIf="!printerStreamsFailureTime[i]">
-                (Time to close: {{ forHumans(printerStreamsEndTime[i], 2) || 0 }})
-              </span>
+              <ng-container *ngIf="stream.status === 'Receiving'">
+                <span class="text-muted" *ngIf="printerStreamsFailureTime[i]">
+                  (Time to failure: {{ forHumans(printerStreamsFailureTime[i], 2) || 0 }})
+                </span>
+                <span class="text-muted" *ngIf="!printerStreamsFailureTime[i]">
+                  (Time to close: {{ forHumans(printerStreamsEndTime[i], 2) || 0 }})
+                </span>
+              </ng-container>
             </mat-option>
           </mat-select>
         </mat-form-field>
       </div>
       <div class="mb-3">
         <h4 class="mb-2 mat-subtitle-2">Tracking the printers’ temperature sensors</h4>
-        <p class="text-body mb-3">
+        <p class="text-body mb-0">
           When printing with a heat-sensitive material such as ABS (Acrylonitrile Butadiene Styrene),
           it’s important to ensure that the temperatures remain stable.
           <br />
