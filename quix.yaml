@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: b5f10c7ae4dcfa7eca32f491865e4e3e5a03854f
+    version: 4bbbf3c4ff301f9d2e446e84a37112e05422ba60
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -45,7 +45,7 @@ deployments:
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 80
+        value: 50
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
