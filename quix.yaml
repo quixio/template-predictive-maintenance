@@ -393,7 +393,7 @@ topics:
       retentionInMinutes: 1440
       retentionInBytes: 52428800
   - name: mqtt_test
-    persisted: false
+    persisted: true
     configuration:
       partitions: 1
       replicationFactor: 2
