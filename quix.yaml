@@ -45,12 +45,12 @@ deployments:
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 30
+        value: 40
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
         required: true
-        value: 200
+        value: 100
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
@@ -85,7 +85,7 @@ deployments:
         inputType: FreeText
         description: Window value
         required: true
-        value: 12
+        value: 30
       - name: window_type
         inputType: FreeText
         description: 1 for "Number of Observations", 2 for "Time Period"
@@ -104,7 +104,7 @@ deployments:
   - name: Printers Dashboard
     application: Printer Dashboard
     deploymentType: Service
-    version: 3f6929e57ea148cba0b9b91800f6fb8eef8729b1
+    version: 955e28dce01ab153358b24d7d591c69516bb72e8
     resources:
       cpu: 200
       memory: 500
@@ -142,7 +142,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
-    version: 9fc18a8559209c4663f02fc01e847c1282f55705
+    version: 5958238405eb10eaa8a435630714570fa09343be
     resources:
       cpu: 200
       memory: 500
@@ -187,7 +187,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0
     deploymentType: Service
-    version: 9fc18a8559209c4663f02fc01e847c1282f55705
+    version: 5958238405eb10eaa8a435630714570fa09343be
     resources:
       cpu: 500
       memory: 500
@@ -252,7 +252,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 0357920cfe633a43803027a6f370bf6102ce89c9
+    version: a9995c91e00e88c47420cafb7db1148a5af82642
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
