@@ -1,7 +1,7 @@
 import dask.array as da
 
 # Create a large array filled with random numbers
-x = da.random.random((10000, 10000), chunks=(1000, 1000))
+x = da.random.random((1000000, 1000000), chunks=(1000000, 1000000))
 
 # Perform some computation on the array
 y = x + x.T
