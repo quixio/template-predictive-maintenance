@@ -140,13 +140,11 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
         target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
         delay_seconds = target_time.timestamp() - datetime.now().timestamp()
 
-        # time_difference = next_timestamp - timestamp
-        # delay_seconds = time_difference.total_seconds() / replay_speed
-        logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
-
         if delay_seconds < 0:
-            logging.warning(f"{printer}: Not enough CPU to keep up with replay speed.")
-        await asyncio.sleep(delay_seconds)
+            logging.warning(f"{printer}: Not enough CPU to keep up with replay speed")
+        else:
+            logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
+            await asyncio.sleep(delay_seconds)
 
 
 async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, printer_data: list, initial_delay: int):
@@ -191,12 +189,6 @@ async def main():
     # Open the output topic where to write data out
     topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
 
-    # Measure time to generate data
-    start_time = datetime.now()
-    printer_data = generate_data()
-    end_time = datetime.now()
-    print(f"Data generation took {end_time - start_time} seconds.")
-
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
         number_of_printers = 1
@@ -204,13 +196,17 @@ async def main():
         number_of_printers = int(os.environ['number_of_printers'])
 
     tasks = []
+    printer_data = generate_data()
+
+    # Distribute all printers over the data length
+    delay_seconds = int(os.environ['datalength']) / replay_speed / number_of_printers
 
     for i in range(number_of_printers):
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
-        # Start sending data, each printer will start 5 minutes after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), i * 20)))
+        # Start sending data, each printer will start with some delay after the previous one
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), delay_seconds * i)))
 
     await asyncio.gather(*tasks)
 
