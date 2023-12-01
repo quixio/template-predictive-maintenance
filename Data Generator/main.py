@@ -199,12 +199,15 @@ async def main():
     tasks = []
     printer_data = generate_data()
 
+    # Distribute all printers over the data length
+    delay_seconds = int(os.environ['datalength']) / replay_speed / number_of_printers
+
     for i in range(number_of_printers):
         # Set stream ID or leave parameters empty to get stream ID generated.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
-        # Start sending data, each printer will start 1 minute after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), i * 60)))
+        # Start sending data, each printer will start with some delay after the previous one
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), delay_seconds * i)))
 
     await asyncio.gather(*tasks)
 
