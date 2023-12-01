@@ -206,7 +206,7 @@ async def main():
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
         # Start sending data, each printer will start with some delay after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), delay_seconds * i)))
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), 0)))
 
     await asyncio.gather(*tasks)
 
