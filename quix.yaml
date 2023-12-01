@@ -354,6 +354,15 @@ deployments:
         description: Pushover API token for application
         required: false
         secretKey: api_token
+  - name: dask
+    application: dask
+    deploymentType: Job
+    version: 3bfdeb5639bc4c82f06039ee74dcbddee2d26e31
+    resources:
+      cpu: 8000
+      memory: 16384
+      replicas: 1
+    variables: []
 
 # This section describes the Topics of the data pipeline
 topics:
