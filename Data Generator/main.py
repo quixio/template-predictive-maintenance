@@ -145,7 +145,7 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
         logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
 
         if delay_seconds < 0:
-            logging.warn(f"{printer}: Not enough CPU to keep up with replay speed.")
+            logging.warning(f"{printer}: Not enough CPU to keep up with replay speed.")
         await asyncio.sleep(delay_seconds)
 
 
