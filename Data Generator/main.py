@@ -17,7 +17,7 @@ pd.set_option('display.max_columns', None)
 
 # Replay speed
 replay_speed = 10.0
-anomaly_fluctuation = 20  # was 3
+anomaly_fluctuation = 9  # was 3
 hot_end_anomaly_min_duration = 30  # 3
 hot_end_anomaly_max_duration = 35  # 5
 bed_anomaly_min_duration = 30  # 9
