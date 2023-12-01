@@ -28,7 +28,6 @@ def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
 
 
-
 def generate_data():
     data = []
     target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
@@ -144,6 +143,9 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
         # time_difference = next_timestamp - timestamp
         # delay_seconds = time_difference.total_seconds() / replay_speed
         logging.debug(f"{printer}: Waiting {delay_seconds} seconds to send next data point.")
+
+        if delay_seconds < 0:
+            logging.warn(f"{printer}: Not enough CPU to keep up with replay speed.")
         await asyncio.sleep(delay_seconds)
 
 
