@@ -154,7 +154,7 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream = topic_producer.create_stream()
         stream.properties.name = printer
         
-        stream.timeseries.buffer.time_span_in_milliseconds = 1000
+        stream.timeseries.buffer.time_span_in_milliseconds = 500
 
         # Add metadata about time series data you are about to send.
         stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
