@@ -1,12 +1,11 @@
-import quixstreams as qx
-import os
+import dask.array as da
 
-# Quix injects credentials automatically to the client.
-# Alternatively, you can always pass an SDK token manually as an argument.
-client = qx.QuixStreamingClient()
+# Create a large array filled with random numbers
+x = da.random.random((10000, 10000), chunks=(1000, 1000))
 
-# Use Input / Output topics to stream data in or out of your service
-consumer_topic = client.get_topic_consumer(os.environ["input"])
-producer_topic = client.get_topic_producer(os.environ["output"])
+# Perform some computation on the array
+y = x + x.T
+z = y.mean(axis=0)
 
-# for more samples, please see samples or docs
+# Compute the result in parallel
+result = z.compute()
