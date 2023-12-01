@@ -28,7 +28,6 @@ def temp(target, sigma, offset):
     return target + offset + random.gauss(0, sigma)
 
 
-
 def generate_data():
     data = []
     target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
