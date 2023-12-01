@@ -146,7 +146,7 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
         else:
             logging.debug(f"{printer : <10}: Waiting {delay_seconds:.3f} seconds to send next data point.")
             await asyncio.sleep(delay_seconds)
-            stream.timeseries.buffer.time_span_in_milliseconds = 0
+            stream.timeseries.buffer.time_span_in_milliseconds = 250
 
 
 
@@ -155,6 +155,8 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
     while True:
         stream = topic_producer.create_stream()
         stream.properties.name = printer
+        
+        stream.timeseries.buffer.time_span_in_milliseconds = 250
 
         # Add metadata about time series data you are about to send.
         stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
