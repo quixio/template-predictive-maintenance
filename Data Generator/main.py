@@ -142,11 +142,9 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
 
         if delay_seconds < 0:
             logging.warning(f"{printer : <10}: Not enough CPU to keep up with replay speed")
-            stream.timeseries.buffer.time_span_in_nanoseconds += 1000
         else:
             logging.debug(f"{printer : <10}: Waiting {delay_seconds:.3f} seconds to send next data point.")
             await asyncio.sleep(delay_seconds)
-            stream.timeseries.buffer.time_span_in_nanoseconds = 600
 
 
 
@@ -156,7 +154,7 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
         stream = topic_producer.create_stream()
         stream.properties.name = printer
         
-        stream.timeseries.buffer.time_span_in_milliseconds = 600
+        stream.timeseries.buffer.time_span_in_milliseconds = 1000
 
         # Add metadata about time series data you are about to send.
         stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
