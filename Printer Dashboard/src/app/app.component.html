@@ -33,7 +33,7 @@
     [opened]="!media.isActive(['sm', 'xs'])" class="mat-elevation-z4" #sidenav>
     <div class="p-5">
       <div class="mb-5">
-        <h1 class="mb-1">Real-time Failure Prediction for a 3D Printer</h1>
+        <h1 class="mb-1">Real-time Failure Predictions for a 3D Printer</h1>
         <p class="mb-3 text-body text-uppercase">Project template</p>
         <p class="mat-body-1">
           This project demonstrates how easy it is to do real-time predictive analytics on any machine with sensors
@@ -58,24 +58,25 @@
         </div>
       </div>
       <div class="mb-5">
-        <p>Built with Quix, Aiven and Grafana</p>
+        <p>Built with Quix, Aiven and InfluxDB</p>
         <div fxLayout="row" fxFlexAlign="start center">
           <img src="assets/quix-logo-black.svg" alt="Quix" height="25" />
           <mat-divider [vertical]="true" class="mx-3 border-dark"></mat-divider>
           <img src="assets/aiven.png" alt="Aiven" height="25" />
           <mat-divider [vertical]="true" class="mx-3 border-dark"></mat-divider>
-          <img src="assets/grafana.svg" alt="Grafana" height="25" />
+          <img src="assets/influxdata.svg" alt="Grafana" height="25" />
         </div>
       </div>
       <div class="mb-3">
         <h4 class="mb-2 mat-subtitle-2">Select a printer</h4>
         <p class="text-body mb-3">
-          Each "virtual" printer is continuously printing in 8 hour cycles. For each printer,
-          the enclosure temperature is programmed to drop below the minimum threshold at approximately 1h27m, 3h27m, 5h27m and 7h27m into the print.
-          So each print will have 4 failure points.
+          Each “virtual” printer is continuously printing in 8 hour cycles. For each printer,
+          the enclosure temperature is programmed to decrease starting at the 4 hour point. It will
+          drop below the minimum threshold of 45&deg;C at 5h:47m — the failure point.
           <br />
           <br />
-          <b>Note</b> that since the data is running at 10 times normal speed, the print lasts 48 minutes and a failure occurs approximately every 00h 08m 50s.
+          We have increased the simulation speed 10x so the temperature will actually start to drop
+          at approximately 24minutes and cross the minimum threshold at around 34m 44s.
           <br />
           <br />
           To see forecast update after the failure point,
@@ -116,8 +117,8 @@
           <img src="assets/printer.png" alt="3D printer" height="300">
         </div>
         <p>
-          In our simulation, the enclosure temperature starts to drop below the minimum threshold at
-          <b>1h27m</b>, <b>3h27m</b>, <b>5h27m</b> and <b>7h27m</b>.
+          In our simulation, the enclosure temperature slowly starts to drop about halfway through
+          the print (at <b>4hrs</b>).
         </p>
         <div fxLayoutAlign="center" class="my-4">
           <img src="assets/chart.png" alt="chart" height="150" class="border">
@@ -128,7 +129,8 @@
           <br />
           <br />
           Our demo forecasting algorithm that attempts to estimate when this is going to happen,
-          sends a Slack alert, and displays the alert on a dashboard.
+          sends an event to the UI, and displays it in the events panel. This event can also be
+          sent as an alert to Slack or other messaging platforms.
           <br />
           <br />
           For more information on how to use this template, see the
