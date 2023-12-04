@@ -14,7 +14,7 @@ deployments:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
       replicas: {{ data_generator_replicas}}
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: output
         inputType: OutputTopic
