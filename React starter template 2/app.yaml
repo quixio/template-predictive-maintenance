@@ -1,15 +1,15 @@
-name: React starter template 2
+name: Basic React App
 language: nodejs
 variables:
   - name: input
     inputType: InputTopic
-    description: The topic to pub/sub
-    defaultValue: ''
+    description: The topic to read from
+    defaultValue: hello-world-source
     required: true
   - name: bearer_token
     inputType: FreeText
-    description: Your bearer_token
+    description: ''
     defaultValue: ''
-    required: true
+    required: false
 dockerfile: src/build/dockerfile
 defaultFile: src/services/quix.ts
