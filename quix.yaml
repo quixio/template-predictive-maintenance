@@ -1,0 +1,337 @@
+# Quix Project Descriptor
+# This file describes the data pipeline and configuration of resources of a Quix Project.
+
+metadata:
+  version: 1.0
+
+# This section describes the Deployments of the data pipeline
+deployments:
+  - name: Data Generator
+    application: Data Generator
+    deploymentType: Service
+    version: f3273d755c1e767d02dfd6c88826588024e88d0f
+    resources:
+      cpu: {{ data_generator_cpu}}
+      memory: {{ data_generator_memory}}
+      replicas: {{ data_generator_replicas}}
+    desiredStatus: Running
+    variables:
+      - name: output
+        inputType: OutputTopic
+        description: This is the output topic for the generated 3D printer data
+        required: true
+        value: 3d-printer-data
+      - name: target_ambient_t
+        inputType: FreeText
+        description: Rarget ambient temperature
+        required: false
+        value: 50
+      - name: hotend_t
+        inputType: FreeText
+        description: Target temperature for the hotend
+        required: false
+        value: 250
+      - name: bed_t
+        inputType: FreeText
+        description: Target temperature for the bed
+        required: false
+        value: 110
+      - name: datalength
+        inputType: FreeText
+        description: Length of the data in seconds
+        required: false
+        value: 28800
+      - name: number_of_printers
+        inputType: FreeText
+        description: Number of printers to be created
+        required: false
+        value: 40
+      - name: number_of_anomalies
+        inputType: FreeText
+        description: Number of anomalies to be created
+        required: true
+        value: 100
+  - name: Forecast Service
+    application: Forecast Service
+    deploymentType: Service
+    version: 46fc86eb54c88751c11151b734ab0a9441b943b1
+    resources:
+      cpu: {{ forecast_service_cpu }}
+      memory: {{ forecast_service_memory }}
+      replicas: {{ forecast_service_replicas }}
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: Name of the input topic to listen to.
+        required: false
+        value: downsampled-3d-printer-data
+      - name: output
+        inputType: OutputTopic
+        description: Name of the output topic to write to.
+        required: false
+        value: forecast
+      - name: parameter_name
+        inputType: FreeText
+        description: Name of the parameter for forecasting
+        required: false
+        value: fluctuated_ambient_temperature
+      - name: debug
+        inputType: FreeText
+        description: Debug mode (1 enabled, 0 disabled)
+        required: false
+        value: 0
+      - name: window_value
+        inputType: FreeText
+        description: Window value
+        required: true
+        value: 30
+      - name: window_type
+        inputType: FreeText
+        description: 1 for "Number of Observations", 2 for "Time Period"
+        required: true
+        value: 1
+      - name: forecast_length
+        inputType: FreeText
+        description: Forecast length (check forecast_unit variable)
+        required: true
+        value: 480
+      - name: forecast_unit
+        inputType: FreeText
+        description: Unit for the forecast_length
+        required: true
+        value: min
+  - name: Printers Dashboard
+    application: Printer Dashboard
+    deploymentType: Service
+    version: 955e28dce01ab153358b24d7d591c69516bb72e8
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    publicAccess:
+      enabled: true
+      urlPrefix: dash
+    desiredStatus: Running
+    variables:
+      - name: bearer_token
+        inputType: FreeText
+        description: ''
+        required: false
+        value: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoiZGVtbyIsImh0dHBzOi8vcXVpeC5haS9yb2xlcyI6IiIsImlzcyI6Imh0dHBzOi8vYXV0aC5xdWl4LmFpLyIsInN1YiI6ImF1dGgwfDczOWMwODljLThjNzgtNDBmZi05OTQwLWFjNDVmZDlkMDUwYiIsImF1ZCI6WyJxdWl4IiwiaHR0cHM6Ly9sb2dpY2FsLXBsYXRmb3JtLmV1LmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3MDA1NjUyNjIsImV4cCI6MTcwMzE1NzI2MiwiYXpwIjoiMHptV2ZKZGtpdUdQaUpXeXBTQ0E4ckthVnZmUERLTEkiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwicGVybWlzc2lvbnMiOltdfQ.D7orYmlgR79lAlLWpB_WwT46S0Fj5-d6WImjfHayGnT3la39lny6bZe3LK1EBp40v3v_vkzFbZwePDFfVq7lnaHZauqLiTQPmY3clJ9ffY5YflttCj5UtpQJ07ZoZ4P31_8Td1q9-cZHs0fmbNTNyN4fy0-M9IJnUzYWaiLX1odISQpMOkx78UD-F4PCZrcnANBcFkZhaElhUAlCOQEpBruhItdONB3FJQ-KIVJRaYCrI3OixOY8zFqYGhWgA2DhMx0l8YwjEPBbaWf22GV8dyAz-b54vIzrBV8hyR0z4kPMLESbhcGCKFbYfjzCE7bk6lJNSQ_o7PXFiASAOONkJA
+      - name: Deployment__Id
+        inputType: FreeText
+        description: ''
+        required: false
+        value: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
+      - name: printer_data_topic
+        inputType: InputTopic
+        description: ''
+        required: true
+        value: 3d-printer-data
+      - name: forecast_topic
+        inputType: InputTopic
+        description: ''
+        required: true
+        value: forecast
+      - name: alerts_topic
+        inputType: InputTopic
+        description: The topic to receive alerts on
+        required: true
+        value: alerts
+  - name: InfluxDB 3.0 Alerts
+    application: InfluxDB 3.0
+    deploymentType: Service
+    version: 5958238405eb10eaa8a435630714570fa09343be
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: This is the input topic
+        required: true
+        value: alerts
+      - name: INFLUXDB_HOST
+        inputType: Secret
+        description: Host address for the InfluxDB instance.
+        required: true
+        secretKey: INFLUX_HOST
+      - name: INFLUXDB_TOKEN
+        inputType: Secret
+        description: Authentication token to access InfluxDB.
+        required: true
+        secretKey: INFLUX_TOKEN
+      - name: INFLUXDB_ORG
+        inputType: Secret
+        description: Organization name in InfluxDB.
+        required: true
+        secretKey: INFLUX_ORG
+      - name: INFLUXDB_DATABASE
+        inputType: Secret
+        description: Database name in InfluxDB where data should be stored.
+        required: true
+        secretKey: INFLUX_DATABASE
+      - name: INFLUXDB_TAG_COLUMNS
+        inputType: FreeText
+        description: Columns to be used as tags when writing data to InfluxDB.
+        required: true
+        value: '[]'
+      - name: INFLUXDB_MEASUREMENT_NAME
+        inputType: FreeText
+        description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
+        required: true
+        value: Alerts
+  - name: InfluxDB 3.0 Raw Data
+    application: InfluxDB 3.0
+    deploymentType: Service
+    version: 5958238405eb10eaa8a435630714570fa09343be
+    resources:
+      cpu: 500
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: This is the input topic
+        required: true
+        value: downsampled-3d-printer-data
+      - name: INFLUXDB_HOST
+        inputType: Secret
+        description: Host address for the InfluxDB instance.
+        required: true
+        secretKey: INFLUX_HOST
+      - name: INFLUXDB_TOKEN
+        inputType: Secret
+        description: Authentication token to access InfluxDB.
+        required: true
+        secretKey: INFLUX_TOKEN
+      - name: INFLUXDB_ORG
+        inputType: Secret
+        description: Organization name in InfluxDB.
+        required: true
+        secretKey: INFLUX_ORG
+      - name: INFLUXDB_DATABASE
+        inputType: Secret
+        description: Database name in InfluxDB where data should be stored.
+        required: true
+        secretKey: INFLUX_DATABASE
+      - name: INFLUXDB_TAG_COLUMNS
+        inputType: FreeText
+        description: Columns to be used as tags when writing data to InfluxDB.
+        required: false
+        value: '[]'
+      - name: INFLUXDB_MEASUREMENT_NAME
+        inputType: FreeText
+        description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
+        required: false
+        value: Data
+  - name: 3D Printer Down Sampling
+    application: Down-sampling
+    deploymentType: Service
+    version: 2796e21539855732fc0330ff4440f77d2f3097ab
+    resources:
+      cpu: {{ down_sampling_cpu }}
+      memory: {{ down_sampling_memory }}
+      replicas: {{ down_sampling_replicas }}
+    desiredStatus: Running
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: This is the input topic to read data from
+        required: true
+        value: 3d-printer-data
+      - name: output
+        inputType: OutputTopic
+        description: This is the output topic to write data to
+        required: true
+        value: downsampled-3d-printer-data
+  - name: Alert Service
+    application: Alert Service
+    deploymentType: Service
+    version: a9995c91e00e88c47420cafb7db1148a5af82642
+    resources:
+      cpu: {{ alert_service_cpu }}
+      memory: {{ alert_service_memory }}
+      replicas: {{ alert_service_replicas }}
+    desiredStatus: Running
+    variables:
+      - name: alerts
+        inputType: OutputTopic
+        description: Alerts topic
+        required: true
+        value: alerts
+      - name: printer_data
+        inputType: InputTopic
+        description: 3D printer data
+        required: true
+        value: 3d-printer-data
+      - name: forecast_data
+        inputType: InputTopic
+        description: Forecast Data
+        required: true
+        value: forecast
+      - name: min_ambient_temperature
+        inputType: FreeText
+        description: Lower threshold of ambient temperature
+        required: true
+        value: 45
+      - name: max_ambient_temperature
+        inputType: FreeText
+        description: Higher threshold of ambient temperature
+        required: true
+        value: 55
+      - name: min_bed_temperature
+        inputType: FreeText
+        description: Lower threshold of bed temperature
+        required: true
+        value: 105
+      - name: max_bed_temperature
+        inputType: FreeText
+        description: Higher threshold of bed temperature
+        required: true
+        value: 115
+      - name: min_hotend_temperature
+        inputType: FreeText
+        description: Lower threshold of hotend temperature
+        required: true
+        value: 245
+      - name: max_hotend_temperature
+        inputType: FreeText
+        description: Higher threshold of hotend temperature
+        required: true
+        value: 255
+
+# This section describes the Topics of the data pipeline
+topics:
+  - name: forecast
+    persisted: false
+    configuration:
+      partitions: {{ forecast_partitions }}
+      replicationFactor: {{ forecast_replication_factor }}
+      retentionInMinutes: {{ forecast_retention_minutes }}
+      retentionInBytes: {{ forecast_retention_bytes }}
+  - name: downsampled-3d-printer-data
+    persisted: false
+    configuration:
+      partitions: {{ downsampled_data_partitions }}
+      replicationFactor: {{ downsampled_data_replication_factor }}
+      retentionInMinutes: {{ downsampled_data_retention_minutes }}
+      retentionInBytes: {{ downsampled_data_retention_bytes }}
+  - name: alerts
+    persisted: false
+    configuration:
+      partitions: {{ alerts_partitions }}
+      replicationFactor: {{ alerts_replication_factor }}
+      retentionInMinutes: {{ alerts_retention_minutes }}
+      retentionInBytes: {{ alerts_retention_bytes }}
+  - name: 3d-printer-data
+    persisted: false
+    configuration:
+      partitions: {{ printer_data_partitions }}
+      replicationFactor: {{ printer_data_replication_factor }}
+      retentionInMinutes: {{ printer_data_retention_minutes }}
+      retentionInBytes: {{ printer_data_retention_bytes }}

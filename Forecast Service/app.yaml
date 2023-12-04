@@ -1,0 +1,46 @@
+name: Forecast Service
+language: python
+variables:
+  - name: input
+    inputType: InputTopic
+    description: Topic to read data from
+    defaultValue: 3d-printer-data
+    required: true
+  - name: output
+    inputType: OutputTopic
+    description: Topic to send the forecasts
+    defaultValue: forecast
+    required: true
+  - name: parameter_name
+    inputType: FreeText
+    description: Name of the parameter for forecasting
+    defaultValue: fluctuated_ambient_temperature
+    required: false
+  - name: debug
+    inputType: FreeText
+    description: Debug mode (1 enabled, 0 disabled)
+    defaultValue: 0
+    required: false
+  - name: window_value
+    inputType: FreeText
+    description: Window value (number of observations or time period)
+    defaultValue: 1200
+    required: true
+  - name: window_type
+    inputType: FreeText
+    description: 1 for "Number of Observations", 2 for "Time Period"
+    defaultValue: 1
+    required: true
+  - name: forecast_length
+    inputType: FreeText
+    description: Forecast length (check forecast_unit variable)
+    defaultValue: 14400
+    required: true
+  - name: forecast_unit
+    inputType: FreeText
+    description: Unit for the forecast_length
+    defaultValue: S
+    required: true
+dockerfile: build/dockerfile
+runEntryPoint: main.py
+defaultFile: main.py
