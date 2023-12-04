@@ -11,9 +11,9 @@ deployments:
     deploymentType: Service
     version: f3273d755c1e767d02dfd6c88826588024e88d0f
     resources:
-      cpu: {{ data_generator_cpu}}
-      memory: {{ data_generator_memory}}
-      replicas: {{ data_generator_replicas}}
+      cpu: 500
+      memory: 1024
+      replicas: 1
     desiredStatus: Running
     variables:
       - name: output
@@ -45,7 +45,7 @@ deployments:
         inputType: FreeText
         description: Number of printers to be created
         required: false
-        value: 40
+        value: 10
       - name: number_of_anomalies
         inputType: FreeText
         description: Number of anomalies to be created
@@ -56,9 +56,9 @@ deployments:
     deploymentType: Service
     version: 46fc86eb54c88751c11151b734ab0a9441b943b1
     resources:
-      cpu: {{ forecast_service_cpu }}
-      memory: {{ forecast_service_memory }}
-      replicas: {{ forecast_service_replicas }}
+      cpu: 500
+      memory: 1024
+      replicas: 1
     desiredStatus: Running
     variables:
       - name: input
@@ -189,7 +189,7 @@ deployments:
     deploymentType: Service
     version: 5958238405eb10eaa8a435630714570fa09343be
     resources:
-      cpu: 500
+      cpu: 200
       memory: 500
       replicas: 1
     desiredStatus: Running
@@ -234,9 +234,9 @@ deployments:
     deploymentType: Service
     version: 2796e21539855732fc0330ff4440f77d2f3097ab
     resources:
-      cpu: {{ down_sampling_cpu }}
-      memory: {{ down_sampling_memory }}
-      replicas: {{ down_sampling_replicas }}
+      cpu: 500
+      memory: 1024
+      replicas: 1
     desiredStatus: Running
     variables:
       - name: input
@@ -254,9 +254,9 @@ deployments:
     deploymentType: Service
     version: a9995c91e00e88c47420cafb7db1148a5af82642
     resources:
-      cpu: {{ alert_service_cpu }}
-      memory: {{ alert_service_memory }}
-      replicas: {{ alert_service_replicas }}
+      cpu: 300
+      memory: 500
+      replicas: 1
     desiredStatus: Running
     variables:
       - name: alerts
@@ -310,28 +310,28 @@ topics:
   - name: forecast
     persisted: false
     configuration:
-      partitions: {{ forecast_partitions }}
-      replicationFactor: {{ forecast_replication_factor }}
-      retentionInMinutes: {{ forecast_retention_minutes }}
-      retentionInBytes: {{ forecast_retention_bytes }}
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
   - name: downsampled-3d-printer-data
     persisted: false
     configuration:
-      partitions: {{ downsampled_data_partitions }}
-      replicationFactor: {{ downsampled_data_replication_factor }}
-      retentionInMinutes: {{ downsampled_data_retention_minutes }}
-      retentionInBytes: {{ downsampled_data_retention_bytes }}
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
   - name: alerts
     persisted: false
     configuration:
-      partitions: {{ alerts_partitions }}
-      replicationFactor: {{ alerts_replication_factor }}
-      retentionInMinutes: {{ alerts_retention_minutes }}
-      retentionInBytes: {{ alerts_retention_bytes }}
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
   - name: 3d-printer-data
     persisted: false
     configuration:
-      partitions: {{ printer_data_partitions }}
-      replicationFactor: {{ printer_data_replication_factor }}
-      retentionInMinutes: {{ printer_data_retention_minutes }}
-      retentionInBytes: {{ printer_data_retention_bytes }}
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
