@@ -2,7 +2,7 @@
 
 A Quix template providing examples of how to build a predictive maintenance system
 
-* [See the deployed project](https://portal.platform.quix.io/pipeline?workspace=demo-predictivemaintenance-dev)
+* [See the deployed project](https://portal.platform.quix.io/pipeline?workspace=demo-predictivemaintenance-dev&token=pat-1bb3d78414e049a09ab6a9a6a9f9f7eb)
 * [See the project running in Quix](https://dash-demo-predictivemaintenance-dev.deployments.quix.io/)
 
 ## Technologies used
