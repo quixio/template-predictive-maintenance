@@ -115,15 +115,10 @@ deployments:
     desiredStatus: Running
     variables:
       - name: bearer_token
-        inputType: FreeText
-        description: ''
-        required: false
-        value: eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6Ik1qVTBRVE01TmtJNVJqSTNOVEpFUlVSRFF6WXdRVFF4TjBSRk56SkNNekpFUWpBNFFqazBSUSJ9.eyJodHRwczovL3F1aXguYWkvb3JnX2lkIjoiZGVtbyIsImh0dHBzOi8vcXVpeC5haS9yb2xlcyI6IiIsImlzcyI6Imh0dHBzOi8vYXV0aC5xdWl4LmFpLyIsInN1YiI6ImF1dGgwfDczOWMwODljLThjNzgtNDBmZi05OTQwLWFjNDVmZDlkMDUwYiIsImF1ZCI6WyJxdWl4IiwiaHR0cHM6Ly9sb2dpY2FsLXBsYXRmb3JtLmV1LmF1dGgwLmNvbS91c2VyaW5mbyJdLCJpYXQiOjE3MDA1NjUyNjIsImV4cCI6MTcwMzE1NzI2MiwiYXpwIjoiMHptV2ZKZGtpdUdQaUpXeXBTQ0E4ckthVnZmUERLTEkiLCJzY29wZSI6Im9wZW5pZCBwcm9maWxlIGVtYWlsIiwicGVybWlzc2lvbnMiOltdfQ.D7orYmlgR79lAlLWpB_WwT46S0Fj5-d6WImjfHayGnT3la39lny6bZe3LK1EBp40v3v_vkzFbZwePDFfVq7lnaHZauqLiTQPmY3clJ9ffY5YflttCj5UtpQJ07ZoZ4P31_8Td1q9-cZHs0fmbNTNyN4fy0-M9IJnUzYWaiLX1odISQpMOkx78UD-F4PCZrcnANBcFkZhaElhUAlCOQEpBruhItdONB3FJQ-KIVJRaYCrI3OixOY8zFqYGhWgA2DhMx0l8YwjEPBbaWf22GV8dyAz-b54vIzrBV8hyR0z4kPMLESbhcGCKFbYfjzCE7bk6lJNSQ_o7PXFiASAOONkJA
-      - name: Deployment__Id
-        inputType: FreeText
-        description: ''
-        required: false
-        value: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
+        inputType: Secret
+        description: Token for the UI to access Quix
+        required: true
+        secretKey: dashboard_bearer_token
       - name: printer_data_topic
         inputType: InputTopic
         description: ''
@@ -147,7 +142,7 @@ deployments:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
@@ -192,7 +187,7 @@ deployments:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic

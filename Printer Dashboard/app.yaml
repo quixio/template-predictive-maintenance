@@ -6,11 +6,6 @@ variables:
     description: ''
     defaultValue: abc111
     required: false
-  - name: Deployment__Id
-    inputType: FreeText
-    description: ''
-    defaultValue: f3d41425-a0ff-4d45-bded-2fcfa861b5c7
-    required: false
   - name: printer_data_topic
     inputType: InputTopic
     description: ''
