@@ -18,8 +18,11 @@ class MQTTFunction:
         # publish message data to a new event
         # if you want to handle the message in a different way
         # implement your own logic here.
+        payload_dict = json.loads(payload.decode("utf-8"))
+        new_value = payload_dict.get("new", None)
         self.producer_topic.get_or_create_stream(str(topic).replace("/", "-")).events \
             .add_timestamp(datetime.utcnow()) \
             .add_value("data", payload.decode("utf-8")) \
+            .add_value("new", str(new_value)) \
             .add_tag("qos", str(qos)) \
             .publish()
