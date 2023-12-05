@@ -4,6 +4,7 @@ variables:
   - name: input
     inputType: InputTopic
     description: Name of the input topic to listen to.
+    defaultValue: sdf-test1
     required: false
   - name: output
     inputType: OutputTopic
