@@ -11,7 +11,12 @@ input_topic = app.topic(os.environ["input"], value_deserializer=QuixDeserializer
 sdf = app.dataframe(input_topic)
 
 # Here put transformation logic.
+sdf = sdf[sdf["Speed"] > 250]
+
 sdf = sdf[["Timestamp","Speed","Gear"]]
+
+def rolling_speed(row: dict, state: State)
+
 
 sdf = sdf.update(lambda row: print(row))
 
