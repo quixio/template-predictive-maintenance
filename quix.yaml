@@ -304,6 +304,51 @@ deployments:
         description: Higher threshold of hotend temperature
         required: true
         value: 255
+  - name: MQTT Test
+    application: MQTT Test
+    deploymentType: Service
+    version: a4be6416f78fcdd2bf5ec0690f687e3b2c9f5ac3
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: output
+        inputType: OutputTopic
+        description: Name of the output topic to publish to.
+        required: true
+        value: mqtt-test
+      - name: mqtt_topic
+        inputType: FreeText
+        description: The root for messages in MQTT, this can be anything
+        required: true
+        value: octoPrint/event/Zchange
+      - name: mqtt_server
+        inputType: FreeText
+        description: The address of your MQTT server
+        required: true
+        value: 6f2f21257650402b8cfc45f06040ad79.s2.eu.hivemq.cloud
+      - name: mqtt_port
+        inputType: FreeText
+        description: The port of your MQTT instance
+        required: true
+        value: 8883
+      - name: mqtt_username
+        inputType: FreeText
+        description: Your MQTT username
+        required: true
+        value: mc2568
+      - name: mqtt_version
+        inputType: FreeText
+        description: 'MQTT protocol version: 3.1, 3.1.1, 5'
+        required: true
+        value: 3.1.1
+      - name: mqtt_password
+        inputType: FreeText
+        description: ''
+        required: false
+        value: M3rl1n-06
 
 # This section describes the Topics of the data pipeline
 topics:
