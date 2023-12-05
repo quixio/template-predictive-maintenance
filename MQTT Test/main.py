@@ -4,7 +4,6 @@ import paho.mqtt.client as paho
 from paho import mqtt
 import os
 
-
 def mqtt_protocol_version():
     if os.environ["mqtt_version"] == "3.1":
         return paho.MQTTv31
@@ -18,7 +17,7 @@ mqtt_port = os.environ["mqtt_port"]
 if not mqtt_port.isnumeric():
     raise ValueError('mqtt_port must be a numeric value')
 
-mqtt_client = paho.Client(client_id = os.environ["Quix__Deployment__Name"], userdata = None, protocol = mqtt_protocol_version())
+mqtt_client = paho.Client(client_id = "MerlinTest", userdata = None, protocol = mqtt_protocol_version())
 # we'll be using tls
 mqtt_client.tls_set(tls_version = mqtt.client.ssl.PROTOCOL_TLS)
 mqtt_client.username_pw_set(os.environ["mqtt_username"], os.environ["mqtt_password"])
