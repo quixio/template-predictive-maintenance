@@ -1,4 +1,4 @@
-# template-predictive-maintenance
+# Predictive maintenance template
 
 A Quix template providing examples of how to build a predictive maintenance system
 
