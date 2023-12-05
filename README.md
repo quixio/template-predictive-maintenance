@@ -42,7 +42,7 @@ The main services in the pipeline are:
 6. *InfluxDB 3.0 Alerts*: Stores the alerts in InfluxDB 3.0.
 7. *InfluxDB 3.0 Raw Data*: Stores the data in InfluxDB 3.0.
 
-Besides the pipeline, we have a (Grafana Dashboard)[https://quix.io/demos/grafana/public-dashboards/1a7abce7ed194ec18425670e989136a4]
+Besides the pipeline, we have a [Grafana Dashboard](https://quix.io/demos/grafana/public-dashboards/1a7abce7ed194ec18425670e989136a4)
 that shows the data stored in InfluxDB 3.0.
 
 ## Prerequisites
