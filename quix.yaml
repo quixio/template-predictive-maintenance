@@ -381,7 +381,7 @@ topics:
       retentionInMinutes: {{ printer_data_retention_minutes }}
       retentionInBytes: {{ printer_data_retention_bytes }}
   - name: mqtt-test
-    persisted: false
+    persisted: true
     configuration:
       partitions: 1
       replicationFactor: 2
