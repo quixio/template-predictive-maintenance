@@ -11,6 +11,7 @@ input_topic = app.topic(os.environ["input"], value_deserializer=QuixDeserializer
 sdf = app.dataframe(input_topic)
 
 # Here put transformation logic.
+sdf = sdf[["Timestamp","Speed","Gear"]]
 
 sdf = sdf.update(lambda row: print(row))
 
