@@ -32,9 +32,9 @@ variables:
     defaultValue: 3.1.1
     required: true
   - name: mqtt_password
-    inputType: FreeText
+    inputType: Secret
     description: ''
-    defaultValue: M3rl1n-06
+    defaultValue: hivemq_pw
     required: false
 dockerfile: build/dockerfile
 runEntryPoint: main.py
