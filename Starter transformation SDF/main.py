@@ -13,13 +13,10 @@ sdf = app.dataframe(input_topic)
 try:
     # Here put transformation logic.
     sdf = sdf[sdf["Speed"] > 250]
-
     sdf = sdf[["Timestamp","Speed","Gear"]]
-
     # def rolling_speed(row: dict, state: State)
-
-
     sdf = sdf.update(lambda row: print(row))
+    
 except Exception as e:
     print(f"Exception {e}")
 
