@@ -24,7 +24,7 @@ export class QuixService {
   // this is the token that will authenticate the user into the ungated product experience.
   // ungated means no password or login is needed.
   // the token is locked down to the max and everything is read only.
-  public ungatedToken: string = 'pat-1bb3d78414e049a09ab6a9a6a9f9f7eb';
+  public ungatedToken: string = 'pat-7381f57aaee34adf95382c3a60df6306';
 
   /*~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-*/
   /*WORKING LOCALLY? UPDATE THESE!*/
