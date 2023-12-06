@@ -307,7 +307,7 @@ deployments:
   - name: HiveMQ Test
     application: MQTT Test
     deploymentType: Service
-    version: 8fd765be8d99b20ba4d66506f78e24c031353d78
+    version: 59b79d56a65e3d8637fcea0320a9f07f23f65b87
     resources:
       cpu: 200
       memory: 500
