@@ -18,7 +18,7 @@ Some of the technologies used by this template project are listed here.
 
 **Backend:** 
 
-* [Redpanda Cloud](https://redpanda.com/redpanda-cloud)
+* [Aiven](https://aiven.io/)
 * [Quix Streams](https://github.com/quixio/quix-streams)
 * [Flask](https://flask.palletsprojects.com/en/2.3.x/#)
 * [pandas](https://pandas.pydata.org/docs/reference/api/pandas.DataFrame.html)
