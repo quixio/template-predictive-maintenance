@@ -15,7 +15,6 @@ Some of the technologies used by this template project are listed here.
 * [Docker](https://www.docker.com/)
 * [Kubernetes](https://kubernetes.io/)
 * [InfluxDB](https://www.influxdata.com/products/influxdb/)
-* [Grafana](https://grafana.com/grafana/)
 
 **Backend:** 
 
@@ -41,9 +40,6 @@ The main services in the pipeline are:
 5. *Printers Dashboard*: Displays the data and alerts for each printer.
 6. *InfluxDB 3.0 Alerts*: Stores the alerts in InfluxDB 3.0.
 7. *InfluxDB 3.0 Raw Data*: Stores the data in InfluxDB 3.0.
-
-Besides the pipeline, we have a [Grafana Dashboard](https://quix.io/demos/grafana/public-dashboards/1a7abce7ed194ec18425670e989136a4)
-that shows the data stored in InfluxDB 3.0.
 
 ## Prerequisites
 
