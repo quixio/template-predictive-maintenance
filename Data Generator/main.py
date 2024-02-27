@@ -6,16 +6,14 @@ import random
 import sys
 from datetime import datetime, timedelta
 import json
+import dotenv
 
 from quixstreams import Application
 from quixstreams.models.topics import Topic
 from quixstreams.kafka import Producer
 
-
+dotenv.load_dotenv() # for local dev, load env vars from .env file
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-
-# Display all columns when printing pandas DF's to the console
-pd.set_option('display.max_columns', None)
 
 # Replay speed
 replay_speed = 10.0
@@ -136,8 +134,8 @@ async def publish_data(printer: str, topic_name: str, producer: Producer, data: 
         next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
         elapsed_seconds += 1
 
-        frame["timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp())
-        frame["original_timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp())
+        frame["timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp()).isoformat()
+        frame["original_timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp()).isoformat()
         frame["TAG__printer"] = printer
 
         json_data = json.dumps(frame)  # convert the row to JSON
