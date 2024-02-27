@@ -5,14 +5,16 @@ import os
 import random
 import sys
 from datetime import datetime, timedelta
+import json
 
-import pandas as pd
-import quixstreams as qx
+from quixstreams import Application
+from quixstreams.models.topics import Topic
+from quixstreams.kafka import Producer
 
-# Configure logging
+
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
-# Display all columns
+# Display all columns when printing pandas DF's to the console
 pd.set_option('display.max_columns', None)
 
 # Replay speed
@@ -64,6 +66,9 @@ def generate_data():
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
 
+        hotend_anomaly_start = 0
+        bed_anomaly_start = 0
+
         # Check if current timestamp is an anomaly timestamp
         if i in hotend_anomaly_timestamps:
             # Start a new anomaly
@@ -107,13 +112,14 @@ def generate_data():
 
         fluctuated_ambient_temperatures.append(fluctuated_ambient_temperature)
 
-        df = pd.DataFrame(
-            [[hotend_temperature, bed_temperature, ambient_temperature,
-              fluctuated_ambient_temperature]],
-            columns=['hotend_temperature', 'bed_temperature', 'ambient_temperature',
-                     'fluctuated_ambient_temperature'])
+        data_dict = {
+            'hotend_temperature': hotend_temperature,
+            'bed_temperature': bed_temperature,
+            'ambient_temperature': ambient_temperature,
+            'fluctuated_ambient_temperature': fluctuated_ambient_temperature
+        }
 
-        data.append(df)
+        data.append(data_dict)
 
         next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
         elapsed_seconds += 1
@@ -122,7 +128,7 @@ def generate_data():
     return data
 
 
-async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
+async def publish_data(printer: str, topic_name: str, producer: Producer, data: list):
     start_timestamp = datetime.now()
     elapsed_seconds = 0
 
@@ -130,11 +136,12 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
         next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
         elapsed_seconds += 1
 
-        frame["timestamp"] = pd.to_datetime(next_timestamp)
-        frame["original_timestamp"] = pd.to_datetime(next_timestamp)
+        frame["timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp())
+        frame["original_timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp())
         frame["TAG__printer"] = printer
 
-        stream.timeseries.buffer.publish(frame)
+        json_data = json.dumps(frame)  # convert the row to JSON
+        producer.produce(topic_name, json_data, key=printer)  # publish with the producer
 
         # Dataframe should be sent at initial_timestamp + elapsed_seconds / replay_speed
         target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
@@ -148,37 +155,18 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
 
 
 
-async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, printer_data: list, initial_delay: int):
+async def generate_data_and_close_stream_async(topic: Topic, producer: Producer, printer: str, printer_data: list, initial_delay: int):
     await asyncio.sleep(initial_delay)
     while True:
-        stream = topic_producer.create_stream()
-        stream.properties.name = printer
-        
-        stream.timeseries.buffer.time_span_in_milliseconds = 500
-
-        # Add metadata about time series data you are about to send.
-        stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
-        stream.timeseries.add_definition("bed_temperature", "Bed temperature")
-        stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
-        stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
-
-        # Add metadata about printer
-        stream.properties.metadata["start_time"] = str(int(datetime.utcnow().timestamp()) * 1000000000)
-        stream.properties.metadata["end_time"] = str(int(datetime.utcnow().timestamp() + int(os.environ['datalength']) / replay_speed) * 1000000000)
-
         # Temperature will drop below threshold in second 20839
         failure_timestamps = [int(datetime.utcnow().timestamp() + 20839) * 1000000000]
         failure_replay_speed_timestamps = [
             int(datetime.utcnow().timestamp() + 20839 / replay_speed) * 1000000000]
 
-        stream.properties.metadata["failures"] = str(failure_timestamps)
-        stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
-
         print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
-        await publish_data(printer, stream, printer_data)
+        await publish_data(printer, topic.name, producer, printer_data)
 
         print(f"{printer}: Closing stream")
-        stream.close()
 
         # Wait 10 seconds before starting again
         await asyncio.sleep(10)
@@ -187,11 +175,12 @@ async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer,
 async def main():
     # Quix injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument.
-    client = qx.QuixStreamingClient()
+    app = Application.Quix("consumer-group-1", auto_offset_reset="earliest")
+    producer = app.get_producer()
 
     # Open the output topic where to write data out
-    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
-
+    topic = app.topic(os.environ["output"])  # serialize with json by default
+    
     # Create a stream for each printer
     if 'number_of_printers' not in os.environ:
         number_of_printers = 1
@@ -205,14 +194,17 @@ async def main():
     delay_seconds = int(os.environ['datalength']) / replay_speed / number_of_printers
 
     for i in range(number_of_printers):
-        # Set stream ID or leave parameters empty to get stream ID generated.
+        # Set MessageKey/StreamID or leave parameters empty to get a generated message key.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
         # Start sending data, each printer will start with some delay after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), delay_seconds * i)))
+        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic, producer, name, printer_data.copy(), int(delay_seconds * i))))
 
     await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        logging.exception("An error occurred while running the application.")
