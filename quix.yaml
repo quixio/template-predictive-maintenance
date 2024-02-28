@@ -330,3 +330,10 @@ topics:
       replicationFactor: {{ printer_data_replication_factor }}
       retentionInMinutes: {{ printer_data_retention_minutes }}
       retentionInBytes: {{ printer_data_retention_bytes }}
+  - name: 3d-printer-data-json
+    persisted: false
+    configuration:
+      partitions: 1
+      replicationFactor: 2
+      retentionInMinutes: 1440
+      retentionInBytes: 52428800
