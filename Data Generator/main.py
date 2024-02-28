@@ -136,7 +136,7 @@ async def publish_data(printer: str, topic_name: str, producer: Producer, data: 
 
         frame["timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp()).isoformat()
         frame["original_timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp()).isoformat()
-        frame["TAG__printer"] = printer
+        frame["printer"] = printer
 
         json_data = json.dumps(frame)  # convert the row to JSON
         producer.produce(topic_name, json_data, key=printer)  # publish with the producer
@@ -150,7 +150,6 @@ async def publish_data(printer: str, topic_name: str, producer: Producer, data: 
         else:
             logging.debug(f"{printer : <10}: Waiting {delay_seconds:.3f} seconds to send next data point.")
             await asyncio.sleep(delay_seconds)
-
 
 
 async def generate_data_and_close_stream_async(topic: Topic, producer: Producer, printer: str, printer_data: list, initial_delay: int):
