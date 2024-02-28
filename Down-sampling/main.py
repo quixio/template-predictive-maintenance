@@ -1,76 +1,106 @@
-import quixstreams as qx
-import pandas as pd
 import os
+import uu
+from uuid import uuid4
+from quixstreams import Application, message_context
+from dotenv import load_dotenv
+import logging
+from datetime import timedelta
+import uuid
 
-# Quix injects credentials automatically to the client.
-# Alternatively, you can always pass an SDK token manually as an argument.
-client = qx.QuixStreamingClient()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-print("Opening input and output topics")
-topic_consumer = client.get_topic_consumer(os.environ["input"], "down-sampling-consumer-group")
-topic_producer = client.get_topic_producer(os.environ["output"])
+with open("./.env", 'a+') as file: pass  # make sure the .env file exists
+load_dotenv("./.env")
 
-# buffer 1 minute of data
-buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_configuration.time_span_in_milliseconds = 1 * 60 * 1000
+uid = uuid.uuid4()
+app = Application.Quix("transformation-v2"+str(uid), auto_offset_reset="earliest", use_changelog_topics=False)
 
+input_topic = app.topic(os.environ["input"], value_deserializer="json")
+output_topic = app.topic(os.environ["output"], value_serializer="json")
 
-# called for each incoming stream
-def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
-    # called for each incoming DataFrame
-    def on_dataframe_received_handler(originating_stream: qx.StreamConsumer, df: pd.DataFrame):
-        if originating_stream.properties.name is not None and stream_producer.properties.name is None:
-            stream_producer.properties.name = originating_stream.properties.name + "-down-sampled"
+sdf = app.dataframe(input_topic)
 
-        # Identify numeric and string columns
-        numeric_columns = [col for col in df.columns if not col.startswith('TAG__') and
-                           col not in ['time', 'timestamp', 'original_timestamp', 'date_time']]
-        string_columns = [col for col in df.columns if col.startswith('TAG__')]
+#sdf = sdf.update(lambda row: logger.info(row))
 
-        # Create an aggregation dictionary for numeric columns
-        numeric_aggregation = {col: 'mean' for col in numeric_columns}
+# mean over 60 seconds
 
-        # Create an aggregation dictionary for string columns (keeping the last value)
-        string_aggregation = {col: 'last' for col in string_columns}
-
-        # Merge the two aggregation dictionaries
-        aggregation_dict = {**numeric_aggregation, **string_aggregation}
-
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-
-        # resample and get the mean of the input data
-        df = df.set_index("timestamp").resample('1min').agg(aggregation_dict).reset_index()
-
-        # Send filtered data to output topic
-        stream_producer.timeseries.buffer.publish(df)
-
-    # create a new stream to output data
-    stream_producer = topic_producer.get_or_create_stream(stream_consumer.stream_id + "-down-sampled")
-    stream_producer.properties.parents.append(stream_consumer.stream_id)
-
-    if stream_consumer.properties.name is not None:
-        stream_producer.properties.name = stream_consumer.properties.name + "-down-sampled"
-
-    # create the buffer
-    buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
-
-    # React to new data received from input topics buffer.
-    # Here we assign a callback to be called when data arrives.
-    buffer.on_dataframe_released = on_dataframe_received_handler
-
-    # When input stream closes, we close output stream as well.
-    def on_stream_close(stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
-        stream_producer.close()
-        print(f"Stream closed: {stream_producer.stream_id}")
-
-    stream_consumer.on_stream_closed = on_stream_close
+# sdf = sdf.update(lambda value: print(f'message_key: {message_context().key}'))
 
 
-# Hook up events before initiating read to avoid losing out on any data
-topic_consumer.on_stream_received = on_stream_received_handler
+# one value
+# sdf = (
+#     sdf.apply(lambda value: value["hotend_temperature"])
+#     .tumbling_window(duration_ms=timedelta(seconds=60))
+#     .sum()
+#     .current()
+# )
 
-# Hook up to termination signal (for docker image) and CTRL-C
-print("Listening to streams. Press CTRL-C to exit.")
 
-# Handle graceful exit of the model.
-qx.App.run()
+def initializer(value: dict) -> dict:
+    return {
+        'mean_hotend_temperature': value['hotend_temperature'],
+        'mean_bed_temperature': value['bed_temperature'],
+        'mean_ambient_temperature': value['ambient_temperature'],
+        'mean_fluctuated_ambient_temperature': value['fluctuated_ambient_temperature'],
+        'max_timestamp': value['timestamp'],
+        'max_original_timestamp': value['original_timestamp'],
+        'max_TAG__printer': value['TAG__printer'],
+        'count': 1,
+    }
+
+def reducer(aggregated: dict, value: dict) -> dict:
+    return {
+        'mean_hotend_temperature': min(aggregated['mean_hotend_temperature'], value['hotend_temperature']),
+        'mean_bed_temperature': max(aggregated['mean_bed_temperature'], value['bed_temperature']),
+        'mean_ambient_temperature': max(aggregated['mean_ambient_temperature'], value['ambient_temperature']),
+        'mean_fluctuated_ambient_temperature': max(aggregated['mean_fluctuated_ambient_temperature'], value['fluctuated_ambient_temperature']),
+        'max_timestamp': max(aggregated['max_timestamp'], value['timestamp']),
+        'max_original_timestamp': max(aggregated['max_original_timestamp'], value['original_timestamp']),
+        'max_TAG__printer': max(aggregated['max_TAG__printer'], value['TAG__printer']),
+        'count': aggregated['count'] + 1,
+    }
+
+sdf = (
+    sdf.tumbling_window(timedelta(seconds=10))
+    .reduce(reducer=reducer, initializer=initializer)
+    .final()
+)
+
+sdf = sdf.update(lambda message: logger.info(message))
+
+# {'hotend_temperature': 247.8174720120197, 
+#  'bed_temperature': 110.12438003417356,
+#  'ambient_temperature': 50.17978441953371,
+#  'fluctuated_ambient_temperature': 50.17978441953371,
+#  'timestamp': '2024-02-27T13:41:36.338654',
+#  'original_timestamp': '2024-02-27T13:41:36.338654',
+#  'TAG__printer': 'Printer 1'}
+
+
+# Put transformation logic.here
+
+#sdf = sdf.filter(lambda message: "m" in message)
+
+
+
+# 1 * 60 * 1000
+
+# Identify numeric and string columns
+# numeric_columns = [col for col in df.columns if not col.startswith('TAG__') and
+#                     col not in ['time', 'timestamp', 'original_timestamp', 'date_time']]
+# string_columns = [col for col in df.columns if col.startswith('TAG__')]
+
+# # Create an aggregation dictionary for numeric columns
+# numeric_aggregation = {col: 'mean' for col in numeric_columns}
+# Create an aggregation dictionary for string columns (keeping the last value)
+# string_aggregation = {col: 'last' for col in string_columns}
+
+
+#sdf = sdf.to_topic(output_topic)
+
+if __name__ == "__main__":
+    try:
+        app.run(sdf)
+    except Exception as e:
+        logger.exception("An error occurred while running the application.")

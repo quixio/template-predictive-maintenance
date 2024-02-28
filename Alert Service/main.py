@@ -2,15 +2,20 @@ import json
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-import quixstreams as qx
+from quixstreams import Application
 import os
 import pandas as pd
 
-client = qx.QuixStreamingClient()
+import logging
 
-forecast_consumer = client.get_topic_consumer(os.environ["forecast_data"])
-printer_consumer = client.get_topic_consumer(os.environ["printer_data"])
-alerts_producer = client.get_topic_producer(os.environ["alerts"])
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+app = Application.Quix("transformation-v1", auto_offset_reset="latest")
+
+forecast_consumer = app.topic(os.environ["forecast_data"], value_deserializer="quix")
+printer_consumer = app.topic(os.environ["printer_data"], value_deserializer="quix")
+alerts_producer = app.topic(os.environ["alerts"], value_serializer="quix_events")
 
 # Alerts definitions
 NO_ALERT = "no-alert"
@@ -288,5 +293,14 @@ forecast_consumer.on_stream_received = on_forecast_stream_received_handler
 
 print("Listening to streams. Press CTRL-C to exit.")
 
-# Handle termination signals and provide a graceful exit
-qx.App.run()
+
+forecast_sdf = app.dataframe(forecast_consumer)
+printer_sdf = app.dataframe(printer_consumer)
+
+
+
+if __name__ == "__main__":
+    try:
+        app.run(forecast_sdf)
+    except Exception as e:
+        logger.exception("An error occurred while running the application.")
