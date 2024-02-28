@@ -59,7 +59,7 @@ deployments:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
       replicas: {{ forecast_service_replicas }}
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
@@ -112,7 +112,7 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: dash
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: bearer_token
         inputType: Secret
@@ -142,7 +142,7 @@ deployments:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
@@ -187,7 +187,7 @@ deployments:
       cpu: 500
       memory: 500
       replicas: 1
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
@@ -232,7 +232,7 @@ deployments:
       cpu: {{ down_sampling_cpu }}
       memory: {{ down_sampling_memory }}
       replicas: {{ down_sampling_replicas }}
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
@@ -252,7 +252,7 @@ deployments:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
       replicas: {{ alert_service_replicas }}
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: alerts
         inputType: OutputTopic
