@@ -252,7 +252,7 @@ deployments:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
       replicas: {{ alert_service_replicas }}
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: alerts
         inputType: OutputTopic
