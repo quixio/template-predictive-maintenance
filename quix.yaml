@@ -112,7 +112,7 @@ deployments:
     publicAccess:
       enabled: true
       urlPrefix: dash
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: bearer_token
         inputType: Secret
