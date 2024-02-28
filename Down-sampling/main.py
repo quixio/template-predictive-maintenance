@@ -1,5 +1,4 @@
 import os
-import uu
 from uuid import uuid4
 from quixstreams import Application, message_context
 from dotenv import load_dotenv
@@ -21,21 +20,8 @@ output_topic = app.topic(os.environ["output"], value_serializer="json")
 
 sdf = app.dataframe(input_topic)
 
-#sdf = sdf.update(lambda row: logger.info(row))
-
-# mean over 60 seconds
-
-# sdf = sdf.update(lambda value: print(f'message_key: {message_context().key}'))
-
-
-# one value
-# sdf = (
-#     sdf.apply(lambda value: value["hotend_temperature"])
-#     .tumbling_window(duration_ms=timedelta(seconds=60))
-#     .sum()
-#     .current()
-# )
-
+# uncomment to log the raw data to console.
+sdf = sdf.update(lambda message: logger.info(message))
 
 def initializer(value: dict) -> dict:
     return {
@@ -67,37 +53,10 @@ sdf = (
     .final()
 )
 
-sdf = sdf.update(lambda message: logger.info(message))
+# uncomment to log the aggregated data to console.
+# sdf = sdf.update(lambda message: logger.info(message))
 
-# {'hotend_temperature': 247.8174720120197, 
-#  'bed_temperature': 110.12438003417356,
-#  'ambient_temperature': 50.17978441953371,
-#  'fluctuated_ambient_temperature': 50.17978441953371,
-#  'timestamp': '2024-02-27T13:41:36.338654',
-#  'original_timestamp': '2024-02-27T13:41:36.338654',
-#  'TAG__printer': 'Printer 1'}
-
-
-# Put transformation logic.here
-
-#sdf = sdf.filter(lambda message: "m" in message)
-
-
-
-# 1 * 60 * 1000
-
-# Identify numeric and string columns
-# numeric_columns = [col for col in df.columns if not col.startswith('TAG__') and
-#                     col not in ['time', 'timestamp', 'original_timestamp', 'date_time']]
-# string_columns = [col for col in df.columns if col.startswith('TAG__')]
-
-# # Create an aggregation dictionary for numeric columns
-# numeric_aggregation = {col: 'mean' for col in numeric_columns}
-# Create an aggregation dictionary for string columns (keeping the last value)
-# string_aggregation = {col: 'last' for col in string_columns}
-
-
-#sdf = sdf.to_topic(output_topic)
+sdf = sdf.to_topic(output_topic)
 
 if __name__ == "__main__":
     try:
