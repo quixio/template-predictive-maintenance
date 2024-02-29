@@ -14,7 +14,7 @@ deployments:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
       replicas: {{ data_generator_replicas}}
-    desiredStatus: Stopped
+    desiredStatus: Running
     variables:
       - name: output
         inputType: OutputTopic
@@ -206,6 +206,7 @@ deployments:
         description: Forecast Data
         required: true
         value: forecast
+
 # This section describes the Topics of the data pipeline
 topics:
   - name: forecast
