@@ -1,3 +1,4 @@
-quixstreams==0.5.7
+quixstreams==2.3.1
+python-dotenv
 scikit-learn
 numpy

@@ -172,7 +172,7 @@ async def generate_data_and_close_stream_async(topic: Topic, producer: Producer,
 async def main():
     # Quix injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument.
-    app = Application.Quix("consumer-group-1", auto_offset_reset="earliest", use_changelog_topics=False)
+    app = Application.Quix("consumer-group-1", use_changelog_topics=False)
     producer = app.get_producer()
 
     # Open the output topic where to write data out
