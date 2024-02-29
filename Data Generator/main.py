@@ -17,11 +17,15 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # Replay speed
 replay_speed = 10.0
-anomaly_fluctuation = 20  # was 3
-hot_end_anomaly_min_duration = 30  # 3
-hot_end_anomaly_max_duration = 35  # 5
-bed_anomaly_min_duration = 30  # 9
-bed_anomaly_max_duration = 35  # 12
+anomaly_fluctuation = 20
+hot_end_anomaly_min_duration = 30
+hot_end_anomaly_max_duration = 35
+bed_anomaly_min_duration = 30
+bed_anomaly_max_duration = 35
+
+
+def get_data_length() -> int:
+    return int(os.getenv('datalength', 60000))
 
 
 def temp(target, sigma, offset):
@@ -30,19 +34,19 @@ def temp(target, sigma, offset):
 
 def generate_data():
     data = []
-    target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
-    hotend_t = int(os.environ['hotend_t'])  # 250  # MAKE ENV VAR: target temperature for the hotend
-    bed_t = int(os.environ['bed_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
-    ambient_t = target_ambient_t  # 50 target ambient temperature
+    target_ambient_t = 75
+    hotend_t = 250
+    bed_t = 110
+    ambient_t = 50
 
     hotend_sigma = 0.5
     bed_sigma = 0.5
     ambient_sigma = 0.2
 
-    datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
+    datalength = int(os.getenv('datalength', 30000))  # 28800  # MAKE ENV VAR: Currently 8 hours
 
     # Generate 20 random anomaly timestamps
-    number_of_anomalies = int(os.environ["number_of_anomalies"])
+    number_of_anomalies = int(os.getenv("number_of_anomalies", "20"))
     hotend_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
     bed_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
 
@@ -152,15 +156,10 @@ async def publish_data(printer: str, topic_name: str, producer: Producer, data: 
             await asyncio.sleep(delay_seconds)
 
 
-async def generate_data_and_close_stream_async(topic: Topic, producer: Producer, printer: str, printer_data: list, initial_delay: int):
+async def generate_data_async(topic: Topic, producer: Producer, printer: str, printer_data: list, initial_delay: int):
     await asyncio.sleep(initial_delay)
     while True:
-        # Temperature will drop below threshold in second 20839
-        failure_timestamps = [int(datetime.utcnow().timestamp() + 20839) * 1000000000]
-        failure_replay_speed_timestamps = [
-            int(datetime.utcnow().timestamp() + 20839 / replay_speed) * 1000000000]
-
-        print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
+        print(f"{printer}: Sending values for {os.getenv('datalength')} seconds.")
         await publish_data(printer, topic.name, producer, printer_data)
 
         print(f"{printer}: Closing stream")
@@ -170,32 +169,29 @@ async def generate_data_and_close_stream_async(topic: Topic, producer: Producer,
 
 
 async def main():
-    # Quix injects credentials automatically to the client.
-    # Alternatively, you can always pass an SDK token manually as an argument.
+    # Quix platform injects credentials automatically to the client.
+    # Alternatively, you can always pass an SDK token manually as an argument when working locally.
+    # Or set the relevant values in a .env file
     app = Application.Quix("consumer-group-1", use_changelog_topics=False)
     producer = app.get_producer()
 
     # Open the output topic where to write data out
-    topic = app.topic(os.environ["output"])  # serialize with json by default
+    topic = app.topic(os.getenv("output", "3d-printer-data-json"))  # serialize with json by default
     
-    # Create a stream for each printer
-    if 'number_of_printers' not in os.environ:
-        number_of_printers = 1
-    else:
-        number_of_printers = int(os.environ['number_of_printers'])
+    number_of_printers = int(os.getenv("number_of_printers", 1)) # we will create a new stream for each printer
 
     tasks = []
     printer_data = generate_data()
 
-    # Distribute all printers over the data length
-    delay_seconds = int(os.environ['datalength']) / replay_speed / number_of_printers
+    # Distribute all printers over the data length (defaults to 60 seconds)
+    delay_seconds = get_data_length() / replay_speed / number_of_printers
 
     for i in range(number_of_printers):
         # Set MessageKey/StreamID or leave parameters empty to get a generated message key.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
         # Start sending data, each printer will start with some delay after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic, producer, name, printer_data.copy(), int(delay_seconds * i))))
+        tasks.append(asyncio.create_task(generate_data_async(topic, producer, name, printer_data.copy(), int(delay_seconds * i))))
 
     await asyncio.gather(*tasks)
 
