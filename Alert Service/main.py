@@ -101,7 +101,7 @@ def main():
     # Quix platform injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument when working locally.
     # Or set the relevant values in a .env file
-    app = Application.Quix("transformation", auto_offset_reset="earliest", use_changelog_topics=False)
+    app = Application.Quix("transformation", auto_offset_reset="earliest")
 
     # Open the topics for input and output of data
     input_topic = app.topic(forecast_topic, value_deserializer="json")

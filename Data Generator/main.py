@@ -172,7 +172,7 @@ async def main():
     # Quix platform injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument when working locally.
     # Or set the relevant values in a .env file
-    app = Application.Quix("consumer-group-1", use_changelog_topics=False)
+    app = Application.Quix("consumer-group-1")
     producer = app.get_producer()
 
     # Open the output topic where to write data out

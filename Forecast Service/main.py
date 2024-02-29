@@ -59,7 +59,7 @@ def on_message_handler(rows: List[dict]):
 
 if __name__ == "__main__":
     
-    app = Application.Quix("transformation-v3"+str(uuid4()), auto_offset_reset="earliest", use_changelog_topics=False)
+    app = Application.Quix("transformation", auto_offset_reset="earliest")
 
     # Change consumer group to a different constant if you want to run model locally.
     logger.info("Opening input and output topics")

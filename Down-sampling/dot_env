@@ -1,0 +1,10 @@
+# Required - will always be defined by default in a Quix platform workspace.
+Quix__Sdk__Token=
+
+# Optional; can usually be found by the library automatically via the quix auth token.
+# It will always be defined by default in a Quix platform workspace.
+Quix__Workspace_Id=
+Quix__Portal__Api=https://portal-api.platform.quix.io
+
+input=3d-printer-data-json
+output=downsampled-3d-printer-data-json
