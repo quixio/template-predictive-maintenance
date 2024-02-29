@@ -273,3 +273,11 @@ topics:
       retentionInMinutes: 60
       retentionInBytes: 52428800
       cleanupPolicy: Compact
+  - name: changelog__transformation--3d-printer-data--tumbling_window_10000_reduce
+    persisted: false
+    configuration:
+      partitions: 2
+      replicationFactor: 2
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
+      cleanupPolicy: Compact
