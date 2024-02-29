@@ -17,8 +17,8 @@ load_dotenv("./.env") # load environment variables from .env file for local dev
 
 app = Application.Quix("transformation-v1" + str(uuid4()), auto_offset_reset="latest")
 
-forecast_topic = os.environ["forecast_topic"]
-alerts_topic = os.environ["alert_topic"]
+forecast_topic = os.getenv("forecast_topic", "forecast")
+alerts_topic = os.getenv("alert_topic", "alerts")
 
 # Alerts definitions
 NO_ALERT = "no-alert"
@@ -37,7 +37,15 @@ def hash_json(json_obj):
 
 
 def on_forecast_received(message: dict, state: State):
+    """
+    This looks more complicated than it is.
+    We are creating an alert_status object if the incoming message has a temperature < or > the alert temp.
+    Create a hash for the created alert_status object.
+    Then check to see if we have already handled a message with the same hash.
+    If not then return it for publishing to the output topic.
+    If yes then swallow it.
     
+    """
     alert_status = state.get("alert_status", 
                              {  "status": NO_ALERT,
                                 "parameter_name": "",
@@ -90,17 +98,18 @@ def on_forecast_received(message: dict, state: State):
 
 
 def main():
+    # Quix platform injects credentials automatically to the client.
+    # Alternatively, you can always pass an SDK token manually as an argument when working locally.
+    # Or set the relevant values in a .env file
     app = Application.Quix("transformation", auto_offset_reset="earliest", use_changelog_topics=False)
 
-    logger.info("Opening input and output topics")
-
+    # Open the topics for input and output of data
     input_topic = app.topic(forecast_topic, value_deserializer="json")
     producer_topic = app.topic(alerts_topic, value_serializer="json")
 
-    sdf = app.dataframe(input_topic)
-    sdf = sdf[sdf.contains("timestamp")]  # ensure the parameter_name column exists in the incomming data
-    
-    sdf = sdf.apply(on_forecast_received, stateful=True)
+    sdf = app.dataframe(input_topic)  # initialize the streaming dataframe
+    sdf = sdf[sdf.contains("timestamp")]  # filter out imbound data without this column
+    sdf = sdf.apply(on_forecast_received, stateful=True)  # perform a stateful operation on each row using a function
 
     # filter any rows that have no data
     # these are rows where there is no alert created for the inbound data
