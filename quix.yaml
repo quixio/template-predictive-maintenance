@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: f3273d755c1e767d02dfd6c88826588024e88d0f
+    version: 3f785218f42457296fda5f793f27421dc17c7c24
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -21,21 +21,6 @@ deployments:
         description: This is the output topic for the generated 3D printer data
         required: true
         value: 3d-printer-data
-      - name: target_ambient_t
-        inputType: FreeText
-        description: Rarget ambient temperature
-        required: false
-        value: 50
-      - name: hotend_t
-        inputType: FreeText
-        description: Target temperature for the hotend
-        required: false
-        value: 250
-      - name: bed_t
-        inputType: FreeText
-        description: Target temperature for the bed
-        required: false
-        value: 110
       - name: datalength
         inputType: FreeText
         description: Length of the data in seconds
@@ -54,7 +39,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 46fc86eb54c88751c11151b734ab0a9441b943b1
+    version: 3f785218f42457296fda5f793f27421dc17c7c24
     resources:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
@@ -71,16 +56,6 @@ deployments:
         description: Name of the output topic to write to.
         required: false
         value: forecast
-      - name: parameter_name
-        inputType: FreeText
-        description: Name of the parameter for forecasting
-        required: false
-        value: fluctuated_ambient_temperature
-      - name: debug
-        inputType: FreeText
-        description: Debug mode (1 enabled, 0 disabled)
-        required: false
-        value: 0
       - name: window_value
         inputType: FreeText
         description: Window value
@@ -101,43 +76,10 @@ deployments:
         description: Unit for the forecast_length
         required: true
         value: min
-  - name: Printers Dashboard
-    application: Printer Dashboard
-    deploymentType: Service
-    version: e41be6107f58e8611e3e953cc2e94778370d9733
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    publicAccess:
-      enabled: true
-      urlPrefix: dash
-    desiredStatus: Stopped
-    variables:
-      - name: bearer_token
-        inputType: Secret
-        description: Token for the UI to access Quix
-        required: true
-        secretKey: dashboard_bearer_token
-      - name: printer_data_topic
-        inputType: InputTopic
-        description: ''
-        required: true
-        value: 3d-printer-data
-      - name: forecast_topic
-        inputType: InputTopic
-        description: ''
-        required: true
-        value: forecast
-      - name: alerts_topic
-        inputType: InputTopic
-        description: The topic to receive alerts on
-        required: true
-        value: alerts
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0
     deploymentType: Service
-    version: 5958238405eb10eaa8a435630714570fa09343be
+    version: 3f785218f42457296fda5f793f27421dc17c7c24
     resources:
       cpu: 200
       memory: 500
@@ -227,7 +169,7 @@ deployments:
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: 2796e21539855732fc0330ff4440f77d2f3097ab
+    version: 3f785218f42457296fda5f793f27421dc17c7c24
     resources:
       cpu: {{ down_sampling_cpu }}
       memory: {{ down_sampling_memory }}
@@ -247,7 +189,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: a9995c91e00e88c47420cafb7db1148a5af82642
+    version: 3f785218f42457296fda5f793f27421dc17c7c24
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
@@ -259,47 +201,11 @@ deployments:
         description: Alerts topic
         required: true
         value: alerts
-      - name: printer_data
-        inputType: InputTopic
-        description: 3D printer data
-        required: true
-        value: 3d-printer-data
       - name: forecast_data
         inputType: InputTopic
         description: Forecast Data
         required: true
         value: forecast
-      - name: min_ambient_temperature
-        inputType: FreeText
-        description: Lower threshold of ambient temperature
-        required: true
-        value: 45
-      - name: max_ambient_temperature
-        inputType: FreeText
-        description: Higher threshold of ambient temperature
-        required: true
-        value: 55
-      - name: min_bed_temperature
-        inputType: FreeText
-        description: Lower threshold of bed temperature
-        required: true
-        value: 105
-      - name: max_bed_temperature
-        inputType: FreeText
-        description: Higher threshold of bed temperature
-        required: true
-        value: 115
-      - name: min_hotend_temperature
-        inputType: FreeText
-        description: Lower threshold of hotend temperature
-        required: true
-        value: 245
-      - name: max_hotend_temperature
-        inputType: FreeText
-        description: Higher threshold of hotend temperature
-        required: true
-        value: 255
-
 # This section describes the Topics of the data pipeline
 topics:
   - name: forecast
