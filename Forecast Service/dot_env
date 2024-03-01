@@ -6,8 +6,8 @@ Quix__Sdk__Token=sdk-
 Quix__Workspace_Id=
 Quix__Portal__Api=https://portal-api.platform.quix.io
 
-input=downsampled-3d-printer-data-json
-output=forecast
+input=json-downsampled-3d-printer-data
+output=json-forecast
 
 debug=True
 window_value=1200

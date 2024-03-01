@@ -46,11 +46,12 @@ def on_forecast_received(message: dict, state: State):
     If yes then swallow it.
     
     """
+
     alert_status = state.get("alert_status", 
                              {  "status": NO_ALERT,
                                 "parameter_name": "",
                                 "alert_temperature": 0,
-                                "alert_timestamp": "",
+                                "timestamp": "",
                                 "message": ""
                              })
     
@@ -63,7 +64,7 @@ def on_forecast_received(message: dict, state: State):
                 "status": UNDER_FORECAST,
                 "parameter_name": "ambient_temperature",
                 "alert_temperature": forecast,
-                "alert_timestamp": message["timestamp"],
+                "timestamp": message["timestamp"],
                 "message": f"'Ambient temperature' is forecasted to fall below {low_threshold}ºC at {message['timestamp']}."
             }
             #break
@@ -72,7 +73,7 @@ def on_forecast_received(message: dict, state: State):
                 "status": OVER_FORECAST,
                 "parameter_name": "ambient_temperature",
                 "alert_temperature": forecast,
-                "alert_timestamp": message["timestamp"],
+                "timestamp": message["timestamp"],
                 "message": f"'Ambient temperature' is forecasted to go over {high_threshold}ºC at {message['timestamp']}."
             }
                 #break
@@ -80,7 +81,7 @@ def on_forecast_received(message: dict, state: State):
         alert_status = {
             "status": NO_ALERT,
             "parameter_name": "ambient_temperature",
-            "alert_timestamp": message["timestamp"],
+            "timestamp": message["timestamp"],
             "message": f"'Ambient temperature' is within specified parameters."
         }
 
@@ -94,20 +95,21 @@ def on_forecast_received(message: dict, state: State):
         alert_status['status'] in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST]):
         past_alerts.append(alert_hash)
         state.set("past_alerts", past_alerts)
-        return {"alert_payload": alert_status}
+        return alert_status
 
 
 def main():
     # Quix platform injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument when working locally.
     # Or set the relevant values in a .env file
-    app = Application.Quix("transformation", auto_offset_reset="earliest")
+    app = Application.Quix("transformation", auto_offset_reset="earliest", use_changelog_topics=False)
 
     # Open the topics for input and output of data
     input_topic = app.topic(forecast_topic, value_deserializer="json")
     producer_topic = app.topic(alerts_topic, value_serializer="json")
 
     sdf = app.dataframe(input_topic)  # initialize the streaming dataframe
+
     sdf = sdf[sdf.contains("timestamp")]  # filter out imbound data without this column
     sdf = sdf.apply(on_forecast_received, stateful=True)  # perform a stateful operation on each row using a function
 
@@ -115,8 +117,18 @@ def main():
     # these are rows where there is no alert created for the inbound data
     sdf = sdf.filter(lambda row: row is not None)
     
-    sdf = sdf.to_topic(producer_topic)  # publish to the desired output topic 
 
+    # the outbound data will look like this:
+    # {
+    #   "status": "under-forecast",
+    #   "parameter_name": "ambient_temperature",
+    #   "alert_temperature": 50.02194179087244,
+    #   "timestamp": "2024-03-01 14:45:20",
+    #   "message": "'Ambient temperature' is forecasted to fall below 73ºC at 2024-03-01 14:45:20."
+    # }
+    
+    sdf = sdf.to_topic(producer_topic)  # publish to the desired output topic 
+ 
     try:
         app.run(sdf)
     except Exception as e:

@@ -6,5 +6,5 @@ Quix__Sdk__Token=sdk-xxx
 Quix__Workspace_Id=
 Quix__Portal__Api=https://portal-api.platform.quix.io
 
-input=alerts
+input=json-alerts
 incoming_timestamp_key=alert_timestamp
