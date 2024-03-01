@@ -98,6 +98,8 @@ if __name__ == "__main__":
     # convert the timestamps to human readable
     sdf["timestamp"] = sdf["timestamp"].apply(lambda epoch: str(datetime.fromtimestamp(epoch/1000)))
 
+    sdf = sdf.update(lambda message: print(message))
+
     # publish the data resulting from this pipline to the topic
     sdf = sdf.to_topic(producer_topic)
 
