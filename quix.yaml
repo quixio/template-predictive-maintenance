@@ -174,12 +174,12 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 43ec5573509b52eda783f65e78396888006e7225
+    version: 447a7e5320addb8aae7810e2d29e60512a548933
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
       replicas: {{ alert_service_replicas }}
-    desiredStatus: Stopped
+    desiredStatus: Running
     variables:
       - name: alert_topic
         inputType: OutputTopic
