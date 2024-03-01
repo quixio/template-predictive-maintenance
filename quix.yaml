@@ -205,7 +205,7 @@ deployments:
         inputType: InputTopic
         description: This is the input topic
         required: true
-        value: alerts
+        value: json-alerts
       - name: INFLUXDB_HOST
         inputType: FreeText
         description: Host address for the InfluxDB instance.
