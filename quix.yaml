@@ -231,10 +231,3 @@ topics:
       replicationFactor: {{ alerts_replication_factor }}
       retentionInMinutes: {{ alerts_retention_minutes }}
       retentionInBytes: {{ alerts_retention_bytes }}
-  - name: forecast2
-    persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
