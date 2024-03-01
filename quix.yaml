@@ -174,19 +174,19 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 3f785218f42457296fda5f793f27421dc17c7c24
+    version: 43ec5573509b52eda783f65e78396888006e7225
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
       replicas: {{ alert_service_replicas }}
     desiredStatus: Running
     variables:
-      - name: alerts
+      - name: alert_topic
         inputType: OutputTopic
         description: Alerts topic
         required: true
         value: json-alerts
-      - name: forecast_data
+      - name: forecast_topic
         inputType: InputTopic
         description: Forecast Data
         required: true
