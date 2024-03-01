@@ -59,7 +59,7 @@ deployments:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
       replicas: {{ forecast_service_replicas }}
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
