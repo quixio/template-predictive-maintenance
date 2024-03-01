@@ -1,4 +1,5 @@
 # import Utility modules
+from argparse import ArgumentError
 import os
 import ast
 import datetime
@@ -7,7 +8,6 @@ from dotenv import load_dotenv
 
 # import vendor-specific modules
 from quixstreams import Application
-from quixstreams.models.serializers.quix import JSONDeserializer
 from influxdb_client_3 import InfluxDBClient3
 
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +21,7 @@ consumer_group_name = os.environ.get('CONSUMER_GROUP_NAME', "influxdb-data-write
 # Create a Quix platform-specific application instead
 app = Application.Quix(consumer_group=consumer_group_name, auto_create_topics=True, auto_offset_reset='earliest')
 
-input_topic = app.topic(os.environ["input"], value_deserializer=JSONDeserializer())
+input_topic = app.topic(os.environ["input"])
 
 # Read the environment variable to determine the timestamp key. Default to timestmap if not defined
 incoming_timestamp_key = os.environ.get('TIMESTAMP_KEY', "timestamp")
@@ -29,6 +29,11 @@ incoming_timestamp_key = os.environ.get('TIMESTAMP_KEY', "timestamp")
 # Read the environment variable and convert it to a dictionary
 tag_keys = ast.literal_eval(os.environ.get('INFLUXDB_TAG_KEYS', "[]"))
 field_keys = ast.literal_eval(os.environ.get('INFLUXDB_FIELD_KEYS', "[]"))
+
+# do some parameter/variable validation
+influxdb_host = os.getenv("INFLUXDB_HOST", "")
+if influxdb_host == "" or not influxdb_host.startswith("https://"):
+    raise ValueError("InfluxDB urls must start with 'https://'")
 
 # setup the influxdb3 client using values from environment variables
 influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
@@ -38,6 +43,7 @@ influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
 
 def send_data_to_influx(message):
     logger.info(f"Processing message: {message}")
+
     try:
         # Get the measurement name to write data to
         measurement_name = os.environ.get('INFLUXDB_MEASUREMENT_NAME', "measurement1")
@@ -68,15 +74,16 @@ def send_data_to_influx(message):
 
         influx3_client.write(record=points, write_precision="ms")
         
-        logger.info(f"{str(datetime.datetime.utcnow())}: Persisted ponts to influx: {points}")
+        logger.info(f"{str(datetime.datetime.utcnow())}: Persisted data to influxDb: {points}")
     except Exception as e:
         logger.info(f"{str(datetime.datetime.utcnow())}: Write failed")
         logger.info(e)
 
 sdf = app.dataframe(input_topic)
-sdf = sdf.apply(lambda message: print(message))
 
-#sdf = sdf.update(send_data_to_influx)
+sdf = sdf[sdf.contains(incoming_timestamp_key)]  # filter out imbound data without this column
+
+sdf = sdf.apply(send_data_to_influx)
 
 if __name__ == "__main__":
     logger.info("Starting application")
