@@ -1,10 +1,10 @@
 name: Alert Service
 language: python
 variables:
-  - name: alerts
+  - name: alert_topic
     inputType: OutputTopic
     description: Alerts topic
-    defaultValue: alerts
+    defaultValue: json-alerts
     required: true
   - name: forecast_data
     inputType: InputTopic
