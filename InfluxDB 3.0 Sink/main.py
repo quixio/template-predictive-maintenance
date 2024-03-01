@@ -33,7 +33,7 @@ influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
                          database=os.environ["INFLUXDB_DATABASE"])
 
 def send_data_to_influx(message):
-    logger.info(f"Processing message: {message}")
+    logger.debug(f"Processing message: {message}")
     try:
         quixtime = message['time']
         # Get the name(s) and value(s) of the selected field(s)
@@ -41,7 +41,7 @@ def send_data_to_influx(message):
         field1_name = field_keys[0]
         field1_value = message[field_keys[0]]
 
-        logger.info(f"Using field keys: {', '.join(field_keys)}")
+        logger.debug(f"Using field keys: {', '.join(field_keys)}")
 
         # Using point dictionary structure
         # See: https://docs.influxdata.com/influxdb/cloud-dedicated/reference/client-libraries/v3/python/#write-data-using-a-dict
@@ -53,8 +53,7 @@ def send_data_to_influx(message):
         }
 
         influx3_client.write(record=points, write_precision="ms")
-        
-        print(f"{str(datetime.datetime.utcnow())}: Persisted measurement to influx.")
+        logger.info(f"{str(datetime.datetime.utcnow())}: Persisted measurement to influx.")
     except Exception as e:
         print(f"{str(datetime.datetime.utcnow())}: Write failed")
         print(e)
