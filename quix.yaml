@@ -76,55 +76,10 @@ deployments:
         description: Unit for the forecast_length
         required: true
         value: min
-  - name: InfluxDB 3.0 Alerts
-    application: InfluxDB 3.0
-    deploymentType: Service
-    version: 3f785218f42457296fda5f793f27421dc17c7c24
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    desiredStatus: Stopped
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: This is the input topic
-        required: true
-        value: alerts
-      - name: INFLUXDB_HOST
-        inputType: Secret
-        description: Host address for the InfluxDB instance.
-        required: true
-        secretKey: INFLUX_HOST
-      - name: INFLUXDB_TOKEN
-        inputType: Secret
-        description: Authentication token to access InfluxDB.
-        required: true
-        secretKey: INFLUX_TOKEN
-      - name: INFLUXDB_ORG
-        inputType: Secret
-        description: Organization name in InfluxDB.
-        required: true
-        secretKey: INFLUX_ORG
-      - name: INFLUXDB_DATABASE
-        inputType: Secret
-        description: Database name in InfluxDB where data should be stored.
-        required: true
-        secretKey: INFLUX_DATABASE
-      - name: INFLUXDB_TAG_COLUMNS
-        inputType: FreeText
-        description: Columns to be used as tags when writing data to InfluxDB.
-        required: true
-        value: '[]'
-      - name: INFLUXDB_MEASUREMENT_NAME
-        inputType: FreeText
-        description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: true
-        value: Alerts
   - name: InfluxDB 3.0 Raw Data
-    application: InfluxDB 3.0
+    application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: 5958238405eb10eaa8a435630714570fa09343be
+    version: 0457b35478b813890ac84ac9d7c3bf933fed33a6
     resources:
       cpu: 500
       memory: 500
@@ -206,7 +161,7 @@ deployments:
         description: Forecast Data
         required: true
         value: forecast
-  - name: InfluxDB 3.0 Sink
+  - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0 Sink
     deploymentType: Service
     version: 0457b35478b813890ac84ac9d7c3bf933fed33a6
@@ -214,48 +169,43 @@ deployments:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Stopped
+    desiredStatus: Running
     variables:
       - name: input
         inputType: InputTopic
         description: This is the input topic
         required: true
-        value: detection-result
+        value: alerts
       - name: INFLUXDB_HOST
-        inputType: FreeText
+        inputType: Secret
         description: Host address for the InfluxDB instance.
         required: true
-        value: eu-central-1-1.aws.cloud2.influxdata.com
+        secretKey: INFLUX_HOST
       - name: INFLUXDB_TOKEN
-        inputType: FreeText
+        inputType: Secret
         description: Authentication token to access InfluxDB.
         required: true
-        value: a
+        secretKey: INFLUX_TOKEN
       - name: INFLUXDB_ORG
-        inputType: FreeText
+        inputType: Secret
         description: Organization name in InfluxDB.
-        required: false
-        value: b
+        required: true
+        secretKey: INFLUX_ORG
       - name: INFLUXDB_DATABASE
-        inputType: FreeText
+        inputType: Secret
         description: Database name in InfluxDB where data should be stored.
         required: true
-        value: c
+        secretKey: INFLUX_DATABASE
       - name: INFLUXDB_TAG_COLUMNS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
-        required: false
-        value: "['tag1', 'tag2']"
+        required: true
+        value: '[]'
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: false
-        value: d
-      - name: INFLUXDB_FIELD_KEYS
-        inputType: FreeText
-        description: The fields to include when writing the measurement data
         required: true
-        value: "['field1','field2']"
+        value: Alerts
 
 # This section describes the Topics of the data pipeline
 topics:
