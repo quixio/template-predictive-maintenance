@@ -3,6 +3,7 @@ import os
 import ast
 import datetime
 import logging
+from dotenv import load_dotenv
 
 # import vendor-specific modules
 from quixstreams import Application
@@ -11,6 +12,10 @@ from influxdb_client_3 import InfluxDBClient3
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+with open("./.env", 'a+') as file: pass  # make sure the .env file exists
+load_dotenv("./.env") # load environment variables from .env file for local dev
+
 consumer_group_name = os.environ.get('CONSUMER_GROUP_NAME', "influxdb-data-writer")
 
 # Create a Quix platform-specific application instead
@@ -25,14 +30,7 @@ incoming_timestamp_key = os.environ.get('TIMESTAMP_KEY', "timestamp")
 tag_keys = ast.literal_eval(os.environ.get('INFLUXDB_TAG_KEYS', "[]"))
 field_keys = ast.literal_eval(os.environ.get('INFLUXDB_FIELD_KEYS', "[]"))
 
-# Read the environment variable for the field(s) to get.
-# For multiple fields, use a list "['field1','field2']"
-
-print(os.environ["INFLUXDB_TOKEN"])
-print(os.environ["INFLUXDB_HOST"])
-print(os.environ["INFLUXDB_ORG"])
-print(os.environ["INFLUXDB_DATABASE"])
-
+# setup the influxdb3 client using values from environment variables
 influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
                          host=os.environ["INFLUXDB_HOST"],
                          org=os.environ["INFLUXDB_ORG"],
@@ -76,7 +74,9 @@ def send_data_to_influx(message):
         logger.info(e)
 
 sdf = app.dataframe(input_topic)
-sdf = sdf.update(send_data_to_influx)
+sdf = sdf.apply(lambda message: print(message))
+
+#sdf = sdf.update(send_data_to_influx)
 
 if __name__ == "__main__":
     logger.info("Starting application")
