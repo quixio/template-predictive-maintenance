@@ -263,13 +263,6 @@ topics:
       replicationFactor: 2
       retentionInMinutes: 1440
       retentionInBytes: 52428800
-  - name: json-forecast
-    persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
   - name: changelog__transformation--json-downsampled-3d-printer-data--tumbling_window_5000_reduce
     persisted: false
     configuration:
