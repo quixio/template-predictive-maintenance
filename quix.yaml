@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: latest
+    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: latest
+    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
     resources:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
@@ -104,7 +104,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: latest
+    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
     resources:
       cpu: 500
       memory: 500
@@ -159,7 +159,7 @@ deployments:
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: latest
+    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
     resources:
       cpu: {{ down_sampling_cpu }}
       memory: {{ down_sampling_memory }}
@@ -179,7 +179,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: latest
+    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
@@ -199,7 +199,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: latest
+    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
     resources:
       cpu: 200
       memory: 500
