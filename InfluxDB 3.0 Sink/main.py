@@ -24,7 +24,12 @@ field_keys = ast.literal_eval(os.environ.get('INFLUXDB_FIELD_KEYS', "[]"))
 
 # Read the environment variable for the field(s) to get.
 # For multiple fields, use a list "['field1','field2']"
-                                           
+
+print(token=os.environ["INFLUXDB_TOKEN"])
+print(host=os.environ["INFLUXDB_HOST"])
+print(org=os.environ["INFLUXDB_ORG"])
+print(database=os.environ["INFLUXDB_DATABASE"])
+
 influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
                          host=os.environ["INFLUXDB_HOST"],
                          org=os.environ["INFLUXDB_ORG"],
