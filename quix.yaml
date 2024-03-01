@@ -155,12 +155,12 @@ deployments:
         inputType: InputTopic
         description: This is the input topic to read data from
         required: true
-        value: 3d-printer-data
+        value: json-3d-printer-data
       - name: output
         inputType: OutputTopic
         description: This is the output topic to write data to
         required: true
-        value: downsampled-3d-printer-data
+        value: json-downsampled-3d-printer-data
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
