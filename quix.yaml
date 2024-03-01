@@ -323,3 +323,11 @@ topics:
       retentionInMinutes: 1440
       retentionInBytes: 52428800
       cleanupPolicy: Compact
+  - name: changelog__transformationxx--json_forecast--default
+    persisted: false
+    configuration:
+      partitions: 1
+      replicationFactor: 2
+      retentionInMinutes: 1440
+      retentionInBytes: 52428800
+      cleanupPolicy: Compact
