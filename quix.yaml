@@ -223,11 +223,4 @@ deployments:
         value: alert_timestamp
 
 # This section describes the Topics of the data pipeline
-topics:
-  - name: alerts
-    persisted: false
-    configuration:
-      partitions: {{ alerts_partitions }}
-      replicationFactor: {{ alerts_replication_factor }}
-      retentionInMinutes: {{ alerts_retention_minutes }}
-      retentionInBytes: {{ alerts_retention_bytes }}
+topics: []
