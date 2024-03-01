@@ -58,7 +58,6 @@ def on_forecast_received(message: dict, state: State):
     forecast = message["forecast"]
 
     if forecast <= low_threshold and not forecast >= high_threshold:
-        print(alert_status)
         if forecast < low_threshold and alert_status["status"] != UNDER_FORECAST:
             alert_status = {
                 "status": UNDER_FORECAST,
@@ -95,6 +94,7 @@ def on_forecast_received(message: dict, state: State):
         alert_status['status'] in [UNDER_NOW, UNDER_FORECAST, OVER_NOW, OVER_FORECAST]):
         past_alerts.append(alert_hash)
         state.set("past_alerts", past_alerts)
+        logger.info(f"Publishing: {alert_status}")
         return alert_status
 
 
