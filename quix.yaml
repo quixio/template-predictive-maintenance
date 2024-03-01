@@ -20,7 +20,22 @@ deployments:
         inputType: OutputTopic
         description: This is the output topic for the generated 3D printer data
         required: true
-        value: 3d-printer-data
+        value: json-3d-printer-data
+      - name: target_ambient_t
+        inputType: FreeText
+        description: Target ambient temperature
+        required: false
+        value: 50
+      - name: hotend_t
+        inputType: FreeText
+        description: Target temperature for the hotend
+        required: false
+        value: 250
+      - name: bed_t
+        inputType: FreeText
+        description: Target temperature for the bed
+        required: false
+        value: 110
       - name: datalength
         inputType: FreeText
         description: Length of the data in seconds
