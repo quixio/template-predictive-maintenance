@@ -224,13 +224,6 @@ deployments:
 
 # This section describes the Topics of the data pipeline
 topics:
-  - name: forecast
-    persisted: false
-    configuration:
-      partitions: {{ forecast_partitions }}
-      replicationFactor: {{ forecast_replication_factor }}
-      retentionInMinutes: {{ forecast_retention_minutes }}
-      retentionInBytes: {{ forecast_retention_bytes }}
   - name: alerts
     persisted: false
     configuration:
