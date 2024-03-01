@@ -18,6 +18,9 @@ app = Application.Quix(consumer_group=consumer_group_name, auto_create_topics=Tr
 
 input_topic = app.topic(os.environ["input"], value_deserializer=JSONDeserializer())
 
+# Read the environment variable to determine the timestamp key. Default to timestmap if not defined
+incoming_timestamp_key = os.environ.get('TIMESTAMP_KEY', "timestamp")
+
 # Read the environment variable and convert it to a dictionary
 tag_keys = ast.literal_eval(os.environ.get('INFLUXDB_TAG_KEYS', "[]"))
 field_keys = ast.literal_eval(os.environ.get('INFLUXDB_FIELD_KEYS', "[]"))
@@ -62,7 +65,7 @@ def send_data_to_influx(message):
             "measurement": measurement_name,
             "tags": tags,
             "fields": fields,
-            "time": message['timestamp']
+            "time": message[incoming_timestamp_key]
         }
 
         influx3_client.write(record=points, write_precision="ms")
