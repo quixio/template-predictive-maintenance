@@ -79,7 +79,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: b126e8b4a348f82a30d462f7a3c601697fabf155
+    version: e4139419fdc9d330eee090780db0c4ed79995017
     resources:
       cpu: 500
       memory: 500
