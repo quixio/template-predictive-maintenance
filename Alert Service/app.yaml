@@ -6,10 +6,10 @@ variables:
     description: Alerts topic
     defaultValue: json-alerts
     required: true
-  - name: forecast_data
+  - name: forecast_topic
     inputType: InputTopic
     description: Forecast Data
-    defaultValue: forecast
+    defaultValue: json-forecast
     required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
