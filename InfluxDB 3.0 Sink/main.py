@@ -57,7 +57,7 @@ def send_data_to_influx(message):
             "measurement": measurement_name,
             "tags": tags,
             "fields": fields,
-            "time": message['time']
+            "time": message['timestamp']
         }
 
         influx3_client.write(record=points, write_precision="ms")
