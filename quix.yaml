@@ -185,12 +185,12 @@ deployments:
         inputType: OutputTopic
         description: Alerts topic
         required: true
-        value: alerts
+        value: json-alerts
       - name: forecast_data
         inputType: InputTopic
         description: Forecast Data
         required: true
-        value: forecast
+        value: json-forecast
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0 Sink
     deploymentType: Service
