@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 3f785218f42457296fda5f793f27421dc17c7c24
+    version: latest
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: a1a1bd9d78e1f1bc25d62fbaade8e5f7b5f34ecc
+    version: latest
     resources:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
@@ -104,7 +104,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: d3485f746cfbd75540fe02e8a5fff44f5af3f715
+    version: latest
     resources:
       cpu: 500
       memory: 500
@@ -151,10 +151,15 @@ deployments:
         description: The fields to include when writing the measurement data
         required: true
         value: '[]'
+      - name: incoming_timestamp_key
+        inputType: FreeText
+        description: The incoming data field to use as the timestamp
+        required: false
+        value: alert_timestamp
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: 3f785218f42457296fda5f793f27421dc17c7c24
+    version: latest
     resources:
       cpu: {{ down_sampling_cpu }}
       memory: {{ down_sampling_memory }}
@@ -174,7 +179,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 447a7e5320addb8aae7810e2d29e60512a548933
+    version: latest
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
@@ -194,7 +199,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: cdb1eff703f3f5fb4b5dca10eb5ab1dac2c2772c
+    version: latest
     resources:
       cpu: 200
       memory: 500
