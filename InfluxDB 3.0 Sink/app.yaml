@@ -41,6 +41,11 @@ variables:
     description: The fields to include when writing the measurement data
     defaultValue: "['field1','field2']"
     required: true
+  - name: incoming_timestamp_key
+    inputType: FreeText
+    description: The incoming data field to use as the timestamp
+    defaultValue: alert_timestamp
+    required: false
 dockerfile: dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
