@@ -79,7 +79,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: 0457b35478b813890ac84ac9d7c3bf933fed33a6
+    version: 1cdb946f9eb1004db08da4edfcc708cdd88e3b19
     resources:
       cpu: 500
       memory: 500
@@ -92,25 +92,25 @@ deployments:
         required: true
         value: downsampled-3d-printer-data
       - name: INFLUXDB_HOST
-        inputType: Secret
+        inputType: FreeText
         description: Host address for the InfluxDB instance.
         required: true
-        secretKey: INFLUX_HOST
+        value: INFLUX_HOST
       - name: INFLUXDB_TOKEN
-        inputType: Secret
+        inputType: FreeText
         description: Authentication token to access InfluxDB.
         required: true
-        secretKey: INFLUX_TOKEN
+        value: INFLUX_TOKEN
       - name: INFLUXDB_ORG
-        inputType: Secret
+        inputType: FreeText
         description: Organization name in InfluxDB.
-        required: true
-        secretKey: INFLUX_ORG
+        required: false
+        value: INFLUX_ORG
       - name: INFLUXDB_DATABASE
-        inputType: Secret
+        inputType: FreeText
         description: Database name in InfluxDB where data should be stored.
         required: true
-        secretKey: INFLUX_DATABASE
+        value: INFLUX_DATABASE
       - name: INFLUXDB_TAG_COLUMNS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
@@ -121,6 +121,11 @@ deployments:
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
         required: false
         value: Data
+      - name: INFLUXDB_FIELD_KEYS
+        inputType: FreeText
+        description: The fields to include when writing the measurement data
+        required: true
+        value: "['field1','field2']"
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
