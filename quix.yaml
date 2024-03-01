@@ -245,13 +245,6 @@ topics:
       replicationFactor: {{ alerts_replication_factor }}
       retentionInMinutes: {{ alerts_retention_minutes }}
       retentionInBytes: {{ alerts_retention_bytes }}
-  - name: 3d-printer-data
-    persisted: false
-    configuration:
-      partitions: {{ printer_data_partitions }}
-      replicationFactor: {{ printer_data_replication_factor }}
-      retentionInMinutes: {{ printer_data_retention_minutes }}
-      retentionInBytes: {{ printer_data_retention_bytes }}
   - name: 3d-printer-data-json
     persisted: false
     configuration:
