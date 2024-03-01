@@ -245,13 +245,6 @@ topics:
       replicationFactor: {{ alerts_replication_factor }}
       retentionInMinutes: {{ alerts_retention_minutes }}
       retentionInBytes: {{ alerts_retention_bytes }}
-  - name: 3d-printer-data-json2
-    persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
   - name: downsampled-3d-printer-data-json
     persisted: false
     configuration:
