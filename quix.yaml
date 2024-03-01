@@ -231,13 +231,6 @@ topics:
       replicationFactor: {{ forecast_replication_factor }}
       retentionInMinutes: {{ forecast_retention_minutes }}
       retentionInBytes: {{ forecast_retention_bytes }}
-  - name: downsampled-3d-printer-data
-    persisted: false
-    configuration:
-      partitions: {{ downsampled_data_partitions }}
-      replicationFactor: {{ downsampled_data_replication_factor }}
-      retentionInMinutes: {{ downsampled_data_retention_minutes }}
-      retentionInBytes: {{ downsampled_data_retention_bytes }}
   - name: alerts
     persisted: false
     configuration:
