@@ -63,17 +63,27 @@ deployments:
     variables:
       - name: input
         inputType: InputTopic
-        description: Name of the input topic to listen to.
-        required: false
-        value: downsampled-3d-printer-data
+        description: Topic to read data from
+        required: true
+        value: json-downsampled-3d-printer-data
       - name: output
         inputType: OutputTopic
-        description: Name of the output topic to write to.
+        description: Topic to send the forecasts
+        required: true
+        value: json-forecast
+      - name: parameter_name
+        inputType: FreeText
+        description: Name of the parameter for forecasting
         required: false
-        value: forecast
+        value: fluctuated_ambient_temperature
+      - name: debug
+        inputType: FreeText
+        description: Debug mode (1 enabled, 0 disabled)
+        required: false
+        value: 0
       - name: window_value
         inputType: FreeText
-        description: Window value
+        description: Window value (number of observations or time period)
         required: true
         value: 30
       - name: window_type
