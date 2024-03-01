@@ -35,7 +35,7 @@ influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
 def send_data_to_influx(message):
     logger.debug(f"Processing message: {message}")
     try:
-        quixtime = message['time']
+        quixtime = message['timestamp']
         # Get the name(s) and value(s) of the selected field(s)
         # Using a single field in this example for simplicity
         field1_name = field_keys[0]
