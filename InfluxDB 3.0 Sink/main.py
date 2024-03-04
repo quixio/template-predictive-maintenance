@@ -87,4 +87,7 @@ sdf = sdf.apply(send_data_to_influx)
 
 if __name__ == "__main__":
     logger.info("Starting application")
-    app.run(sdf)
+    try:
+        app.run(sdf)
+    except Exception as e:
+        print(e)
