@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
+    version: latest
     resources:
       cpu: {{ data_generator_cpu}}
       memory: {{ data_generator_memory}}
@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
+    version: latest
     resources:
       cpu: {{ forecast_service_cpu }}
       memory: {{ forecast_service_memory }}
@@ -104,7 +104,7 @@ deployments:
   - name: InfluxDB 3.0 Raw Data
     application: InfluxDB 3.0 Sink
     deploymentType: Job
-    version: 0cef70fbbc4d2aadc164af5e9ab5cb4e0fa48bda
+    version: latest
     resources:
       cpu: 500
       memory: 500
@@ -178,7 +178,7 @@ deployments:
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
+    version: latest
     resources:
       cpu: {{ alert_service_cpu }}
       memory: {{ alert_service_memory }}
@@ -198,7 +198,7 @@ deployments:
   - name: InfluxDB 3.0 Alerts
     application: InfluxDB 3.0 Sink
     deploymentType: Service
-    version: 29ad2eddfb605603ecaa0abc452eb692d72d13e3
+    version: latest
     resources:
       cpu: 200
       memory: 500
@@ -255,84 +255,23 @@ deployments:
 topics:
   - name: json-3d-printer-data
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
   - name: json-downsampled-3d-printer-data
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
   - name: changelog__transformation--json-downsampled-3d-printer-data--tumbling_window_5000_reduce
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
-      cleanupPolicy: Compact
   - name: changelog__transformation--json-3d-printer-data--tumbling_window_10000_reduce
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
-      cleanupPolicy: Compact
   - name: changelog__transformation--json-forecast--default
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
-      cleanupPolicy: Compact
   - name: changelog__transformation--json_forecast--default
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
-      cleanupPolicy: Compact
   - name: changelog__transformationxx--json_forecast--default
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
-      cleanupPolicy: Compact
   - name: json-forecast
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
   - name: json-alerts
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
   - name: changelog__transformationxx--json-forecast--default
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
-      cleanupPolicy: Compact
   - name: detection-result
     persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 2
-      retentionInMinutes: 1440
-      retentionInBytes: 52428800
