@@ -49,6 +49,8 @@ influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
                          database=os.environ["INFLUXDB_DATABASE"])
 back_off_delay = 0
 def send_data_to_influx(message):
+    global back_off_delay
+    
     logger.info(f"Processing message: {message}")
 
     try:
