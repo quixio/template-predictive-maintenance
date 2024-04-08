@@ -257,16 +257,6 @@ topics:
     persisted: false
   - name: json-downsampled-3d-printer-data
     persisted: false
-  - name: changelog__transformation--json-downsampled-3d-printer-data--tumbling_window_5000_reduce
-    persisted: false
-  - name: changelog__transformation--json-3d-printer-data--tumbling_window_10000_reduce
-    persisted: false
-  - name: changelog__transformation--json-forecast--default
-    persisted: false
-  - name: changelog__transformation--json_forecast--default
-    persisted: false
-  - name: changelog__transformationxx--json_forecast--default
-    persisted: false
   - name: json-forecast
     persisted: false
   - name: json-alerts
