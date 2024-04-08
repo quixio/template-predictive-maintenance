@@ -1,4 +1,5 @@
-import quixstreams as qx
+from quixstreams import Application
+from dotenv import load_dotenv
 
 import logging
 import os
@@ -6,86 +7,33 @@ import sys
 from datetime import datetime
 
 import numpy as np
-import pandas as pd
 from sklearn.linear_model import LinearRegression
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import PolynomialFeatures
 
+from typing import List
+
+with open("./.env", 'a+') as file: pass  # make sure the .env file exists
+load_dotenv("./.env") # load environment variables from .env file for local dev
+
 # Assigning environ vars to local variables
-topic_input = os.environ["input"]
-topic_output = os.environ["output"]
-parameter_name = os.environ["parameter_name"] if "parameter_name" in os.environ else "fluctuated_ambient_temperature"
-forecast_label = "forecast_" + str(parameter_name)
+topic_input = os.getenv("input", "downsampled-3d-printer-data-json")
+topic_output = os.getenv("output", "forecast")
 
-window_type_env = os.environ["window_type"] if "window_type" in os.environ else "1"
-window_type = 'Number of Observations' if window_type_env == 1 else "Time Period"
-window_value = int(os.environ["window_value"])
+forecast_length = int(os.getenv('forecast_length', "5"))
 
-if window_type == 'Number of Observations':
-    window = int(window_value)
-elif window_type == 'Time Period':
-    window = pd.Timedelta(str(window_value))
-else:
-    window = None
-
-debug = os.environ["debug"] == "1" if "debug" in os.environ else False
+debug = os.getenv("debug", False)
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG if debug else logging.INFO)
+logger = logging.getLogger(__name__)
 
+# 
+def on_message_handler(rows: List[dict]):
+    """
+    Run the prediciton using the sklearn
+    Output a list of objects with timestamp and forecast
+    """
 
-# Callback called for each incoming stream
-def read_stream(stream_consumer: qx.StreamConsumer):
-    # Create a new stream to output data
-    stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
-    logging.info(f"Created stream '{stream_producer.stream_id}' ({stream_consumer.properties.name})")
-
-    # React to new data received from input topic.
-    stream_consumer.timeseries.on_dataframe_received = on_dataframe_handler
-
-    # When input stream closes, we close output stream as well.
-    def on_stream_close(closed_stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
-        global windows
-
-        stream_id = closed_stream_consumer.stream_id
-        if stream_id in windows:
-            del windows[stream_id]
-        else:
-            logging.warning(f"Stream {stream_id} ({stream_consumer.properties.name}) was not found in windows dict.")
-
-        stream_producer.close()
-        logging.info(f"Closing stream '{stream_consumer.properties.name}'")
-
-    stream_consumer.on_stream_closed = on_stream_close
-
-
-def get_or_create_forecast_stream(stream_id: str, stream_name: str):
-    stream_producer = producer_topic.get_or_create_stream(f"{stream_id}-forecast")
-
-    if stream_id not in stream_producer.properties.parents:
-        stream_producer.properties.parents.append(stream_id)
-
-    if stream_name is not None:
-        stream_producer.properties.name = f"{stream_name} - Forecast"
-
-    stream_producer.timeseries.add_definition(forecast_label, "Forecasted " + parameter_name)
-    return stream_producer
-
-
-def generate_forecast(df, printer_name):
-    global window_value
-
-    forecast_length = int(os.environ['forecast_length'])
-    forecast_unit = os.environ['forecast_unit']
-
-    # Set the 'timestamp' column as the index
-    if 'original_timestamp' not in df.columns:
-        timestamp_column_name = 'timestamp'
-    else:
-        timestamp_column_name = 'original_timestamp'
-        df[timestamp_column_name] = pd.to_datetime(df[timestamp_column_name])
-
-    df.set_index(pd.DatetimeIndex(df[timestamp_column_name]), inplace=True)
-
-    forecast_input = df[parameter_name]
+    forecast_input = list(map(lambda row: row["mean_fluctuated_ambient_temperature"], rows))
 
     # Define the degree of the polynomial regression model
     degree = 2
@@ -96,125 +44,66 @@ def generate_forecast(df, printer_name):
     # Forecast the future values
     forecast_array = np.array(range(len(forecast_input), len(forecast_input) + forecast_length)).reshape(-1, 1)
     forecast_values = model.predict(forecast_array)
-    # Create a DataFrame for the forecast
-    fcast = pd.DataFrame(forecast_values, columns=[forecast_label])
 
-    # Tag the data with the printer name for joining operations later
-    fcast["TAG__printer"] = printer_name
+    result = []
+    timestamp = rows[-1]["timestamp"]
 
-    # Create a timestamp for the forecasted values
-    forecast_timestamp = pd.date_range(start=forecast_input.index[-1] + pd.Timedelta(value=1, unit=forecast_unit),
-                                       periods=forecast_length, freq=forecast_unit)
-
-    # Add the forecasted timestamps to the DataFrame - these are in the future
-    fcast['timestamp'] = forecast_timestamp
-
-    # Print first and last entries of df and the forecast
-    first_timestamp = pd.to_datetime(df[timestamp_column_name].iloc[0])
-    last_timestamp = pd.to_datetime(df[timestamp_column_name].iloc[-1])
-    first_temperature = df[parameter_name].iloc[0]
-    last_temperature = df[parameter_name].iloc[-1]
-
-    first_forecast_timestamp = fcast['timestamp'].iloc[0]
-    last_forecast_timestamp = fcast['timestamp'].iloc[-1]
-    first_forecast_temperature = fcast[forecast_label].iloc[0]
-    last_forecast_temperature = fcast[forecast_label].iloc[-1]
-
-    logging.info("#######################################################")
-    logging.info(f"{printer_name : ^55}")
-    logging.info(f"Current first  {first_timestamp} {first_temperature}")
-    logging.info(f"Current last   {last_timestamp} {last_temperature}")
-    logging.info(f"Forecast first {first_forecast_timestamp} {first_forecast_temperature}")
-    logging.info(f"Forecast last  {last_forecast_timestamp} {last_forecast_temperature}")
-    logging.info("#######################################################")
-
-    return fcast
-
-
-windows = {}
-storage = qx.LocalFileStorage()
-
-
-def on_dataframe_handler(stream_consumer: qx.StreamConsumer, df: pd.DataFrame):
-    global windows
-
-    if parameter_name not in df.columns:
-        return
-
-    stream_id = stream_consumer.stream_id
-    if stream_id not in windows:
-        windows[stream_id] = pd.DataFrame()
-
-    df_window = windows[stream_id]
-
-    # Append latest data to df_window
-    columns = ["timestamp", parameter_name]
-    if 'original_timestamp' in df.columns:
-        columns.append('original_timestamp')
-
-    df_window = pd.concat([df_window, df[columns]])
-
-    # Store in memory for each printer
-    windows[stream_id] = df_window
-
-    # Save to state before trimming
-    storage.set("df_window", df_window.to_dict())
-
-    # Trim out the (now) too old data in the df_window
-    if window is int:
-        df_window = df_window.iloc[-window:, :]
-    if window is pd.Timedelta:
-        min_date = df_window['timestamp'].iloc[-1] - window.delta
-        df_window = df_window[df_window['timestamp'] > min_date]
-
-    # PERFORM A OPERATION ON THE WINDOW
-    # Check if df_window has at least 10 rows
-    min_window_length = 10
-    if len(df_window) >= min_window_length:
-        # Last data point timestamp
-        last_timestamp = df_window['timestamp'].iloc[-1] / 1e9
-
-        # Warn if we are processing data that was generated more than 1 minute ago
-        elapsed_time = datetime.now().timestamp() - last_timestamp
-        if elapsed_time > 120:
-            logging.warning(
-                f"{stream_consumer.properties.name}: Processing data that was generated {elapsed_time} seconds ago")
-
-        # Generate forecast
-        start = datetime.now().timestamp()
-        forecast = generate_forecast(df_window, stream_consumer.properties.name or "Unknown")
-        stream_producer = get_or_create_forecast_stream(stream_consumer.stream_id, stream_consumer.properties.name)
-        stream_producer.timeseries.buffer.publish(forecast)
-        logging.debug(
-            f"{stream_consumer.properties.name}: Took {datetime.now().timestamp() - start} seconds to calculate the forecast")
-
-
-    else:
-        logging.info(f"{stream_consumer.properties.name}: Not enough data for a forecast yet"
-                     f" ({len(df_window)} {os.environ['forecast_unit']},"
-                     f" forecast needs {min_window_length} {os.environ['forecast_unit']})")
+    for value in forecast_values:
+        timestamp += 60 * 1000
+        result.append({
+            "timestamp": timestamp,
+            "forecast": float(value)
+        })
+    return result
 
 
 if __name__ == "__main__":
-    # Alternatively, you can always pass an SDK token manually as an argument.
-    client = qx.QuixStreamingClient()
+   
+    # Quix platform injects credentials automatically to the client.
+    # Alternatively, you can always pass an SDK token manually as an argument when working locally.
+    # Or set the relevant values in a .env file
+    app = Application.Quix("transformation", auto_offset_reset="earliest")
 
     # Change consumer group to a different constant if you want to run model locally.
-    logging.info("Opening input and output topics")
+    logger.info("Opening input and output topics")
 
-    if debug:
-        consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name,
-                                                   auto_offset_reset=qx.AutoOffsetReset.Earliest)
-    else:
-        consumer_topic = client.get_topic_consumer(topic_input, "forecast-" + parameter_name)
-
-    producer_topic = client.get_topic_producer(topic_output)
-
-    # Hook up events before initiating read to avoid losing out on any data
-    consumer_topic.on_stream_received = read_stream
+    # Open the topics for input and output of data
+    input_topic = app.topic(topic_input, value_deserializer="json")
+    producer_topic = app.topic(topic_output, value_serializer="json")
 
     # Hook up to termination signal (for docker image) and CTRL-C
-    logging.info("Listening to streams. Press CTRL-C to exit.")
+    logger.info("Listening to streams. Press CTRL-C to exit.")
 
-    # Handle graceful exit of the model.
-    qx.App.run()
+    sdf = app.dataframe(input_topic)  # initialize the streaming dataframe
+
+    sdf = sdf[sdf.contains("mean_fluctuated_ambient_temperature")]  # ensure the column exists in the incomming data
+
+    sdf = sdf[["timestamp", "mean_fluctuated_ambient_temperature"]]  # select only these coluns for processing
+
+    # reducer appends all but first rows values (in this window) to state
+    def reducer(state: list, row: dict):
+        state.append(row)
+        return state
+
+    # init initializes the state arrays with the first value
+    def reducer_init(row: dict):
+        return [row]
+
+    # apply the reducer funciton
+    sdf = sdf.tumbling_window(5000).reduce(reducer, reducer_init).final()
+
+    # now handle the output from the above stage which will be like {value: {key:value}}
+    sdf = sdf.apply(lambda row: on_message_handler(row["value"]), expand=True)
+
+    # convert the timestamps to human readable
+    sdf["timestamp"] = sdf["timestamp"].apply(lambda epoch: str(datetime.fromtimestamp(epoch/1000)))
+
+    sdf = sdf.update(lambda message: print(message))
+
+    # publish the data resulting from this pipline to the topic
+    sdf = sdf.to_topic(producer_topic)
+
+    try:
+        app.run(sdf)
+    except Exception as e:
+        logger.exception("An error occurred while running the application.")
