@@ -19,7 +19,7 @@ load_dotenv("./.env") # load environment variables from .env file for local dev
 consumer_group_name = os.environ.get('CONSUMER_GROUP_NAME', "influxdb-data-writer")
 
 # Create a Quix platform-specific application instead
-app = Application.Quix(consumer_group=consumer_group_name, auto_create_topics=True, auto_offset_reset='earliest')
+app = Application.Quix(consumer_group=consumer_group_name, auto_create_topics=True, auto_offset_reset='earliest', use_changelog_topics=False)
 
 input_topic = app.topic(os.environ["input"])
 

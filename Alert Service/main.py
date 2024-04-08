@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 with open("./.env", 'a+') as file: pass  # make sure the .env file exists
 load_dotenv("./.env") # load environment variables from .env file for local dev
 
-app = Application.Quix("transformation-v1" + str(uuid4()), auto_offset_reset="latest")
+app = Application.Quix("transformation-v1" + str(uuid4()), auto_offset_reset="latest", )
 
 forecast_topic = os.getenv("forecast_topic", "forecast")
 alerts_topic = os.getenv("alert_topic", "alerts")
