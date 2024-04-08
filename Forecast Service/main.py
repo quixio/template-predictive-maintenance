@@ -62,7 +62,7 @@ if __name__ == "__main__":
     # Quix platform injects credentials automatically to the client.
     # Alternatively, you can always pass an SDK token manually as an argument when working locally.
     # Or set the relevant values in a .env file
-    app = Application.Quix("transformation", auto_offset_reset="earliest")
+    app = Application.Quix("transformation", auto_offset_reset="earliest", use_changelog_topics=False)
 
     # Change consumer group to a different constant if you want to run model locally.
     logger.info("Opening input and output topics")
