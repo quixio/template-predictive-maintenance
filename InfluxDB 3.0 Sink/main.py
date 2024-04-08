@@ -16,6 +16,9 @@ logger = logging.getLogger(__name__)
 with open("./.env", 'a+') as file: pass  # make sure the .env file exists
 load_dotenv("./.env") # load environment variables from .env file for local dev
 
+for name, value in os.environ.items():
+    print("{0}: {1}".format(name, value))
+
 consumer_group_name = os.environ.get('CONSUMER_GROUP_NAME', "influxdb-data-writer")
 
 # Create a Quix platform-specific application instead
@@ -43,11 +46,12 @@ influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
                          host=os.environ["INFLUXDB_HOST"],
                          org=os.environ["INFLUXDB_ORG"],
                          database=os.environ["INFLUXDB_DATABASE"])
-
+back_off_delay = 0
 def send_data_to_influx(message):
     logger.info(f"Processing message: {message}")
 
     try:
+        time.sleep(back_off_delay)
         # Get the measurement name to write data to
         measurement_name = os.environ.get('INFLUXDB_MEASUREMENT_NAME', "measurement1")
 
@@ -79,6 +83,9 @@ def send_data_to_influx(message):
         
         logger.info(f"{str(datetime.datetime.utcnow())}: Persisted data to influxDb: {points}")
     except Exception as e:
+        if back_off_delay < 5:
+            back_off_delay += 0.5
+
         logger.info(f"{str(datetime.datetime.utcnow())}: Write failed")
         logger.info(e)
 
