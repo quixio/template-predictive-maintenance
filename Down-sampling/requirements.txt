@@ -1,2 +1,2 @@
-quixstreams>=2.3
+quixstreams<2.5
 python-dotenv
