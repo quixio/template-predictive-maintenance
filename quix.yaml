@@ -261,7 +261,5 @@ topics:
     persisted: false
   - name: json-alerts
     persisted: false
-  - name: changelog__transformationxx--json-forecast--default
-    persisted: false
   - name: detection-result
     persisted: false
