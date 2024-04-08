@@ -250,6 +250,21 @@ deployments:
         description: The incoming data field to use as the timestamp
         required: false
         value: alert_timestamp
+  - name: Starter source
+    application: Starter source
+    deploymentType: Service
+    version: latest
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Running
+    variables:
+      - name: output
+        inputType: OutputTopic
+        description: Name of the output topic to write into
+        required: true
+        value: csv-data
 
 # This section describes the Topics of the data pipeline
 topics:
