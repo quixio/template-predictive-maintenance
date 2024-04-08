@@ -32,8 +32,11 @@ field_keys = ast.literal_eval(os.environ.get('INFLUXDB_FIELD_KEYS', "[]"))
 
 # do some parameter/variable validation
 influxdb_host = os.getenv("INFLUXDB_HOST", "")
-if influxdb_host == "" or not influxdb_host.startswith("https://"):
-    raise ValueError("InfluxDB urls must start with 'https://'")
+if influxdb_host == "":
+    raise ValueError("InfluxDB is required")
+
+if not influxdb_host.startswith("https://"):
+    influxdb_host = 'https://' + influxdb_host
 
 # setup the influxdb3 client using values from environment variables
 influx3_client = InfluxDBClient3(token=os.environ["INFLUXDB_TOKEN"],
