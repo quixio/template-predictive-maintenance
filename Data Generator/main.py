@@ -12,7 +12,7 @@ from quixstreams import Application
 from quixstreams.models.topics import Topic
 from quixstreams.kafka import Producer
 
-dotenv.load_dotenv() # for local dev, load env vars from .env file
+dotenv.load_dotenv() # for local dev, load env vars from .env file d
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 
 # Replay speed
