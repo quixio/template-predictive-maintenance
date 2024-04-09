@@ -135,16 +135,21 @@ deployments:
         description: Database name in InfluxDB where data should be stored.
         required: true
         secretKey: INFLUX_DATABASE
-      - name: INFLUXDB_TAG_COLUMNS
+      - name: INFLUXDB_TAG_KEYS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
         required: true
-        value: '[]'
+        value: "['printer']"
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
         required: true
         value: Data
+      - name: INFLUXDB_FIELD_KEYS
+        inputType: FreeText
+        description: ''
+        required: false
+        value: "['mean_hotend_temperature', 'mean_bed_temperature', 'mean_ambient_temperature', 'mean_fluctuated_ambient_temperature', 'count']"
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
@@ -193,7 +198,7 @@ deployments:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Stopped
+    desiredStatus: Running
     variables:
       - name: input
         inputType: InputTopic
