@@ -198,7 +198,7 @@ deployments:
       cpu: 200
       memory: 500
       replicas: 1
-    desiredStatus: Running
+    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
@@ -229,7 +229,7 @@ deployments:
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
         required: true
-        value: "['under-forecast','ambient_temperature']"
+        value: "['status','parameter_name']"
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
@@ -239,7 +239,7 @@ deployments:
         inputType: FreeText
         description: ''
         required: false
-        value: "['message']"
+        value: "['message','alert_temperature']"
 
 # This section describes the Topics of the data pipeline
 topics:
