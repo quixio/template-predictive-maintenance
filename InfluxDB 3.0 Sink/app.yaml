@@ -35,6 +35,11 @@ variables:
     description: ''
     defaultValue: ''
     required: false
+  - name: new_env_var
+    inputType: FreeText
+    description: ''
+    defaultValue: ''
+    required: false
 dockerfile: dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
