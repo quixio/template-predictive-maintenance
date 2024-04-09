@@ -1,76 +1,89 @@
-import quixstreams as qx
-import pandas as pd
 import os
+from quixstreams import Application
+from dotenv import load_dotenv
+import logging
+from datetime import timedelta
 
-# Quix injects credentials automatically to the client.
-# Alternatively, you can always pass an SDK token manually as an argument.
-client = qx.QuixStreamingClient()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-print("Opening input and output topics")
-topic_consumer = client.get_topic_consumer(os.environ["input"], "down-sampling-consumer-group")
-topic_producer = client.get_topic_producer(os.environ["output"])
+with open("./.env", 'a+') as file: pass  # make sure the .env file exists
+load_dotenv("./.env")
 
-# buffer 1 minute of data
-buffer_configuration = qx.TimeseriesBufferConfiguration()
-buffer_configuration.time_span_in_milliseconds = 1 * 60 * 1000
+# Quix platform injects credentials automatically to the client.
+# Alternatively, you can always pass an SDK token manually as an argument when working locally.
+# Or set the relevant values in a .env file
+app = Application.Quix("transformation", auto_offset_reset="latest", use_changelog_topics=False)
 
+# Open the topics for input and output of data
+input_topic = app.topic(os.getenv("input", "3d-printer-data-json"), value_deserializer="json")
+output_topic = app.topic(os.getenv("output", "downsampled-3d-printer-data-json"), value_serializer="json")
 
-# called for each incoming stream
-def on_stream_received_handler(stream_consumer: qx.StreamConsumer):
-    # called for each incoming DataFrame
-    def on_dataframe_received_handler(originating_stream: qx.StreamConsumer, df: pd.DataFrame):
-        if originating_stream.properties.name is not None and stream_producer.properties.name is None:
-            stream_producer.properties.name = originating_stream.properties.name + "-down-sampled"
-
-        # Identify numeric and string columns
-        numeric_columns = [col for col in df.columns if not col.startswith('TAG__') and
-                           col not in ['time', 'timestamp', 'original_timestamp', 'date_time']]
-        string_columns = [col for col in df.columns if col.startswith('TAG__')]
-
-        # Create an aggregation dictionary for numeric columns
-        numeric_aggregation = {col: 'mean' for col in numeric_columns}
-
-        # Create an aggregation dictionary for string columns (keeping the last value)
-        string_aggregation = {col: 'last' for col in string_columns}
-
-        # Merge the two aggregation dictionaries
-        aggregation_dict = {**numeric_aggregation, **string_aggregation}
-
-        df["timestamp"] = pd.to_datetime(df["timestamp"])
-
-        # resample and get the mean of the input data
-        df = df.set_index("timestamp").resample('1min').agg(aggregation_dict).reset_index()
-
-        # Send filtered data to output topic
-        stream_producer.timeseries.buffer.publish(df)
-
-    # create a new stream to output data
-    stream_producer = topic_producer.get_or_create_stream(stream_consumer.stream_id + "-down-sampled")
-    stream_producer.properties.parents.append(stream_consumer.stream_id)
-
-    if stream_consumer.properties.name is not None:
-        stream_producer.properties.name = stream_consumer.properties.name + "-down-sampled"
-
-    # create the buffer
-    buffer = stream_consumer.timeseries.create_buffer(buffer_configuration=buffer_configuration)
-
-    # React to new data received from input topics buffer.
-    # Here we assign a callback to be called when data arrives.
-    buffer.on_dataframe_released = on_dataframe_received_handler
-
-    # When input stream closes, we close output stream as well.
-    def on_stream_close(stream_consumer: qx.StreamConsumer, end_type: qx.StreamEndType):
-        stream_producer.close()
-        print(f"Stream closed: {stream_producer.stream_id}")
-
-    stream_consumer.on_stream_closed = on_stream_close
+sdf = app.dataframe(input_topic)  # initialize the streaming dataframe
+sdf = sdf[sdf.contains("printer")] # ensure the column "printer" exists in the incomming data
 
 
-# Hook up events before initiating read to avoid losing out on any data
-topic_consumer.on_stream_received = on_stream_received_handler
+def reducer(state: dict, value: dict) -> dict:
+    """
+    'reducer' will be called for every message except the first.
+    We add the values to sum them so we can later divide by the 
+    count to get an average.
+    """
 
-# Hook up to termination signal (for docker image) and CTRL-C
-print("Listening to streams. Press CTRL-C to exit.")
+    state['sum_hotend_temperature'] += value['hotend_temperature']
+    state['sum_bed_temperature'] += value['bed_temperature']
+    state['sum_ambient_temperature'] += value['ambient_temperature']
+    state['sum_fluctuated_ambient_temperature'] += value['fluctuated_ambient_temperature']
+    state['sum_count'] += 1
+    return state
 
-# Handle graceful exit of the model.
-qx.App.run()
+def initializer(value: dict) -> dict:
+    """
+    'initializer' will be called only for the first message.
+    This is the time to create and initialize the state for 
+    use in the reducer funciton.
+    """
+
+    return {
+        'sum_hotend_temperature': value['hotend_temperature'],
+        'sum_bed_temperature': value['bed_temperature'],
+        'sum_ambient_temperature': value['ambient_temperature'],
+        'sum_fluctuated_ambient_temperature': value['fluctuated_ambient_temperature'],
+        'sum_timestamp': value['timestamp'],
+        'sum_original_timestamp': value['original_timestamp'],
+        'sum_printer': value['printer'],
+        'sum_count': 1
+    }
+
+# create a tumbling window of 10 seconds
+# use the reducer and initializer configured above
+# get the 'final' values for the window once the window is closed.
+sdf = (
+    sdf.tumbling_window(timedelta(seconds=10))
+    .reduce(reducer=reducer, initializer=initializer)
+    .final()
+)
+
+def get_mean(row: dict, key: str):
+    return row["value"][key] / row["value"]["sum_count"]
+
+
+# use the reduced values
+sdf = sdf.apply(lambda row: {
+    "timestamp": row["start"],
+    "mean_hotend_temperature": get_mean(row, "sum_hotend_temperature"),
+    "mean_bed_temperature": get_mean(row, "sum_bed_temperature"),
+    "mean_ambient_temperature": get_mean(row, "sum_ambient_temperature"),
+    "mean_fluctuated_ambient_temperature": get_mean(row, "sum_fluctuated_ambient_temperature"),
+    "original_timestamp": row["value"]["sum_original_timestamp"],
+    "count": row["value"]["sum_count"],
+    "printer": row["value"]["sum_printer"]
+})
+
+sdf = sdf.to_topic(output_topic)  # publish to the desired output topic 
+
+if __name__ == "__main__":
+    try:
+        app.run(sdf)
+    except Exception as e:
+        logger.exception("An error occurred while running the application.")

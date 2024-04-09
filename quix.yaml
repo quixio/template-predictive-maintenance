@@ -9,7 +9,7 @@ deployments:
   - name: Data Generator
     application: Data Generator
     deploymentType: Service
-    version: f3273d755c1e767d02dfd6c88826588024e88d0f
+    version: latest
     resources:
       cpu: 500
       memory: 1024
@@ -20,10 +20,10 @@ deployments:
         inputType: OutputTopic
         description: This is the output topic for the generated 3D printer data
         required: true
-        value: 3d-printer-data
+        value: json-3d-printer-data
       - name: target_ambient_t
         inputType: FreeText
-        description: Rarget ambient temperature
+        description: Target ambient temperature
         required: false
         value: 50
       - name: hotend_t
@@ -54,7 +54,7 @@ deployments:
   - name: Forecast Service
     application: Forecast Service
     deploymentType: Service
-    version: 46fc86eb54c88751c11151b734ab0a9441b943b1
+    version: latest
     resources:
       cpu: 500
       memory: 1024
@@ -63,14 +63,14 @@ deployments:
     variables:
       - name: input
         inputType: InputTopic
-        description: Name of the input topic to listen to.
-        required: false
-        value: downsampled-3d-printer-data
+        description: Topic to read data from
+        required: true
+        value: json-downsampled-3d-printer-data
       - name: output
         inputType: OutputTopic
-        description: Name of the output topic to write to.
-        required: false
-        value: forecast
+        description: Topic to send the forecasts
+        required: true
+        value: json-forecast
       - name: parameter_name
         inputType: FreeText
         description: Name of the parameter for forecasting
@@ -83,7 +83,7 @@ deployments:
         value: 0
       - name: window_value
         inputType: FreeText
-        description: Window value
+        description: Window value (number of observations or time period)
         required: true
         value: 30
       - name: window_type
@@ -101,99 +101,20 @@ deployments:
         description: Unit for the forecast_length
         required: true
         value: min
-  - name: Printers Dashboard
-    application: Printer Dashboard
-    deploymentType: Service
-    version: 31f55e55e0c074efaa40636378016eeee6a2d4b1
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    publicAccess:
-      enabled: true
-      urlPrefix: dash
-    desiredStatus: Running
-    variables:
-      - name: bearer_token
-        inputType: Secret
-        description: Token for the UI to access Quix
-        required: true
-        secretKey: dashboard_bearer_token
-      - name: printer_data_topic
-        inputType: InputTopic
-        description: ''
-        required: true
-        value: 3d-printer-data
-      - name: forecast_topic
-        inputType: InputTopic
-        description: ''
-        required: true
-        value: forecast
-      - name: alerts_topic
-        inputType: InputTopic
-        description: The topic to receive alerts on
-        required: true
-        value: alerts
-  - name: InfluxDB 3.0 Alerts
-    application: InfluxDB 3.0
-    deploymentType: Service
-    version: 5958238405eb10eaa8a435630714570fa09343be
-    resources:
-      cpu: 200
-      memory: 500
-      replicas: 1
-    desiredStatus: Stopped
-    variables:
-      - name: input
-        inputType: InputTopic
-        description: This is the input topic
-        required: true
-        value: alerts
-      - name: INFLUXDB_HOST
-        inputType: Secret
-        description: Host address for the InfluxDB instance.
-        required: true
-        secretKey: INFLUX_HOST
-      - name: INFLUXDB_TOKEN
-        inputType: Secret
-        description: Authentication token to access InfluxDB.
-        required: true
-        secretKey: INFLUX_TOKEN
-      - name: INFLUXDB_ORG
-        inputType: Secret
-        description: Organization name in InfluxDB.
-        required: true
-        secretKey: INFLUX_ORG
-      - name: INFLUXDB_DATABASE
-        inputType: Secret
-        description: Database name in InfluxDB where data should be stored.
-        required: true
-        secretKey: INFLUX_DATABASE
-      - name: INFLUXDB_TAG_COLUMNS
-        inputType: FreeText
-        description: Columns to be used as tags when writing data to InfluxDB.
-        required: true
-        value: '[]'
-      - name: INFLUXDB_MEASUREMENT_NAME
-        inputType: FreeText
-        description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: true
-        value: Alerts
   - name: InfluxDB 3.0 Raw Data
-    application: InfluxDB 3.0
-    deploymentType: Service
-    version: 5958238405eb10eaa8a435630714570fa09343be
+    application: InfluxDB 3.0 Sink
+    deploymentType: Job
+    version: latest
     resources:
-      cpu: 200
+      cpu: 500
       memory: 500
       replicas: 1
-    desiredStatus: Stopped
     variables:
       - name: input
         inputType: InputTopic
         description: This is the input topic
         required: true
-        value: downsampled-3d-printer-data
+        value: json-downsampled-3d-printer-data
       - name: INFLUXDB_HOST
         inputType: Secret
         description: Host address for the InfluxDB instance.
@@ -214,20 +135,25 @@ deployments:
         description: Database name in InfluxDB where data should be stored.
         required: true
         secretKey: INFLUX_DATABASE
-      - name: INFLUXDB_TAG_COLUMNS
+      - name: INFLUXDB_TAG_KEYS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
-        required: false
-        value: '[]'
+        required: true
+        value: "['printer']"
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: false
+        required: true
         value: Data
+      - name: INFLUXDB_FIELD_KEYS
+        inputType: FreeText
+        description: ''
+        required: false
+        value: "['mean_hotend_temperature', 'mean_bed_temperature', 'mean_ambient_temperature', 'mean_fluctuated_ambient_temperature', 'count']"
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
-    version: 2796e21539855732fc0330ff4440f77d2f3097ab
+    version: latest
     resources:
       cpu: 500
       memory: 1024
@@ -238,102 +164,127 @@ deployments:
         inputType: InputTopic
         description: This is the input topic to read data from
         required: true
-        value: 3d-printer-data
+        value: json-3d-printer-data
       - name: output
         inputType: OutputTopic
         description: This is the output topic to write data to
         required: true
-        value: downsampled-3d-printer-data
+        value: json-downsampled-3d-printer-data
   - name: Alert Service
     application: Alert Service
     deploymentType: Service
-    version: a9995c91e00e88c47420cafb7db1148a5af82642
+    version: latest
     resources:
       cpu: 300
       memory: 500
       replicas: 1
     desiredStatus: Running
     variables:
-      - name: alerts
+      - name: alert_topic
         inputType: OutputTopic
         description: Alerts topic
         required: true
-        value: alerts
-      - name: printer_data
-        inputType: InputTopic
-        description: 3D printer data
-        required: true
-        value: 3d-printer-data
-      - name: forecast_data
+        value: json-alerts
+      - name: forecast_topic
         inputType: InputTopic
         description: Forecast Data
         required: true
-        value: forecast
-      - name: min_ambient_temperature
-        inputType: FreeText
-        description: Lower threshold of ambient temperature
+        value: json-forecast
+  - name: InfluxDB 3.0 Alerts
+    application: InfluxDB 3.0 Sink
+    deploymentType: Service
+    version: latest
+    resources:
+      cpu: 200
+      memory: 500
+      replicas: 1
+    desiredStatus: Stopped
+    variables:
+      - name: input
+        inputType: InputTopic
+        description: This is the input topic
         required: true
-        value: 45
-      - name: max_ambient_temperature
-        inputType: FreeText
-        description: Higher threshold of ambient temperature
+        value: json-alerts
+      - name: INFLUXDB_HOST
+        inputType: Secret
+        description: Host address for the InfluxDB instance.
         required: true
-        value: 55
-      - name: min_bed_temperature
-        inputType: FreeText
-        description: Lower threshold of bed temperature
+        secretKey: INFLUX_HOST
+      - name: INFLUXDB_TOKEN
+        inputType: Secret
+        description: Authentication token to access InfluxDB.
         required: true
-        value: 105
-      - name: max_bed_temperature
-        inputType: FreeText
-        description: Higher threshold of bed temperature
+        secretKey: INFLUX_TOKEN
+      - name: INFLUXDB_ORG
+        inputType: Secret
+        description: Organization name in InfluxDB.
         required: true
-        value: 115
-      - name: min_hotend_temperature
-        inputType: FreeText
-        description: Lower threshold of hotend temperature
+        secretKey: INFLUX_ORG
+      - name: INFLUXDB_DATABASE
+        inputType: Secret
+        description: Database name in InfluxDB where data should be stored.
         required: true
-        value: 245
-      - name: max_hotend_temperature
+        secretKey: INFLUX_DATABASE
+      - name: INFLUXDB_TAG_KEYS
         inputType: FreeText
-        description: Higher threshold of hotend temperature
+        description: Columns to be used as tags when writing data to InfluxDB.
         required: true
-        value: 255
+        value: "['status','parameter_name']"
+      - name: INFLUXDB_MEASUREMENT_NAME
+        inputType: FreeText
+        description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
+        required: true
+        value: Alerts
+      - name: INFLUXDB_FIELD_KEYS
+        inputType: FreeText
+        description: ''
+        required: false
+        value: "['message','alert_temperature']"
 
 # This section describes the Topics of the data pipeline
 topics:
-  - name: forecast
+  - name: json-3d-printer-data
     persisted: false
     configuration:
-      partitions: 1
       replicationFactor: 1
       retentionInMinutes: 60
-      retentionInBytes: 52428800
-  - name: downsampled-3d-printer-data
-    persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 1
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
-  - name: alerts
-    persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 1
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
-  - name: 3d-printer-data
-    persisted: false
-    configuration:
-      partitions: 1
-      replicationFactor: 1
-      retentionInMinutes: 60
-      retentionInBytes: 52428800
-  - name: aaa
-    persisted: false
-    configuration:
       partitions: 1
       replicationFactor: 2
       retentionInMinutes: 1440
+      retentionInBytes: 52428800
+  - name: json-downsampled-3d-printer-data
+    persisted: false
+    configuration:
+      replicationFactor: 1
+      retentionInMinutes: 60
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
+  - name: json-forecast
+    persisted: false
+    configuration:
+      replicationFactor: 1
+      retentionInMinutes: 60
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
+  - name: json-alerts
+    persisted: false
+    configuration:
+      replicationFactor: 1
+      retentionInMinutes: 60
+      replicationFactor: 1
+      retentionInMinutes: 60
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
+      retentionInBytes: 52428800
+  - name: detection-result
+    persisted: false
+    configuration:
+      partitions: 1
+      replicationFactor: 1
+      retentionInMinutes: 60
       retentionInBytes: 52428800

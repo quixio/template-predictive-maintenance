@@ -5,23 +5,27 @@ import os
 import random
 import sys
 from datetime import datetime, timedelta
+import json
+import dotenv
 
-import pandas as pd
-import quixstreams as qx
+from quixstreams import Application
+from quixstreams.models.topics import Topic
+from quixstreams.kafka import Producer
 
-# Configure logging
+dotenv.load_dotenv() # for local dev, load env vars from .env file
 logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
-
-# Display all columns
-pd.set_option('display.max_columns', None)
 
 # Replay speed
 replay_speed = 10.0
-anomaly_fluctuation = 20  # was 3
-hot_end_anomaly_min_duration = 30  # 3
-hot_end_anomaly_max_duration = 35  # 5
-bed_anomaly_min_duration = 30  # 9
-bed_anomaly_max_duration = 35  # 12
+anomaly_fluctuation = 20
+hot_end_anomaly_min_duration = 30
+hot_end_anomaly_max_duration = 35
+bed_anomaly_min_duration = 30
+bed_anomaly_max_duration = 35
+
+
+def get_data_length() -> int:
+    return int(os.getenv('datalength', 60000))
 
 
 def temp(target, sigma, offset):
@@ -30,19 +34,19 @@ def temp(target, sigma, offset):
 
 def generate_data():
     data = []
-    target_ambient_t = int(os.environ['target_ambient_t'])  # 50  # MAKE ENV VAR i.e. value of target_ambient
-    hotend_t = int(os.environ['hotend_t'])  # 250  # MAKE ENV VAR: target temperature for the hotend
-    bed_t = int(os.environ['bed_t'])  # 110  # MAKE ENV VAR: target temperature for the bed
-    ambient_t = target_ambient_t  # 50 target ambient temperature
+    target_ambient_t = 75
+    hotend_t = 250
+    bed_t = 110
+    ambient_t = 50
 
     hotend_sigma = 0.5
     bed_sigma = 0.5
     ambient_sigma = 0.2
 
-    datalength = int(os.environ['datalength'])  # 28800  # MAKE ENV VAR: Currently 8 hours
+    datalength = int(os.getenv('datalength', 30000))  # 28800  # MAKE ENV VAR: Currently 8 hours
 
     # Generate 20 random anomaly timestamps
-    number_of_anomalies = int(os.environ["number_of_anomalies"])
+    number_of_anomalies = int(os.getenv("number_of_anomalies", "20"))
     hotend_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
     bed_anomaly_timestamps = [random.randint(0, datalength) for _ in range(number_of_anomalies)]
 
@@ -63,6 +67,9 @@ def generate_data():
     for i in range(datalength):
         hotend_temperature = temp(hotend_t, hotend_sigma, 0)
         bed_temperature = temp(bed_t, bed_sigma, 0)
+
+        hotend_anomaly_start = 0
+        bed_anomaly_start = 0
 
         # Check if current timestamp is an anomaly timestamp
         if i in hotend_anomaly_timestamps:
@@ -107,13 +114,14 @@ def generate_data():
 
         fluctuated_ambient_temperatures.append(fluctuated_ambient_temperature)
 
-        df = pd.DataFrame(
-            [[hotend_temperature, bed_temperature, ambient_temperature,
-              fluctuated_ambient_temperature]],
-            columns=['hotend_temperature', 'bed_temperature', 'ambient_temperature',
-                     'fluctuated_ambient_temperature'])
+        data_dict = {
+            'hotend_temperature': hotend_temperature,
+            'bed_temperature': bed_temperature,
+            'ambient_temperature': ambient_temperature,
+            'fluctuated_ambient_temperature': fluctuated_ambient_temperature
+        }
 
-        data.append(df)
+        data.append(data_dict)
 
         next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
         elapsed_seconds += 1
@@ -122,7 +130,7 @@ def generate_data():
     return data
 
 
-async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
+async def publish_data(printer: str, topic_name: str, producer: Producer, data: list):
     start_timestamp = datetime.now()
     elapsed_seconds = 0
 
@@ -130,11 +138,12 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
         next_timestamp = start_timestamp + timedelta(seconds=elapsed_seconds)
         elapsed_seconds += 1
 
-        frame["timestamp"] = pd.to_datetime(next_timestamp)
-        frame["original_timestamp"] = pd.to_datetime(next_timestamp)
-        frame["TAG__printer"] = printer
+        frame["timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp()).isoformat()
+        frame["original_timestamp"] = datetime.fromtimestamp(next_timestamp.timestamp()).isoformat()
+        frame["printer"] = printer
 
-        stream.timeseries.buffer.publish(frame)
+        json_data = json.dumps(frame)  # convert the row to JSON
+        producer.produce(topic_name, json_data, key=printer)  # publish with the producer
 
         # Dataframe should be sent at initial_timestamp + elapsed_seconds / replay_speed
         target_time = start_timestamp + timedelta(seconds=elapsed_seconds / replay_speed)
@@ -147,72 +156,48 @@ async def publish_data(printer: str, stream: qx.StreamProducer, data: list):
             await asyncio.sleep(delay_seconds)
 
 
-
-async def generate_data_and_close_stream_async(topic_producer: qx.TopicProducer, printer: str, printer_data: list, initial_delay: int):
+async def generate_data_async(topic: Topic, producer: Producer, printer: str, printer_data: list, initial_delay: int):
     await asyncio.sleep(initial_delay)
     while True:
-        stream = topic_producer.create_stream()
-        stream.properties.name = printer
-        
-        stream.timeseries.buffer.time_span_in_milliseconds = 500
-
-        # Add metadata about time series data you are about to send.
-        stream.timeseries.add_definition("hotend_temperature", "Hot end temperature")
-        stream.timeseries.add_definition("bed_temperature", "Bed temperature")
-        stream.timeseries.add_definition("ambient_temperature", "Ambient temperature")
-        stream.timeseries.add_definition("fluctuated_ambient_temperature", "Ambient temperature with fluctuations")
-
-        # Add metadata about printer
-        stream.properties.metadata["start_time"] = str(int(datetime.utcnow().timestamp()) * 1000000000)
-        stream.properties.metadata["end_time"] = str(int(datetime.utcnow().timestamp() + int(os.environ['datalength']) / replay_speed) * 1000000000)
-
-        # Temperature will drop below threshold in second 20839
-        failure_timestamps = [int(datetime.utcnow().timestamp() + 20839) * 1000000000]
-        failure_replay_speed_timestamps = [
-            int(datetime.utcnow().timestamp() + 20839 / replay_speed) * 1000000000]
-
-        stream.properties.metadata["failures"] = str(failure_timestamps)
-        stream.properties.metadata["failures_replay_speed"] = str(failure_replay_speed_timestamps)
-
-        print(f"{printer}: Sending values for {os.environ['datalength']} seconds.")
-        await publish_data(printer, stream, printer_data)
+        print(f"{printer}: Sending values for {os.getenv('datalength')} seconds.")
+        await publish_data(printer, topic.name, producer, printer_data)
 
         print(f"{printer}: Closing stream")
-        stream.close()
 
         # Wait 10 seconds before starting again
         await asyncio.sleep(10)
 
 
 async def main():
-    # Quix injects credentials automatically to the client.
-    # Alternatively, you can always pass an SDK token manually as an argument.
-    client = qx.QuixStreamingClient()
+    # Quix platform injects credentials automatically to the client.
+    # Alternatively, you can always pass an SDK token manually as an argument when working locally.
+    # Or set the relevant values in a .env file
+    app = Application.Quix("consumer-group-1", use_changelog_topics=False)
+    producer = app.get_producer()
 
     # Open the output topic where to write data out
-    topic_producer = client.get_topic_producer(topic_id_or_name=os.environ["output"])
-
-    # Create a stream for each printer
-    if 'number_of_printers' not in os.environ:
-        number_of_printers = 1
-    else:
-        number_of_printers = int(os.environ['number_of_printers'])
+    topic = app.topic(os.getenv("output", "3d-printer-data-json"))  # serialize with json by default
+    
+    number_of_printers = int(os.getenv("number_of_printers", 1)) # we will create a new stream for each printer
 
     tasks = []
     printer_data = generate_data()
 
-    # Distribute all printers over the data length
-    delay_seconds = int(os.environ['datalength']) / replay_speed / number_of_printers
+    # Distribute all printers over the data length (defaults to 60 seconds)
+    delay_seconds = get_data_length() / replay_speed / number_of_printers
 
     for i in range(number_of_printers):
-        # Set stream ID or leave parameters empty to get stream ID generated.
+        # Set MessageKey/StreamID or leave parameters empty to get a generated message key.
         name = f"Printer {i + 1}"  # We don't want a Printer 0, so start at 1
 
         # Start sending data, each printer will start with some delay after the previous one
-        tasks.append(asyncio.create_task(generate_data_and_close_stream_async(topic_producer, name, printer_data.copy(), delay_seconds * i)))
+        tasks.append(asyncio.create_task(generate_data_async(topic, producer, name, printer_data.copy(), int(delay_seconds * i))))
 
     await asyncio.gather(*tasks)
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except Exception as e:
+        logging.exception("An error occurred while running the application.")

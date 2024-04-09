@@ -1,0 +1,6 @@
+.venv
+venv
+.env
+certificates
+state
+launch.json
