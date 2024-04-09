@@ -30,6 +30,11 @@ variables:
     inputType: FreeText
     description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
     required: true
+  - name: INFLUXDB_FIELD_KEYS
+    inputType: InputTopic
+    description: ''
+    defaultValue: ''
+    required: false
 dockerfile: dockerfile
 runEntryPoint: main.py
 defaultFile: main.py
