@@ -1,50 +1,15 @@
 name: Alert Service
 language: python
 variables:
-  - name: alerts
+  - name: alert_topic
     inputType: OutputTopic
     description: Alerts topic
-    defaultValue: alerts
+    defaultValue: json-alerts
     required: true
-  - name: printer_data
-    inputType: InputTopic
-    description: 3D printer data
-    defaultValue: 3d-printer-data
-    required: true
-  - name: forecast_data
+  - name: forecast_topic
     inputType: InputTopic
     description: Forecast Data
-    defaultValue: forecast
-    required: true
-  - name: min_ambient_temperature
-    inputType: FreeText
-    description: Lower threshold of ambient temperature
-    defaultValue: 45
-    required: true
-  - name: max_ambient_temperature
-    inputType: FreeText
-    description: Higher threshold of ambient temperature
-    defaultValue: 55
-    required: true
-  - name: min_bed_temperature
-    inputType: FreeText
-    description: Lower threshold of bed temperature
-    defaultValue: 105
-    required: true
-  - name: max_bed_temperature
-    inputType: FreeText
-    description: Higher threshold of bed temperature
-    defaultValue: 115
-    required: true
-  - name: min_hotend_temperature
-    inputType: FreeText
-    description: Lower threshold of hotend temperature
-    defaultValue: 245
-    required: true
-  - name: max_hotend_temperature
-    inputType: FreeText
-    description: Higher threshold of hotend temperature
-    defaultValue: 255
+    defaultValue: json-forecast
     required: true
 dockerfile: build/dockerfile
 runEntryPoint: main.py
