@@ -116,45 +116,40 @@ deployments:
         required: true
         value: json-downsampled-3d-printer-data
       - name: INFLUXDB_HOST
-        inputType: FreeText
+        inputType: Secret
         description: Host address for the InfluxDB instance.
         required: true
-        value: INFLUX_HOST
+        secretKey: INFLUX_HOST
       - name: INFLUXDB_TOKEN
-        inputType: FreeText
+        inputType: Secret
         description: Authentication token to access InfluxDB.
         required: true
-        value: INFLUX_TOKEN
+        secretKey: INFLUX_TOKEN
       - name: INFLUXDB_ORG
-        inputType: FreeText
+        inputType: Secret
         description: Organization name in InfluxDB.
-        required: false
-        value: INFLUX_ORG
+        required: true
+        secretKey: INFLUX_ORG
       - name: INFLUXDB_DATABASE
-        inputType: FreeText
+        inputType: Secret
         description: Database name in InfluxDB where data should be stored.
         required: true
-        value: INFLUX_DATABASE
-      - name: INFLUXDB_TAG_COLUMNS
+        secretKey: INFLUX_DATABASE
+      - name: INFLUXDB_TAG_KEYS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
-        required: false
-        value: '[]'
+        required: true
+        value: "['printer']"
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: false
+        required: true
         value: Data
       - name: INFLUXDB_FIELD_KEYS
         inputType: FreeText
-        description: The fields to include when writing the measurement data
-        required: true
-        value: '[]'
-      - name: incoming_timestamp_key
-        inputType: FreeText
-        description: The incoming data field to use as the timestamp
+        description: ''
         required: false
-        value: alert_timestamp
+        value: "['mean_hotend_temperature', 'mean_bed_temperature', 'mean_ambient_temperature', 'mean_fluctuated_ambient_temperature', 'count']"
   - name: 3D Printer Down Sampling
     application: Down-sampling
     deploymentType: Service
@@ -211,45 +206,40 @@ deployments:
         required: true
         value: json-alerts
       - name: INFLUXDB_HOST
-        inputType: FreeText
+        inputType: Secret
         description: Host address for the InfluxDB instance.
         required: true
-        value: INFLUX_HOST
+        secretKey: INFLUX_HOST
       - name: INFLUXDB_TOKEN
-        inputType: FreeText
+        inputType: Secret
         description: Authentication token to access InfluxDB.
         required: true
-        value: INFLUX_TOKEN
+        secretKey: INFLUX_TOKEN
       - name: INFLUXDB_ORG
-        inputType: FreeText
+        inputType: Secret
         description: Organization name in InfluxDB.
-        required: false
-        value: INFLUX_ORG
+        required: true
+        secretKey: INFLUX_ORG
       - name: INFLUXDB_DATABASE
-        inputType: FreeText
+        inputType: Secret
         description: Database name in InfluxDB where data should be stored.
         required: true
-        value: INFLUX_DATABASE
-      - name: INFLUXDB_TAG_COLUMNS
+        secretKey: INFLUX_DATABASE
+      - name: INFLUXDB_TAG_KEYS
         inputType: FreeText
         description: Columns to be used as tags when writing data to InfluxDB.
-        required: false
-        value: '[]'
+        required: true
+        value: "['status','parameter_name']"
       - name: INFLUXDB_MEASUREMENT_NAME
         inputType: FreeText
         description: The InfluxDB measurement to write data to. If not specified, the name of the input topic will be used
-        required: false
+        required: true
         value: Alerts
       - name: INFLUXDB_FIELD_KEYS
         inputType: FreeText
-        description: The fields to include when writing the measurement data
-        required: true
-        value: '[]'
-      - name: incoming_timestamp_key
-        inputType: FreeText
-        description: The incoming data field to use as the timestamp
+        description: ''
         required: false
-        value: alert_timestamp
+        value: "['message','alert_temperature']"
 
 # This section describes the Topics of the data pipeline
 topics:
